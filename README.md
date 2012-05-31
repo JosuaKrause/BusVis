@@ -1,4 +1,4 @@
 BusVis
 ======
 
-Visualization of the Konstanz Bus system
+Visualization of the bus system of Konstanz.
