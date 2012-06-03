@@ -17,8 +17,18 @@ import javax.swing.AbstractAction;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+/**
+ * Tests the spring embedder with a simple example spring system.
+ * 
+ * @author Joschi <josua.krause@googlemail.com>
+ */
 public class EmbedderTest implements NodeDrawer, Weighter {
 
+  /**
+   * Starts the test.
+   * 
+   * @param args Ignored.
+   */
   public static void main(final String[] args) {
     final EmbedderTest test = new EmbedderTest();
     final SpringEmbedder embed = new SpringEmbedder(test, test);
@@ -53,14 +63,23 @@ public class EmbedderTest implements NodeDrawer, Weighter {
 
   }
 
+  /**
+   * Creates a new embedder test.
+   */
   public EmbedderTest() {
     for(int i = 0; i < 100; ++i) {
       nodes.add(new SpringNode());
     }
   }
 
+  /**
+   * Whether the weighter is in line or circle mode.
+   */
   private boolean line = true;
 
+  /**
+   * Toggles the mode between line and circle.
+   */
   protected void toggleMode() {
     line = !line;
   }
@@ -90,6 +109,9 @@ public class EmbedderTest implements NodeDrawer, Weighter {
     return 0.75;
   }
 
+  /**
+   * The list holding all nodes.
+   */
   private final List<SpringNode> nodes = new ArrayList<SpringNode>();
 
   @Override
@@ -99,13 +121,13 @@ public class EmbedderTest implements NodeDrawer, Weighter {
 
   @Override
   public double weight(final SpringNode from, final SpringNode to) {
-    return line ? Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) * 17 : 2;
+    return line ? Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) * 17 : 5;
   }
 
   @Override
   public boolean hasWeight(final SpringNode from, final SpringNode to) {
     return line ? Math.abs(nodes.indexOf(from) - nodes.indexOf(to) + 2) < 3
-        : Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) < 2;
+        : (Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) % (nodes.size() - 1)) < 2;
   }
 
   @Override

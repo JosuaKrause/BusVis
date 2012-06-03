@@ -9,20 +9,49 @@ import java.awt.geom.Point2D;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Simulates a spring embedder.
+ * 
+ * @author Joschi <josua.krause@googlemail.com>
+ */
 public class SpringEmbedder extends PainterAdapter {
 
+  /**
+   * The frame rate of the spring embedder.
+   */
   public static final long FRAMERATE = 60;
 
+  /**
+   * The waiting time resulting from the {@link #FRAMERATE}.
+   */
   protected static final long FRAMEWAIT = Math.max(1000 / FRAMERATE, 1);
 
+  /**
+   * The weighter, defining edges between nodes.
+   */
   private final Weighter weighter;
 
+  /**
+   * The drawer, drawing nodes.
+   */
   private final NodeDrawer drawer;
 
+  /**
+   * A list of refreshables that are refreshed, when a step has occured.
+   */
   private final List<Refreshable> receivers;
 
+  /**
+   * Whether this object is already disposed or can still be used.
+   */
   protected volatile boolean disposed;
 
+  /**
+   * Creates a spring embedder and automatically starts it.
+   * 
+   * @param weighter The weighter.
+   * @param drawer The drawer.
+   */
   public SpringEmbedder(final Weighter weighter, final NodeDrawer drawer) {
     this.weighter = weighter;
     this.drawer = drawer;
@@ -49,6 +78,9 @@ public class SpringEmbedder extends PainterAdapter {
     t.start();
   }
 
+  /**
+   * Simulates one step.
+   */
   protected void step() {
     double mx = 0;
     double my = 0;
@@ -70,7 +102,13 @@ public class SpringEmbedder extends PainterAdapter {
     }
   }
 
+  /**
+   * Adds a refreshable that is refreshed each step.
+   * 
+   * @param r The refreshable.
+   */
   public void addRefreshable(final Refreshable r) {
+    if(disposed) throw new IllegalStateException("object already disposed");
     receivers.add(r);
   }
 
@@ -96,6 +134,11 @@ public class SpringEmbedder extends PainterAdapter {
     return accepted;
   }
 
+  /**
+   * Disposes the object by cleaning all refreshables and stopping the
+   * simulation thread. The object cannot be used anymore after a call to this
+   * method.
+   */
   public void dispose() {
     disposed = true;
     receivers.clear();
