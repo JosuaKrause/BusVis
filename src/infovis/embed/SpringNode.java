@@ -2,17 +2,39 @@ package infovis.embed;
 
 import java.util.Random;
 
-
+/**
+ * A node in a spring embedder system.
+ * 
+ * @author Joschi <josua.krause@googlemail.com>
+ */
 public class SpringNode {
 
+  /**
+   * The current x position.
+   */
   private double x;
 
+  /**
+   * The current y position.
+   */
   private double y;
 
+  /**
+   * The current x movement.
+   */
   private double dx;
 
+  /**
+   * The current y movement.
+   */
   private double dy;
 
+  /**
+   * Calculates the movement of the node.
+   * 
+   * @param w The weighter, determining the weights of the edges between the
+   *          nodes.
+   */
   public void move(final Weighter w) {
     boolean rnd = false;
     double dx = 0;
@@ -47,6 +69,9 @@ public class SpringNode {
     this.dy += dy * c;
   }
 
+  /**
+   * Actually moves the node and resets the movement values.
+   */
   public void step() {
     x += dx;
     y += dy;
@@ -54,22 +79,48 @@ public class SpringNode {
     dy = 0;
   }
 
+  /**
+   * Getter.
+   * 
+   * @return The current x movement.
+   */
   public double getDx() {
     return dx;
   }
 
+  /**
+   * Getter.
+   * 
+   * @return The current y movement.
+   */
   public double getDy() {
     return dy;
   }
 
+  /**
+   * Getter.
+   * 
+   * @return The current x position.
+   */
   public double getX() {
     return x;
   }
 
+  /**
+   * Getter.
+   * 
+   * @return The current y position.
+   */
   public double getY() {
     return y;
   }
 
+  /**
+   * Manually adds a movement to the current motion.
+   * 
+   * @param dx The x movement.
+   * @param dy The y movement.
+   */
   public void addMove(final double dx, final double dy) {
     this.dx += dx;
     this.dy += dy;
