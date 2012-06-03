@@ -43,13 +43,15 @@ public class SpringNode {
       dy = r.nextGaussian();
     }
     final double c = w.springConstant();
-    this.dx = dx * c;
-    this.dy = dy * c;
+    this.dx += dx * c;
+    this.dy += dy * c;
   }
 
   public void step() {
     x += dx;
     y += dy;
+    dx = 0;
+    dy = 0;
   }
 
   public double getDx() {

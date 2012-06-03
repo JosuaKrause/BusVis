@@ -25,7 +25,7 @@ import javax.swing.KeyStroke;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class Canvas extends JComponent {
+public class Canvas extends JComponent implements Refreshable {
 
   /**
    * SVUID.
@@ -382,6 +382,11 @@ public class Canvas extends JComponent {
    */
   protected Point2D getForScreen(final Point2D p) {
     return new Point2D.Double(getXForScreen(p.getX()), getYForScreen(p.getY()));
+  }
+
+  @Override
+  public void refresh() {
+    repaint();
   }
 
 }

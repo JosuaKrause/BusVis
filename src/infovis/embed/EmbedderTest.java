@@ -1,75 +1,68 @@
 package infovis.embed;
 
 import infovis.gui.Canvas;
-import infovis.gui.PainterAdapter;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+import javax.swing.AbstractAction;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-public class EmbedderTest extends PainterAdapter implements NodeDrawer, Weighter {
+public class EmbedderTest implements NodeDrawer, Weighter {
 
   public static void main(final String[] args) {
     final EmbedderTest test = new EmbedderTest();
-    final Canvas c = new Canvas(test, 800, 600);
+    final SpringEmbedder embed = new SpringEmbedder(test, test);
+    final Canvas c = new Canvas(embed, 800, 600) {
+
+      private static final long serialVersionUID = -6834426709928877533L;
+
+      @Override
+      public void setupKeyActions() {
+        addAction(KeyEvent.VK_L, new AbstractAction() {
+
+          private static final long serialVersionUID = 3840566617434458358L;
+
+          @Override
+          public void actionPerformed(final ActionEvent arg0) {
+            test.toggleMode();
+          }
+
+        });
+      }
+
+    };
+    embed.addRefreshable(c);
     final JFrame frame = new JFrame("Test");
     frame.add(c);
     frame.pack();
     c.setBackground(Color.WHITE);
-    c.reset(new Rectangle2D.Double(-400, -300, 800, 600));
+    c.reset();
     frame.setLocationRelativeTo(null);
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setVisible(true);
-    final Thread t = new Thread() {
 
-      @Override
-      public void run() {
-        while(!isInterrupted()) {
-          synchronized(this) {
-            try {
-              wait(30);
-            } catch(final InterruptedException e) {
-              interrupt();
-              continue;
-            }
-          }
-          for(final SpringNode n : test.nodes()) {
-            n.move(test);
-          }
-          double mx = 0;
-          double my = 0;
-          double m = 0;
-          for(final SpringNode n : test.nodes()) {
-            mx += n.getDx();
-            my += n.getDy();
-            ++m;
-          }
-          mx /= -m;
-          my /= -m;
-          for(final SpringNode n : test.nodes()) {
-            n.addMove(mx, my);
-            n.step();
-          }
-          c.repaint();
-        }
-      }
-
-    };
-    t.setDaemon(true);
-    t.start();
   }
 
   public EmbedderTest() {
     for(int i = 0; i < 100; ++i) {
       nodes.add(new SpringNode());
     }
+  }
+
+  private boolean line = true;
+
+  protected void toggleMode() {
+    line = !line;
   }
 
   @Override
@@ -94,7 +87,7 @@ public class EmbedderTest extends PainterAdapter implements NodeDrawer, Weighter
 
   @Override
   public double springConstant() {
-    return 0.9;
+    return 0.75;
   }
 
   private final List<SpringNode> nodes = new ArrayList<SpringNode>();
@@ -106,22 +99,26 @@ public class EmbedderTest extends PainterAdapter implements NodeDrawer, Weighter
 
   @Override
   public double weight(final SpringNode from, final SpringNode to) {
-    return Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) * 17;
+    return line ? Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) * 17 : 2;
   }
 
   @Override
   public boolean hasWeight(final SpringNode from, final SpringNode to) {
-    return Math.abs(nodes.indexOf(from) - nodes.indexOf(to) + 2) < 3;
+    return line ? Math.abs(nodes.indexOf(from) - nodes.indexOf(to) + 2) < 3
+        : Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) < 2;
   }
 
   @Override
-  public void draw(final Graphics2D gfx) {
-    gfx.setColor(Color.BLACK);
-    for(final SpringNode n : nodes) {
-      final Graphics2D g = (Graphics2D) gfx.create();
-      drawNode(g, n);
-      g.dispose();
-    }
+  public void clickedAt(final SpringNode n) {
+    final Random r = new Random();
+    n.addMove(r.nextGaussian() * 17, r.nextGaussian() * 17);
+  }
+
+  @Override
+  public Shape nodeClickArea(final SpringNode n) {
+    final double x = n.getX();
+    final double y = n.getY();
+    return new Ellipse2D.Double(x - 2, y - 2, 4, 4);
   }
 
 }
