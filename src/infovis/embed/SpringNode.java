@@ -60,9 +60,10 @@ public class SpringNode {
       if(d > 0) {
         dx += (diffX - diffX / dist * d) * 0.5;
         dy += (diffY - diffY / dist * d) * 0.5;
-      } else if(dist < -d) {
-        dx += (diffX + diffX / dist * d) * 0.5;
-        dy += (diffY + diffY / dist * d) * 0.5;
+      } else {
+        final double f = dist <= -d ? 1 : Math.exp(-(dist + d) * (dist + d));
+        dx += (diffX + diffX / dist * d) * 0.5 * f;
+        dy += (diffY + diffY / dist * d) * 0.5 * f;
       }
     }
     if(rnd && dx == 0 && dy == 0) {

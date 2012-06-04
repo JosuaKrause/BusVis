@@ -113,7 +113,7 @@ public class EmbedderTest implements NodeDrawer, Weighter {
         g.fill(new Ellipse2D.Double(x - 2, y - 2, 4, 4));
         continue;
       }
-      if(!hasWeight(n, o)) {
+      if(!areNeighbors(n, o)) {
         continue;
       }
       g.setColor(new Color(0x10000000, true));
@@ -140,13 +140,24 @@ public class EmbedderTest implements NodeDrawer, Weighter {
 
   @Override
   public double weight(final SpringNode from, final SpringNode to) {
-    return line ? Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) * 17 : 5;
+    return areNeighbors(from, to) ? 17 : -17 * 2;
+  }
+
+  /**
+   * Whether two nodes are neighbors.
+   * 
+   * @param from The one node.
+   * @param to The other node.
+   * @return Whether they are neighbors.
+   */
+  private boolean areNeighbors(final SpringNode from, final SpringNode to) {
+    return line ? Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) < 2
+        : (Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) % (nodes.size() - 1)) < 2;
   }
 
   @Override
   public boolean hasWeight(final SpringNode from, final SpringNode to) {
-    return line ? Math.abs(nodes.indexOf(from) - nodes.indexOf(to) + 2) < 3
-        : (Math.abs(nodes.indexOf(from) - nodes.indexOf(to)) % (nodes.size() - 1)) < 2;
+    return true;
   }
 
   @Override
