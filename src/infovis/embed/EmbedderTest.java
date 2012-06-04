@@ -32,6 +32,7 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   public static void main(final String[] args) {
     final EmbedderTest test = new EmbedderTest();
     final SpringEmbedder embed = new SpringEmbedder(test, test);
+    final JFrame frame = new JFrame("Test");
     final Canvas c = new Canvas(embed, 800, 600) {
 
       private static final long serialVersionUID = -6834426709928877533L;
@@ -48,11 +49,20 @@ public class EmbedderTest implements NodeDrawer, Weighter {
           }
 
         });
+        addAction(KeyEvent.VK_Q, new AbstractAction() {
+
+          private static final long serialVersionUID = -6529074015382752666L;
+
+          @Override
+          public void actionPerformed(final ActionEvent e) {
+            frame.dispose();
+          }
+
+        });
       }
 
     };
     embed.addRefreshable(c);
-    final JFrame frame = new JFrame("Test");
     frame.add(c);
     frame.pack();
     c.setBackground(Color.WHITE);
