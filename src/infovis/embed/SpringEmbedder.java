@@ -60,16 +60,20 @@ public class SpringEmbedder extends PainterAdapter {
 
       @Override
       public void run() {
-        while(!isInterrupted() && !disposed) {
-          synchronized(this) {
-            try {
-              wait(FRAMEWAIT);
-            } catch(final InterruptedException e) {
-              interrupt();
-              continue;
+        try {
+          while(!isInterrupted() && !disposed) {
+            synchronized(this) {
+              try {
+                wait(FRAMEWAIT);
+              } catch(final InterruptedException e) {
+                interrupt();
+                continue;
+              }
             }
+            step();
           }
-          step();
+        } finally {
+          disposed = true;
         }
       }
 
@@ -142,6 +146,15 @@ public class SpringEmbedder extends PainterAdapter {
   public void dispose() {
     disposed = true;
     receivers.clear();
+  }
+
+  /**
+   * Tests whether this spring embedder is disposed.
+   * 
+   * @return If it is disposed.
+   */
+  public boolean isDisposed() {
+    return disposed;
   }
 
 }
