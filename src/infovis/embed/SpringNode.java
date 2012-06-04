@@ -126,4 +126,17 @@ public class SpringNode {
     this.dy += dy;
   }
 
+  /**
+   * Sets a new position for the node and resets velocity.
+   * 
+   * @param x The new x position.
+   * @param y The new y position.
+   */
+  public void setPosition(final double x, final double y) {
+    this.x = x;
+    this.y = y;
+    dx = 0;
+    dy = 0;
+  }
+
 }

@@ -28,10 +28,14 @@ public interface NodeDrawer {
   Shape nodeClickArea(SpringNode n);
 
   /**
-   * Is called when the user clicks on the given node.
+   * Drags a single node.
    * 
-   * @param n The node that was clicked on.
+   * @param n The node.
+   * @param startX The original starting x position.
+   * @param startY The original starting y position.
+   * @param dx The x difference to the original starting point.
+   * @param dy The y difference to the original starting point.
    */
-  void clickedAt(SpringNode n);
+  void dragNode(SpringNode n, double startX, double startY, double dx, double dy);
 
 }

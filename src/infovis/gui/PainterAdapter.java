@@ -32,4 +32,22 @@ public class PainterAdapter implements Painter {
     return false;
   }
 
+  @Override
+  public boolean acceptDrag(final Point2D p) {
+    // the event is not consumed
+    return false;
+  }
+
+  @Override
+  public void drag(final Point2D start, final Point2D cur, final double dx,
+      final double dy) {
+    // do nothing
+  }
+
+  @Override
+  public void endDrag(final Point2D start, final Point2D cur, final double dx,
+      final double dy) {
+    drag(start, cur, dx, dy);
+  }
+
 }

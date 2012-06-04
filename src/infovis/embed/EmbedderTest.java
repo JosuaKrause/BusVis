@@ -11,7 +11,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
@@ -141,9 +140,11 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void clickedAt(final SpringNode n) {
-    final Random r = new Random();
-    n.addMove(r.nextGaussian() * 17, r.nextGaussian() * 17);
+  public void dragNode(final SpringNode n, final double startX, final double startY,
+      final double dx, final double dy) {
+    final double x = startX + dx;
+    final double y = startY + dy;
+    n.setPosition(x, y);
   }
 
   @Override

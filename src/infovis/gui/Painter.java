@@ -50,4 +50,36 @@ public interface Painter {
    */
   boolean clickHUD(Point2D p);
 
+  /**
+   * Is called when the user starts a dragging operation on the canvas. The
+   * coordinates are in the {@link Painter Painters} coordinate space and
+   * therefore suitable for dragging of objects on the canvas.
+   * 
+   * @param p The position where the drag starts in canvas coordinates.
+   * @return Whether the drag is accepted and the dragging is started.
+   */
+  boolean acceptDrag(Point2D p);
+
+  /**
+   * Is called subsequently after {@link #acceptDrag(Point2D)} returned
+   * <code>true</code> on every mouse movement until the user releases the mouse
+   * button.
+   * 
+   * @param start The position where the drag started in canvas coordinates.
+   * @param cur The current drag position in canvas coordinates.
+   * @param dx The x distance of the drag in canvas coordinates.
+   * @param dy The y distance of the drag in canvas coordinates.
+   */
+  void drag(Point2D start, Point2D cur, double dx, double dy);
+
+  /**
+   * Is called when the user releases the mouse in drag operation.
+   * 
+   * @param start The position where the drag started in canvas coordinates.
+   * @param end The end position of the drag in canvas coordinates.
+   * @param dx The x distance of the drag in canvas coordinates.
+   * @param dy The y distance of the drag in canvas coordinates.
+   */
+  void endDrag(Point2D start, Point2D end, double dx, double dy);
+
 }

@@ -125,17 +125,71 @@ public class SpringEmbedder extends PainterAdapter {
     }
   }
 
+  /**
+   * A selected node.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  private static final class SelectedNode {
+
+    /**
+     * The actual node.
+     */
+    public final SpringNode node;
+
+    /**
+     * The x position at the time of selection.
+     */
+    public final double x;
+
+    /**
+     * The y position at the time of selection.
+     */
+    public final double y;
+
+    /**
+     * Creates a selected node.
+     * 
+     * @param node The selected node.
+     */
+    public SelectedNode(final SpringNode node) {
+      this.node = node;
+      x = node.getX();
+      y = node.getY();
+    }
+
+  }
+
+  /**
+   * A list of all currently selected nodes.
+   */
+  private final List<SelectedNode> selected = new LinkedList<SelectedNode>();
+
   @Override
-  public boolean click(final Point2D p) {
-    boolean accepted = false;
+  public boolean acceptDrag(final Point2D p) {
+    selected.clear();
     for(final SpringNode n : weighter.nodes()) {
       final Shape s = drawer.nodeClickArea(n);
       if(s.contains(p)) {
-        drawer.clickedAt(n);
-        accepted = true;
+        selected.add(new SelectedNode(n));
       }
     }
-    return accepted;
+    return !selected.isEmpty();
+  }
+
+  @Override
+  public void drag(final Point2D start, final Point2D cur, final double dx,
+      final double dy) {
+    for(final SelectedNode n : selected) {
+      drawer.dragNode(n.node, n.x, n.y, dx, dy);
+    }
+  }
+
+  @Override
+  public void endDrag(final Point2D start, final Point2D cur, final double dx,
+      final double dy) {
+    super.endDrag(start, cur, dx, dy);
+    selected.clear();
   }
 
   /**

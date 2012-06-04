@@ -74,8 +74,11 @@ public class Canvas extends JComponent implements Refreshable {
 
       private double origY;
 
+      private Point2D start;
+
       @Override
       public void mousePressed(final MouseEvent e) {
+        grabFocus();
         final Point2D p = e.getPoint();
         if(painter.clickHUD(p)) {
           Canvas.this.repaint();
@@ -86,27 +89,46 @@ public class Canvas extends JComponent implements Refreshable {
           Canvas.this.repaint();
           return;
         }
-        if(isMoveable() && e.getButton() == MouseEvent.BUTTON1) {
+        final boolean leftButton = e.getButton() == MouseEvent.BUTTON1;
+        if(leftButton && painter.acceptDrag(c)) {
+          Canvas.this.repaint();
+          drag = true;
+          start = c;
+          return;
+        }
+        if(leftButton && isMoveable()) {
           startx = e.getX();
           starty = e.getY();
           origX = getOffsetX();
           origY = getOffsetY();
+          start = null;
           drag = true;
         }
-        grabFocus();
       }
 
       @Override
       public void mouseDragged(final MouseEvent e) {
         if(drag) {
-          move(e.getX(), e.getY());
+          if(start == null) {
+            move(e.getX(), e.getY());
+          } else {
+            final Point2D cur = getForScreen(e.getPoint());
+            painter.drag(start, cur, cur.getX() - start.getX(), cur.getY() - start.getY());
+          }
         }
       }
 
       @Override
       public void mouseReleased(final MouseEvent e) {
         if(drag) {
-          move(e.getX(), e.getY());
+          if(start == null) {
+            move(e.getX(), e.getY());
+          } else {
+            final Point2D cur = getForScreen(e.getPoint());
+            painter.endDrag(start, cur, cur.getX() - start.getX(),
+                cur.getY() - start.getY());
+            start = null;
+          }
           drag = false;
         }
       }
