@@ -53,6 +53,7 @@ public class SpringNode {
         rnd = true;
         continue;
       }
+      rnd = false;
       final double diffX = ox - x;
       final double diffY = oy - y;
       final double dist = Math.sqrt(diffX * diffX + diffY * diffY);

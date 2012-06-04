@@ -98,12 +98,37 @@ public class SpringEmbedder extends PainterAdapter {
     mx /= -m;
     my /= -m;
     for(final SpringNode n : weighter.nodes()) {
-      n.addMove(mx, my);
+      if(correctMovement) {
+        n.addMove(mx, my);
+      }
       n.step();
     }
     for(final Refreshable r : receivers) {
       r.refresh();
     }
+  }
+
+  /**
+   * Whether to correct the movement of the nodes by removing overall movements.
+   */
+  private boolean correctMovement;
+
+  /**
+   * Getter.
+   * 
+   * @return Whether the movement is corrected.
+   */
+  public boolean isCorrectingMovement() {
+    return correctMovement;
+  }
+
+  /**
+   * Setter.
+   * 
+   * @param correctMovement Sets whether to correct overall movements.
+   */
+  public void setCorrectMovement(final boolean correctMovement) {
+    this.correctMovement = correctMovement;
   }
 
   /**

@@ -58,6 +58,16 @@ public class EmbedderTest implements NodeDrawer, Weighter {
           }
 
         });
+        addAction(KeyEvent.VK_M, new AbstractAction() {
+
+          private static final long serialVersionUID = 8243341373949395480L;
+
+          @Override
+          public void actionPerformed(final ActionEvent e) {
+            embed.setCorrectMovement(!embed.isCorrectingMovement());
+          }
+
+        });
       }
 
     };
