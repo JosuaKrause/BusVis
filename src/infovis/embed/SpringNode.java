@@ -57,8 +57,13 @@ public class SpringNode {
       final double diffX = ox - x;
       final double diffY = oy - y;
       final double dist = Math.sqrt(diffX * diffX + diffY * diffY);
-      dx += (diffX - diffX / dist * d) * 0.5;
-      dy += (diffY - diffY / dist * d) * 0.5;
+      if(d > 0) {
+        dx += (diffX - diffX / dist * d) * 0.5;
+        dy += (diffY - diffY / dist * d) * 0.5;
+      } else if(dist < -d) {
+        dx += (diffX + diffX / dist * d) * 0.5;
+        dy += (diffY + diffY / dist * d) * 0.5;
+      }
     }
     if(rnd && dx == 0 && dy == 0) {
       final Random r = new Random(hashCode());

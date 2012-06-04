@@ -12,7 +12,8 @@ public interface Weighter {
    * 
    * @param from The source of the edge.
    * @param to The target of the edge.
-   * @return The weight of the edge.
+   * @return The weight of the edge. Negative weights push nodes apart until the
+   *         given distance is reached.
    */
   double weight(SpringNode from, SpringNode to);
 
