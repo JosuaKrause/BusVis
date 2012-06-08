@@ -82,7 +82,14 @@ public class BusEdge implements Comparable<BusEdge> {
 
   @Override
   public int compareTo(final BusEdge o) {
-    return start.compareTo(o.start);
+    final int cmp = start.compareTo(o.start);
+    return cmp == 0 ? end.compareTo(o.end) : cmp;
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "[From: " + getFrom() + " To: " + getTo()
+        + " Start: " + getStart() + " End: " + getEnd() + "]";
   }
 
 }
