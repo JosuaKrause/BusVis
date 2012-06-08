@@ -94,17 +94,12 @@ public final class BusTime implements Comparable<BusTime> {
       @Override
       public int compare(final BusTime o1, final BusTime o2) {
         final int h1 = (o1.getHour() < curHour) ? HOURS_PER_DAY + o1.getHour()
-            : o1.getHour();
+            : ((o1.getHour() == curHour && o1.getMinute() < curMin) ? HOURS_PER_DAY
+                + o1.getHour() : o1.getHour());
         final int h2 = (o2.getHour() < curHour) ? HOURS_PER_DAY + o2.getHour()
-            : o1.getHour();
+            : ((o2.getHour() == curHour && o2.getMinute() < curMin) ? HOURS_PER_DAY
+                + o2.getHour() : o2.getHour());
         if(h1 != h2) return ((Integer) h1).compareTo(h2);
-        if(h1 == curHour) { // look closely at the minutes
-          final int m1 = (o1.getMinute() < curMin) ? MINUTES_PER_HOUR + o1.getMinute()
-              : o1.getMinute();
-          final int m2 = (o2.getMinute() < curMin) ? MINUTES_PER_HOUR + o2.getMinute()
-              : o2.getMinute();
-          return ((Integer) m1).compareTo(m2);
-        }
         // minutes can easily be compared
         return ((Integer) o1.getMinute()).compareTo(o2.getMinute());
       }
@@ -128,6 +123,11 @@ public final class BusTime implements Comparable<BusTime> {
   @Override
   public int hashCode() {
     return hour * MINUTES_PER_HOUR + minute;
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "[" + hour + "h " + minute + " min]";
   }
 
 }
