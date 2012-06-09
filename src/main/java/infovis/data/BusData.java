@@ -61,7 +61,7 @@ public final class BusData {
           final BusTime arrive = parse(tour[i++]);
 
           if(before != null) {
-            before.addEdge(new BusEdge(busLine, before, current, depart, arrive));
+            before.addEdge(busLine, current, depart, arrive);
           }
 
           if("-1".equals(tour[i])) {

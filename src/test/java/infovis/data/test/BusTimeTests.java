@@ -1,5 +1,6 @@
 package infovis.data.test;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import infovis.data.BusTime;
 
@@ -21,15 +22,10 @@ public class BusTimeTests {
    */
   @Test
   public void trivial() {
-    if(new BusTime(1, 2).equals(new BusTime(2, 1))) {
-      fail("times are different!");
-    }
-    if(new BusTime(1, 2).equals(new BusTime(1, 1))) {
-      fail("times are different!");
-    }
-    if(new BusTime(0, 0).equals(null)) {
-      fail("null is different");
-    }
+    assertThat("times are different!", new BusTime(1, 2), not(new BusTime(2, 1)));
+    assertThat("times are different!", new BusTime(1, 2), not(new BusTime(1, 1)));
+    assertFalse("times are different!", new BusTime(0, 0).equals(null));
+
     try {
       new BusTime(24, 0);
       fail("should throw an exception");
@@ -72,13 +68,10 @@ public class BusTimeTests {
     final int[] perm = {
         3, 4, 1, 2, 5, 0,
     };
-    final BusTime[] copy = Arrays.copyOf(times, times.length);
+    final BusTime[] copy = times.clone();
     Arrays.sort(copy);
     for(int i = 0; i < times.length; ++i) {
-      if(!copy[i].equals(times[perm[i]])) {
-        System.out.println(Arrays.toString(copy));
-        fail("expected " + times[perm[i]] + " got " + copy[i] + " at " + i);
-      }
+      assertSame("Position " + i, times[perm[i]], copy[i]);
     }
   }
 
@@ -111,13 +104,10 @@ public class BusTimeTests {
     final int[] perm = {
         2, 6, 9, 12, 13, 11, 0, 3, 10, 4, 7, 1, 15, 18, 14, 17, 16, 8, 5,
     };
-    final BusTime[] copy = Arrays.copyOf(times, times.length);
+    final BusTime[] copy = times.clone();
     Arrays.sort(copy, new BusTime(17, 23).createRelativeComparator());
     for(int i = 0; i < times.length; ++i) {
-      if(!copy[i].equals(times[perm[i]])) {
-        System.out.println(Arrays.toString(copy));
-        fail("expected " + times[perm[i]] + " got " + copy[i] + " at " + i);
-      }
+      assertSame("Position " + i, times[perm[i]], copy[i]);
     }
   }
 
@@ -142,10 +132,7 @@ public class BusTimeTests {
     };
     final BusTime ref = new BusTime(17, 23);
     for(int i = 0; i < times.length; ++i) {
-      if(ref.minutesTo(times[i]) != diff[i]) {
-        fail("expected " + diff[i] + " got " + ref.minutesTo(times[i]) + " minutes at "
-            + i);
-      }
+      assertEquals("Position " + i, diff[i], ref.minutesTo(times[i]));
     }
   }
 
@@ -156,9 +143,7 @@ public class BusTimeTests {
   public void hashes() {
     final Set<BusTime> times = new HashSet<BusTime>();
     times.add(new BusTime(13, 37));
-    if(!times.contains(new BusTime(13, 37))) {
-      fail("should be contained");
-    }
+    assertTrue("should be contained", times.contains(new BusTime(13, 37)));
   }
 
 }
