@@ -95,10 +95,14 @@ public final class BusStation {
   /**
    * Adds an edge to this bus station.
    * 
-   * @param edge The edge.
+   * @param line bus line
+   * @param dest The destination.
+   * @param start The start time.
+   * @param end The end time.
    */
-  public void addEdge(final BusEdge edge) {
-    edges.add(edge);
+  public void addEdge(final BusLine line, final BusStation dest, final BusTime start,
+      final BusTime end) {
+    edges.add(new BusEdge(line, this, dest, start, end));
   }
 
   /**
@@ -132,28 +136,52 @@ public final class BusStation {
       public Iterator<BusEdge> iterator() {
         return new Iterator<BusEdge>() {
 
-          private BusEdge cur = s;
+          private boolean pushedBack;
+
+          private BusEdge cur;
+
+          private Iterator<BusEdge> it;
+
+          {
+            it = e.tailSet(s).iterator();
+            cur = it.next();
+            pushedBack = true;
+          }
+
+          private BusEdge pollNext() {
+            if(it.hasNext()) {
+              final BusEdge e = it.next();
+              if(e == s) {
+                it = null;
+              }
+              return it != null ? e : null;
+            }
+            it = e.iterator(); // can not be empty
+            final BusEdge e = it.next();
+            if(e == s) {
+              it = null;
+            }
+            return it != null ? e : null;
+          }
 
           @Override
           public boolean hasNext() {
             if(cur == null) return false;
-            if(e.last() == cur) return e.first() != s;
-            return e.tailSet(cur).first() != s;
+            if(pushedBack) return true;
+            cur = pollNext();
+            pushedBack = true;
+            return cur != null;
           }
 
           @Override
           public BusEdge next() {
             if(cur == null) return null;
-            final BusEdge res = cur;
-            if(e.last() == cur) {
-              cur = e.first();
-            } else {
-              cur = e.tailSet(cur).first();
+            if(pushedBack) {
+              pushedBack = false;
+              return cur;
             }
-            if(cur == s) {
-              cur = null;
-            }
-            return res;
+            cur = pollNext();
+            return cur;
           }
 
           @Override
