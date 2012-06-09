@@ -134,14 +134,19 @@ public final class BusStation {
       public Iterator<BusEdge> iterator() {
         return new Iterator<BusEdge>() {
 
-          private boolean pushedBack = true;
+          private boolean pushedBack;
 
-          private BusEdge cur = s;
+          private BusEdge cur;
 
-          private Iterator<BusEdge> it = e.tailSet(s).iterator();
+          private Iterator<BusEdge> it;
+
+          {
+            it = e.tailSet(s).iterator();
+            cur = it.next();
+            pushedBack = true;
+          }
 
           private BusEdge pollNext() {
-            if(it == null) return null;
             if(it.hasNext()) {
               final BusEdge e = it.next();
               if(e == s) {
@@ -149,11 +154,7 @@ public final class BusStation {
               }
               return it != null ? e : null;
             }
-            it = e.iterator();
-            if(!it.hasNext()) {
-              it = null;
-              return null;
-            }
+            it = e.iterator(); // can not be empty
             final BusEdge e = it.next();
             if(e == s) {
               it = null;

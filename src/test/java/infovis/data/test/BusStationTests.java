@@ -5,6 +5,8 @@ import infovis.data.BusEdge;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 
+import java.util.Iterator;
+
 import org.junit.Test;
 
 /**
@@ -19,12 +21,17 @@ public class BusStationTests {
     final BusStation b = BusStation.createStation("b", 1);
     final BusStation c = BusStation.createStation("c", 2);
     final BusStation d = BusStation.createStation("d", 3);
+    final BusStation e = BusStation.createStation("e", 4);
     a.addEdge(c, new BusTime(3, 10), new BusTime(3, 13));
     a.addEdge(b, new BusTime(3, 10), new BusTime(3, 12));
     a.addEdge(d, new BusTime(3, 10), new BusTime(3, 11));
     b.addEdge(a, new BusTime(3, 10), new BusTime(3, 20));
     b.addEdge(c, new BusTime(3, 9), new BusTime(3, 5));
     c.addEdge(a, new BusTime(2, 0), new BusTime(2, 1));
+    d.addEdge(a, new BusTime(0, 1), new BusTime(0, 2));
+    d.addEdge(b, new BusTime(0, 2), new BusTime(0, 3));
+    d.addEdge(c, new BusTime(0, 3), new BusTime(0, 4));
+    d.addEdge(e, new BusTime(0, 4), new BusTime(0, 5));
   }
 
   /**
@@ -125,6 +132,37 @@ public class BusStationTests {
       fail("bus stations must have unique ids");
     } catch(final IllegalArgumentException e) {
       // success
+    }
+  }
+
+  /**
+   * Tests special cases in the iteration of edges.
+   */
+  @Test
+  public void iteration() {
+    final BusStation d = BusStation.getForId(3);
+    final Iterator<BusEdge> it = d.getEdges(new BusTime(0, 0)).iterator();
+    assertEquals(0, it.next().getTo().getId());
+    assertTrue(it.hasNext());
+    assertTrue("succesive calls to hasNext", it.hasNext());
+    assertEquals(1, it.next().getTo().getId());
+    assertEquals(2, it.next().getTo().getId());
+    assertEquals(4, it.next().getTo().getId());
+    assertFalse(it.hasNext());
+    assertEquals(null, it.next());
+    assertEquals(null, it.next());
+    assertFalse(it.hasNext());
+    assertEquals(null, it.next());
+    assertFalse(it.hasNext());
+    final BusTime[] times = new BusTime[] { new BusTime(0, 0), new BusTime(0, 1),
+        new BusTime(0, 2), new BusTime(0, 3), new BusTime(0, 4), new BusTime(0, 5)};
+    final int[] ids = { 0, 1, 2, 4, 0, 1, 2, 4, 1, 2, 4, 0, 2, 4, 0, 1, 4, 0, 1, 2, 0, 1,
+        2, 4};
+    int i = 0;
+    for(final BusTime start : times) {
+      for(final BusEdge e : d.getEdges(start)) {
+        assertEquals(ids[i++], e.getTo().getId());
+      }
     }
   }
 
