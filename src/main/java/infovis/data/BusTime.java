@@ -127,7 +127,7 @@ public final class BusTime implements Comparable<BusTime> {
 
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "[" + hour + "h " + minute + " min]";
+    return String.format("%02d:%02d", hour, minute);
   }
 
 }

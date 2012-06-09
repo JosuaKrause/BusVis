@@ -98,9 +98,22 @@ public final class BusStation {
    * @param dest The destination.
    * @param start The start time.
    * @param end The end time.
+   * @param line The bus line.
    */
-  public void addEdge(final BusStation dest, final BusTime start, final BusTime end) {
-    edges.add(new BusEdge(this, dest, start, end));
+  public void addEdge(final BusStation dest, final BusTime start, final BusTime end,
+      final BusLine line) {
+    addEdge(new BusEdge(line, this, dest, start, end));
+  }
+
+  /**
+   * Adds an edge to this bus station.
+   * 
+   * @param edge The edge to add.
+   */
+  public void addEdge(final BusEdge edge) {
+    if(!edge.getFrom().equals(this)) throw new IllegalArgumentException(
+        "wrong starting point");
+    edges.add(edge);
   }
 
   /**
@@ -205,7 +218,7 @@ public final class BusStation {
 
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "[" + getName() + "(" + getId() + ")]";
+    return String.format("%s[%s, %d]", getClass().getSimpleName(), name, id);
   }
 
 }

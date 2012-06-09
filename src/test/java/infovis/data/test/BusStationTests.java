@@ -2,9 +2,11 @@ package infovis.data.test;
 
 import static org.junit.Assert.*;
 import infovis.data.BusEdge;
+import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 
+import java.awt.Color;
 import java.util.Iterator;
 
 import org.junit.Test;
@@ -17,21 +19,22 @@ import org.junit.Test;
 public class BusStationTests {
 
   static {
+    final BusLine line = new BusLine("foo", Color.BLUE);
     final BusStation a = BusStation.createStation("a", 0);
     final BusStation b = BusStation.createStation("b", 1);
     final BusStation c = BusStation.createStation("c", 2);
     final BusStation d = BusStation.createStation("d", 3);
     final BusStation e = BusStation.createStation("e", 4);
-    a.addEdge(c, new BusTime(3, 10), new BusTime(3, 13));
-    a.addEdge(b, new BusTime(3, 10), new BusTime(3, 12));
-    a.addEdge(d, new BusTime(3, 10), new BusTime(3, 11));
-    b.addEdge(a, new BusTime(3, 10), new BusTime(3, 20));
-    b.addEdge(c, new BusTime(3, 9), new BusTime(3, 5));
-    c.addEdge(a, new BusTime(2, 0), new BusTime(2, 1));
-    d.addEdge(a, new BusTime(0, 1), new BusTime(0, 2));
-    d.addEdge(b, new BusTime(0, 2), new BusTime(0, 3));
-    d.addEdge(c, new BusTime(0, 3), new BusTime(0, 4));
-    d.addEdge(e, new BusTime(0, 4), new BusTime(0, 5));
+    a.addEdge(c, new BusTime(3, 10), new BusTime(3, 13), line);
+    a.addEdge(b, new BusTime(3, 10), new BusTime(3, 12), line);
+    a.addEdge(d, new BusTime(3, 10), new BusTime(3, 11), line);
+    b.addEdge(a, new BusTime(3, 10), new BusTime(3, 20), line);
+    b.addEdge(c, new BusTime(3, 9), new BusTime(3, 5), line);
+    c.addEdge(a, new BusTime(2, 0), new BusTime(2, 1), line);
+    d.addEdge(a, new BusTime(0, 1), new BusTime(0, 2), line);
+    d.addEdge(b, new BusTime(0, 2), new BusTime(0, 3), line);
+    d.addEdge(c, new BusTime(0, 3), new BusTime(0, 4), line);
+    d.addEdge(e, new BusTime(0, 4), new BusTime(0, 5), line);
   }
 
   /**
