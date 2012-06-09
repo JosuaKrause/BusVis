@@ -86,25 +86,25 @@ public class BusStationTests {
   public void singleEdge() {
     final BusStation c = BusStation.getForId(2);
     int i = 0;
-    for(final BusEdge _ : c.getEdges(new BusTime(0, 0))) {
+    for(final BusEdge e : c.getEdges(new BusTime(0, 0))) {
       ++i;
     }
     if(i != 1) {
       fail("must have exactly one edge");
     }
-    for(final BusEdge _ : c.getEdges(new BusTime(3, 0))) {
+    for(final BusEdge e : c.getEdges(new BusTime(3, 0))) {
       ++i;
     }
     if(i != 2) {
       fail("must have exactly one edge");
     }
-    for(final BusEdge _ : c.getEdges(new BusTime(2, 1))) {
+    for(final BusEdge e : c.getEdges(new BusTime(2, 1))) {
       ++i;
     }
     if(i != 3) {
       fail("must have exactly one edge");
     }
-    for(final BusEdge _ : c.getEdges(new BusTime(2, 0))) {
+    for(final BusEdge e : c.getEdges(new BusTime(2, 0))) {
       ++i;
     }
     if(i != 4) {
