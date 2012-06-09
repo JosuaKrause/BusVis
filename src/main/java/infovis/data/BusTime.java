@@ -130,4 +130,8 @@ public final class BusTime implements Comparable<BusTime> {
     return hour * MINUTES_PER_HOUR + minute;
   }
 
+  @Override
+  public String toString() {
+    return String.format("%02d:%02d", hour, minute);
+  }
 }

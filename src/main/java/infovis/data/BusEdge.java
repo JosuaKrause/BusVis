@@ -9,6 +9,11 @@ package infovis.data;
 public class BusEdge implements Comparable<BusEdge> {
 
   /**
+   * Bus line.
+   */
+  private final BusLine line;
+
+  /**
    * The departure time.
    */
   private final BusTime start;
@@ -31,17 +36,29 @@ public class BusEdge implements Comparable<BusEdge> {
   /**
    * Creates a new edge.
    * 
+   * @param line bus line
    * @param from The starting point.
    * @param to The destination.
    * @param start The departure time.
    * @param end The arrival time.
    */
-  public BusEdge(final BusStation from, final BusStation to, final BusTime start,
+  public BusEdge(final BusLine line, final BusStation from, final BusStation to,
+      final BusTime start,
       final BusTime end) {
+    this.line = line;
     this.start = start;
     this.end = end;
     this.from = from;
     this.to = to;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return bus line
+   */
+  public BusLine getLine() {
+    return line;
   }
 
   /**
@@ -85,4 +102,9 @@ public class BusEdge implements Comparable<BusEdge> {
     return start.compareTo(o.start);
   }
 
+  @Override
+  public String toString() {
+    return String.format("%s[%s, from=%s, %s, %s, to=%s]", getClass().getSimpleName(),
+        line.getName(), from.getName(), start, end, to.getName());
+  }
 }

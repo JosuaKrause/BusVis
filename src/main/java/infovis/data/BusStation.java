@@ -177,4 +177,8 @@ public final class BusStation {
     return id;
   }
 
+  @Override
+  public String toString() {
+    return String.format("%s[%s, %d]", getClass().getSimpleName(), name, id);
+  }
 }
