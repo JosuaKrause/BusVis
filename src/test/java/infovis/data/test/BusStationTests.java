@@ -22,6 +22,7 @@ public class BusStationTests {
   static {
     BusStation.clearStations();
     final BusLine line = new BusLine("1", Color.RED);
+    final BusLine other = new BusLine("2", Color.BLUE);
     final BusStation a = BusStation.createStation("a", 0, 0, 0);
     final BusStation b = BusStation.createStation("b", 1, 0, 0);
     final BusStation c = BusStation.createStation("c", 2, 0, 0);
@@ -37,6 +38,17 @@ public class BusStationTests {
     d.addEdge(line, b, new BusTime(0, 2), new BusTime(0, 3));
     d.addEdge(line, c, new BusTime(0, 3), new BusTime(0, 4));
     d.addEdge(line, e, new BusTime(0, 4), new BusTime(0, 5));
+    final BusStation f = BusStation.createStation("f", 5, 0, 0);
+    final BusStation g = BusStation.createStation("g", 6, 0, 0);
+    final BusStation h = BusStation.createStation("h", 7, 0, 0);
+    e.addEdge(line, h, new BusTime(0, 0), new BusTime(0, 6));
+    e.addEdge(line, h, new BusTime(0, 6), new BusTime(0, 8));
+    e.addEdge(line, f, new BusTime(0, 0), new BusTime(0, 2));
+    e.addEdge(other, f, new BusTime(0, 0), new BusTime(0, 1));
+    e.addEdge(line, g, new BusTime(0, 1), new BusTime(0, 3));
+    f.addEdge(line, h, new BusTime(0, 2), new BusTime(0, 5));
+    g.addEdge(other, h, new BusTime(0, 3), new BusTime(0, 4));
+    g.addEdge(line, h, new BusTime(0, 4), new BusTime(0, 7));
   }
 
   /**
@@ -48,10 +60,7 @@ public class BusStationTests {
     final int[] es = { 3, 1, 2};
     int i = 0;
     for(final BusEdge e : a.getEdges(new BusTime(3, 10))) {
-      if(e.getTo().getId() != es[i++]) {
-        fail("expected edge " + es[i - 1] + " got " + e.getTo().getId() + " at "
-            + (i - 1));
-      }
+      assertEquals(es[i++], e.getTo().getId());
     }
   }
 
@@ -64,22 +73,13 @@ public class BusStationTests {
     final int[] es = { 0, 2, 2, 0, 2, 0};
     int i = 0;
     for(final BusEdge e : b.getEdges(new BusTime(3, 10))) {
-      if(e.getTo().getId() != es[i++]) {
-        fail("expected edge " + es[i - 1] + " got " + e.getTo().getId() + " at "
-            + (i - 1));
-      }
+      assertEquals(es[i++], e.getTo().getId());
     }
     for(final BusEdge e : b.getEdges(new BusTime(0, 0))) {
-      if(e.getTo().getId() != es[i++]) {
-        fail("expected edge " + es[i - 1] + " got " + e.getTo().getId() + " at "
-            + (i - 1));
-      }
+      assertEquals(es[i++], e.getTo().getId());
     }
     for(final BusEdge e : b.getEdges(new BusTime(3, 15))) {
-      if(e.getTo().getId() != es[i++]) {
-        fail("expected edge " + es[i - 1] + " got " + e.getTo().getId() + " at "
-            + (i - 1));
-      }
+      assertEquals(es[i++], e.getTo().getId());
     }
   }
 
@@ -182,6 +182,21 @@ public class BusStationTests {
       assertEquals(ids[i++], edge.getTo().getId());
     }
     assertNull(e.routeTo(c, new BusTime(2, 0), 0));
+  }
+
+  /**
+   * Tests with line changes and different max time.
+   */
+  @Test
+  public void lineChanging() {
+    final BusStation e = BusStation.getForId(4);
+    final BusStation h = BusStation.getForId(7);
+    assertEquals(4, e.routeTo(h, new BusTime(0, 0), 0).getLast().getEnd().getMinute());
+    assertEquals(5, e.routeTo(h, new BusTime(0, 0), 1).getLast().getEnd().getMinute());
+    final int maxTime = e.getMaxTimeHours();
+    e.setMaxTimeHours(0);
+    assertNull(e.routeTo(h, new BusTime(0, 0), 0));
+    e.setMaxTimeHours(maxTime);
   }
 
 }

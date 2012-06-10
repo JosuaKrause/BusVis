@@ -386,6 +386,33 @@ public final class BusStation {
   }
 
   /**
+   * The maximum amount of time a route can take.
+   */
+  private int maxTimeHours = 24;
+
+  /**
+   * Getter.
+   * 
+   * @return The maximum amount of time a route can take in hours. This may not
+   *         be exact. The value limits the starting time of an edge.
+   */
+  public int getMaxTimeHours() {
+    return maxTimeHours;
+  }
+
+  /**
+   * Setter.
+   * 
+   * @param maxTimeHours Sets the maximum amount of time a route can take in
+   *          hours.
+   */
+  public void setMaxTimeHours(final int maxTimeHours) {
+    if(maxTimeHours < 0 || maxTimeHours > 24) throw new IllegalArgumentException(
+        "max time out of bounds " + maxTimeHours);
+    this.maxTimeHours = maxTimeHours;
+  }
+
+  /**
    * Adds all edges to the deque. First all edges of the same line are added and
    * then the edges of the other lines.
    * 
@@ -396,29 +423,53 @@ public final class BusStation {
    * @param changeTime The change time.
    * @param line The current bus line or <code>null</code> if there is none.
    */
-  private static void addAllEdges(final Deque<BusEdge> edges, final Set<BusEdge> already,
+  private void addAllEdges(final Deque<BusEdge> edges, final Set<BusEdge> already,
       final BusStation station,
       final BusTime time, final int changeTime, final BusLine line) {
+    final int maxTime = maxTimeHours * 60;
     if(line == null) {
       for(final BusEdge edge : station.getEdges(time)) {
+        if(!validEdge(edge, time, maxTime)) {
+          continue;
+        }
         edges.addLast(edge);
         already.add(edge);
       }
       return;
     }
     for(final BusEdge edge : station.getEdges(time)) {
+      if(!validEdge(edge, time, maxTime)) {
+        continue;
+      }
       if(edge.getLine().equals(line) && !already.contains(edge)) {
         edges.addLast(edge);
         already.add(edge);
       }
     }
-    for(final BusEdge edge : station.getEdges(time.later(changeTime))) {
+    final BusTime nt = time.later(changeTime);
+    for(final BusEdge edge : station.getEdges(nt)) {
+      if(!validEdge(edge, nt, maxTime - changeTime)) {
+        continue;
+      }
       if(edge.getLine().equals(line) || already.contains(edge)) {
         continue;
       }
       edges.addLast(edge);
       already.add(edge);
     }
+  }
+
+  /**
+   * If an edge is in a valid time span.
+   * 
+   * @param edge The edge.
+   * @param start The start time.
+   * @param maxTime The maximum time.
+   * @return Whether the start time of the edge is in the given interval.
+   */
+  private static boolean validEdge(final BusEdge edge, final BusTime start,
+      final int maxTime) {
+    return start.minutesTo(edge.getStart()) < maxTime;
   }
 
   /**
