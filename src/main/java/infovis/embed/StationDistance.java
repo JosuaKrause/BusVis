@@ -164,7 +164,25 @@ public class StationDistance implements Weighter, NodeDrawer {
   /**
    * The minimal distance between nodes.
    */
-  private static final double MIN_DIST = 15;
+  private double minDist = 15;
+
+  /**
+   * Setter.
+   * 
+   * @param minDist Sets the minimal distance between nodes.
+   */
+  public void setMinDist(final double minDist) {
+    this.minDist = minDist;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The minimal distance between nodes.
+   */
+  public double getMinDist() {
+    return minDist;
+  }
 
   @Override
   public double weight(final SpringNode f, final SpringNode t) {
@@ -177,7 +195,7 @@ public class StationDistance implements Weighter, NodeDrawer {
       if(d == null) return 0;
       return factor * d;
     }
-    return -MIN_DIST;
+    return -minDist;
   }
 
   @Override

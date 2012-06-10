@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -336,17 +338,17 @@ public final class BusStation {
    */
   private Deque<BusEdge> convertRoutes(final Map<Integer, Route> routes,
       final BusStation dest) {
-    // final Set<BusEdge> already = new HashSet<BusEdge>();
+    final Set<BusEdge> already = new HashSet<BusEdge>();
     Route cur = routes.get(dest.getId());
     final Deque<BusEdge> res = new LinkedList<BusEdge>();
     do {
       final BusEdge edge = cur.getFrom();
       res.addFirst(edge);
-      // if(already.contains(edge)) {
-      // System.err.println(res);
-      // throw new IllegalStateException("loop detected");
-      // }
-      // already.add(edge);
+      if(already.contains(edge)) {
+        System.err.println(res);
+        throw new IllegalStateException("loop detected");
+      }
+      already.add(edge);
       cur = routes.get(edge.getFrom().getId());
     } while(!cur.getStation().equals(this));
     return res;
@@ -408,7 +410,7 @@ public final class BusStation {
   /**
    * The maximum amount of time a route can take.
    */
-  private int maxTimeHours = 24;
+  private static int maxTimeHours = 24;
 
   /**
    * Getter.
@@ -416,7 +418,7 @@ public final class BusStation {
    * @return The maximum amount of time a route can take in hours. This may not
    *         be exact. The value limits the starting time of an edge.
    */
-  public int getMaxTimeHours() {
+  public static int getMaxTimeHours() {
     return maxTimeHours;
   }
 
@@ -426,10 +428,10 @@ public final class BusStation {
    * @param maxTimeHours Sets the maximum amount of time a route can take in
    *          hours.
    */
-  public void setMaxTimeHours(final int maxTimeHours) {
+  public static void setMaxTimeHours(final int maxTimeHours) {
     if(maxTimeHours < 0 || maxTimeHours > 24) throw new IllegalArgumentException(
         "max time out of bounds " + maxTimeHours);
-    this.maxTimeHours = maxTimeHours;
+    BusStation.maxTimeHours = maxTimeHours;
   }
 
   /**
@@ -442,7 +444,7 @@ public final class BusStation {
    * @param changeTime The change time.
    * @param line The current bus line or <code>null</code> if there is none.
    */
-  private void addAllEdges(final Deque<BusEdge> edges, final BusStation station,
+  private static void addAllEdges(final Deque<BusEdge> edges, final BusStation station,
       final BusTime time, final int changeTime, final BusLine line) {
     final int maxTime = maxTimeHours * 60;
     if(line == null) {

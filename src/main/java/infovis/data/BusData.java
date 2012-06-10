@@ -37,8 +37,8 @@ public final class BusData {
 
     final CSVReader stops = readerFor(new File(root, "stops.csv"));
     for(String[] stop; (stop = stops.readNext()) != null;) {
-      BusStation.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[2]),
-          parseDouble(stop[3]));
+      BusStation.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[2]) * 10000,
+          parseDouble(stop[3]) * 10000);
     }
 
     final Map<String, Color> colors = new HashMap<String, Color>();

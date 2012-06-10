@@ -19,7 +19,7 @@ import javax.swing.WindowConstants;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class BusCanvas extends Canvas {
+public final class BusCanvas extends Canvas {
 
   /**
    * Starts a sample application.
@@ -28,6 +28,7 @@ public class BusCanvas extends Canvas {
    */
   public static void main(final String[] args) {
     BusStation.clearStations();
+    BusStation.setMaxTimeHours(3);
     try {
       BusData.load("src/main/resources/");
     } catch(final IOException e) {
@@ -46,7 +47,7 @@ public class BusCanvas extends Canvas {
   }
 
   /**
-   * SVUID
+   * SVUID.
    */
   private static final long serialVersionUID = 5517376336494016259L;
 
@@ -69,6 +70,8 @@ public class BusCanvas extends Canvas {
    */
   public static BusCanvas createBusCanvas(final int width, final int height) {
     final StationDistance dist = new StationDistance();
+    dist.setMinDist(60.0);
+    dist.setFactor(10);
     final SpringEmbedder embed = new SpringEmbedder(dist, dist);
     final BusCanvas res = new BusCanvas(embed, dist, width, height);
     embed.addRefreshable(res);

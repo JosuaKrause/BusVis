@@ -143,16 +143,15 @@ public class BusStationTests {
    */
   @Test
   public void trivial() {
-    final BusStation a = BusStation.getForId(0);
-    assertFalse(a.equals(null));
+    assertFalse(BusStation.getForId(0).equals(null));
     try {
-      a.setMaxTimeHours(-1);
+      BusStation.setMaxTimeHours(-1);
       fail("must throw an exception");
     } catch(final IllegalArgumentException e) {
       // success
     }
     try {
-      a.setMaxTimeHours(25);
+      BusStation.setMaxTimeHours(25);
       fail("must throw an exception");
     } catch(final IllegalArgumentException e) {
       // success
@@ -216,12 +215,12 @@ public class BusStationTests {
     final BusStation h = BusStation.getForId(7);
     assertEquals(4, e.routeTo(h, new BusTime(0, 0), 0).getLast().getEnd().getMinute());
     assertEquals(5, e.routeTo(h, new BusTime(0, 0), 1).getLast().getEnd().getMinute());
-    final int maxTime = e.getMaxTimeHours();
-    e.setMaxTimeHours(0);
+    final int maxTime = BusStation.getMaxTimeHours();
+    BusStation.setMaxTimeHours(0);
     assertNull(e.routeTo(h, new BusTime(0, 0), 0));
-    e.setMaxTimeHours(1);
+    BusStation.setMaxTimeHours(1);
     assertEquals(4, e.routeTo(h, new BusTime(0, 0), 0).getLast().getEnd().getMinute());
-    e.setMaxTimeHours(maxTime);
+    BusStation.setMaxTimeHours(maxTime);
   }
 
   /**
