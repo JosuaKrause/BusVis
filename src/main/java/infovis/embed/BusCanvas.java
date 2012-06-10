@@ -14,10 +14,21 @@ import javax.swing.AbstractAction;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+/**
+ * A canvas showing distances between bus stations.
+ * 
+ * @author Joschi <josua.krause@googlemail.com>
+ */
 public class BusCanvas extends Canvas {
 
+  /**
+   * Starts a sample application.
+   * 
+   * @param args Ignored.
+   */
   public static void main(final String[] args) {
     BusStation.clearStations();
+    // TODO load real data
     final BusLine line = new BusLine("1", Color.RED);
     final BusLine other = new BusLine("2", Color.BLUE);
     final BusStation a = BusStation.createStation("a", 0, 0, 0);
@@ -48,7 +59,8 @@ public class BusCanvas extends Canvas {
     f.addEdge(line, h, new BusTime(0, 2), new BusTime(0, 5));
     g.addEdge(other, h, new BusTime(0, 3), new BusTime(0, 4));
     g.addEdge(line, h, new BusTime(0, 4), new BusTime(0, 7));
-    final JFrame frame = new JFrame("Test");
+    // ini
+    final JFrame frame = new JFrame("Bus test");
     final BusCanvas canvas = createBusCanvas(800, 600);
     frame.add(canvas);
     frame.pack();
@@ -58,12 +70,28 @@ public class BusCanvas extends Canvas {
     frame.setVisible(true);
   }
 
+  /**
+   * SVUID
+   */
   private static final long serialVersionUID = 5517376336494016259L;
 
+  /**
+   * The spring embedder.
+   */
   protected final SpringEmbedder embed;
 
+  /**
+   * The distance measure.
+   */
   private final StationDistance dist;
 
+  /**
+   * Creates a bus canvas.
+   * 
+   * @param width The width.
+   * @param height The height.
+   * @return The bus canvas.
+   */
   public static BusCanvas createBusCanvas(final int width, final int height) {
     final StationDistance dist = new StationDistance();
     final SpringEmbedder embed = new SpringEmbedder(dist, dist);
@@ -73,6 +101,14 @@ public class BusCanvas extends Canvas {
     return res;
   }
 
+  /**
+   * Private constructor.
+   * 
+   * @param embed The embedder.
+   * @param dist The distance measure.
+   * @param width The width.
+   * @param height The height.
+   */
   private BusCanvas(final SpringEmbedder embed, final StationDistance dist,
       final int width, final int height) {
     super(embed, width, height);

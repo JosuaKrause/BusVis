@@ -161,6 +161,9 @@ public class StationDistance implements Weighter, NodeDrawer {
     return factor;
   }
 
+  /**
+   * The minimal distance between nodes.
+   */
   private static final double MIN_DIST = 15;
 
   @Override
@@ -204,8 +207,11 @@ public class StationDistance implements Weighter, NodeDrawer {
     g.fill(nodeClickArea(n));
     final double x = n.getX();
     final double y = n.getY();
-    g.setColor(Color.BLACK);
-    g.drawString(station.getName(), (int) x, (int) y);
+    final Graphics2D gfx = (Graphics2D) g.create();
+    gfx.setColor(Color.BLACK);
+    gfx.translate(x, y);
+    gfx.drawString(station.getName(), 0, 0);
+    gfx.dispose();
   }
 
   @Override

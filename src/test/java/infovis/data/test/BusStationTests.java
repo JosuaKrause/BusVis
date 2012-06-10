@@ -224,4 +224,17 @@ public class BusStationTests {
     e.setMaxTimeHours(maxTime);
   }
 
+  /**
+   * Ensures that no loops are created during routing.
+   */
+  @Test
+  public void loops() {
+    // just has to terminate :)
+    for(final BusStation a : BusStation.getStations()) {
+      for(final BusStation b : BusStation.getStations()) {
+        a.routeTo(b, new BusTime(12, 0), 5);
+      }
+    }
+  }
+
 }

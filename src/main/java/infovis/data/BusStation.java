@@ -299,6 +299,14 @@ public final class BusStation {
       return time;
     }
 
+    /**
+     * Marks this Route as start.
+     */
+    public void setStart() {
+      from = null;
+      time = 0;
+    }
+
   }
 
   /**
@@ -328,11 +336,17 @@ public final class BusStation {
    */
   private Deque<BusEdge> convertRoutes(final Map<Integer, Route> routes,
       final BusStation dest) {
+    // final Set<BusEdge> already = new HashSet<BusEdge>();
     Route cur = routes.get(dest.getId());
     final Deque<BusEdge> res = new LinkedList<BusEdge>();
     do {
       final BusEdge edge = cur.getFrom();
       res.addFirst(edge);
+      // if(already.contains(edge)) {
+      // System.err.println(res);
+      // throw new IllegalStateException("loop detected");
+      // }
+      // already.add(edge);
       cur = routes.get(edge.getFrom().getId());
     } while(!cur.getStation().equals(this));
     return res;
@@ -352,6 +366,7 @@ public final class BusStation {
       final int changeTime) {
     int best = -1;
     final Deque<BusEdge> edges = new LinkedList<BusEdge>();
+    routes.get(getId()).setStart();
     addAllEdges(edges, this, start, changeTime, null);
     for(;;) {
       if(edges.isEmpty()) {
@@ -364,6 +379,14 @@ public final class BusStation {
       }
       final BusTime curStart = e.getStart();
       if(best >= 0 && start.minutesTo(curStart) >= best) {
+        continue;
+      }
+      final BusStation from = e.getFrom();
+      final Route last = routes.get(from.getId());
+      final int startTime = start.minutesTo(e.getStart())
+          + (!last.hasFrom() || e.getLine().equals(last.getFrom().getLine()) ? 0
+              : changeTime);
+      if(last.getTime() > startTime) {
         continue;
       }
       final BusTime curEnd = e.getEnd();
