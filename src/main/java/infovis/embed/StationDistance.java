@@ -4,6 +4,10 @@ import infovis.data.BusEdge;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +17,7 @@ import java.util.Map;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class StationDistance implements Weighter {
+public class StationDistance implements Weighter, NodeDrawer {
 
   /**
    * The backing map for the spring nodes.
@@ -43,7 +47,7 @@ public class StationDistance implements Weighter {
   /**
    * The factor to scale the distances.
    */
-  private double factor = 15.0;
+  private double factor = .1;
 
   /**
    * Creates a station distance without a reference station.
@@ -157,27 +161,29 @@ public class StationDistance implements Weighter {
     return factor;
   }
 
+  private static final double MIN_DIST = 15;
+
   @Override
   public double weight(final SpringNode f, final SpringNode t) {
     if(from == null || t == f) return 0;
-    final BusStation to = map.get(t);
-    if(to.equals(from)) return weight(t, f);
     final BusStation fr = map.get(f);
-    if(fr.equals(from)) {
-      final Double d = distance.get(to);
+    if(fr.equals(from)) return 0;
+    final BusStation to = map.get(t);
+    if(to.equals(from)) {
+      final Double d = distance.get(fr);
       if(d == null) return 0;
       return factor * d;
     }
-    return -factor;
+    return -MIN_DIST;
   }
 
   @Override
   public boolean hasWeight(final SpringNode f, final SpringNode t) {
     if(from == null || t == f) return false;
-    final BusStation to = map.get(t);
-    if(to.equals(from)) return hasWeight(t, f);
     final BusStation fr = map.get(f);
-    if(fr.equals(from)) return distance.containsKey(to);
+    if(fr.equals(from)) return false;
+    final BusStation to = map.get(t);
+    if(to.equals(from)) return distance.containsKey(fr);
     return true;
   }
 
@@ -189,6 +195,32 @@ public class StationDistance implements Weighter {
   @Override
   public double springConstant() {
     return 0.75;
+  }
+
+  @Override
+  public void drawNode(final Graphics2D g, final SpringNode n) {
+    final BusStation station = map.get(n);
+    g.setColor(!station.equals(from) ? Color.BLUE : Color.RED);
+    g.fill(nodeClickArea(n));
+    final double x = n.getX();
+    final double y = n.getY();
+    g.setColor(Color.BLACK);
+    g.drawString(station.getName(), (int) x, (int) y);
+  }
+
+  @Override
+  public void dragNode(final SpringNode n, final double startX, final double startY,
+      final double dx, final double dy) {
+    final BusStation station = map.get(n);
+    if(!station.equals(from)) {
+      setFrom(station);
+    }
+    n.setPosition(startX + dx, startY + dy);
+  }
+
+  @Override
+  public Shape nodeClickArea(final SpringNode n) {
+    return new Ellipse2D.Double(n.getX() - 5, n.getY() - 5, 10, 10);
   }
 
 }
