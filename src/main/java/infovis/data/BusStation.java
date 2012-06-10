@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -354,8 +352,7 @@ public final class BusStation {
       final int changeTime) {
     int best = -1;
     final Deque<BusEdge> edges = new LinkedList<BusEdge>();
-    final Set<BusEdge> already = new HashSet<BusEdge>();
-    addAllEdges(edges, already, this, start, changeTime, null);
+    addAllEdges(edges, this, start, changeTime, null);
     for(;;) {
       if(edges.isEmpty()) {
         break;
@@ -379,7 +376,7 @@ public final class BusStation {
       if(to.equals(dest)) {
         best = curTime;
       } else {
-        addAllEdges(edges, already, to, curEnd, changeTime, e.getLine());
+        addAllEdges(edges, to, curEnd, changeTime, e.getLine());
       }
     }
     return routes.get(dest.getId()).hasFrom();
@@ -417,14 +414,12 @@ public final class BusStation {
    * then the edges of the other lines.
    * 
    * @param edges The deque.
-   * @param already The set of already used edges.
    * @param station The station where the edges are originating.
    * @param time The current time.
    * @param changeTime The change time.
    * @param line The current bus line or <code>null</code> if there is none.
    */
-  private void addAllEdges(final Deque<BusEdge> edges, final Set<BusEdge> already,
-      final BusStation station,
+  private void addAllEdges(final Deque<BusEdge> edges, final BusStation station,
       final BusTime time, final int changeTime, final BusLine line) {
     final int maxTime = maxTimeHours * 60;
     if(line == null) {
@@ -433,7 +428,6 @@ public final class BusStation {
           continue;
         }
         edges.addLast(edge);
-        already.add(edge);
       }
       return;
     }
@@ -441,9 +435,8 @@ public final class BusStation {
       if(!validEdge(edge, time, maxTime)) {
         continue;
       }
-      if(edge.getLine().equals(line) && !already.contains(edge)) {
+      if(edge.getLine().equals(line)) {
         edges.addLast(edge);
-        already.add(edge);
       }
     }
     final BusTime nt = time.later(changeTime);
@@ -451,11 +444,10 @@ public final class BusStation {
       if(!validEdge(edge, nt, maxTime - changeTime)) {
         continue;
       }
-      if(edge.getLine().equals(line) || already.contains(edge)) {
+      if(edge.getLine().equals(line)) {
         continue;
       }
       edges.addLast(edge);
-      already.add(edge);
     }
   }
 

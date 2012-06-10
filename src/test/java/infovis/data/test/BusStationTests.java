@@ -43,9 +43,11 @@ public class BusStationTests {
     final BusStation h = BusStation.createStation("h", 7, 0, 0);
     e.addEdge(line, h, new BusTime(0, 0), new BusTime(0, 6));
     e.addEdge(line, h, new BusTime(0, 6), new BusTime(0, 8));
+    e.addEdge(line, h, new BusTime(0, 50), new BusTime(1, 0));
     e.addEdge(line, f, new BusTime(0, 0), new BusTime(0, 2));
     e.addEdge(other, f, new BusTime(0, 0), new BusTime(0, 1));
     e.addEdge(line, g, new BusTime(0, 1), new BusTime(0, 3));
+    f.addEdge(line, h, new BusTime(1, 2), new BusTime(1, 3));
     f.addEdge(line, h, new BusTime(0, 2), new BusTime(0, 5));
     g.addEdge(other, h, new BusTime(0, 3), new BusTime(0, 4));
     g.addEdge(line, h, new BusTime(0, 4), new BusTime(0, 7));
@@ -137,6 +139,27 @@ public class BusStationTests {
   }
 
   /**
+   * Trivial tests.
+   */
+  @Test
+  public void trivial() {
+    final BusStation a = BusStation.getForId(0);
+    assertFalse(a.equals(null));
+    try {
+      a.setMaxTimeHours(-1);
+      fail("must throw an exception");
+    } catch(final IllegalArgumentException e) {
+      // success
+    }
+    try {
+      a.setMaxTimeHours(25);
+      fail("must throw an exception");
+    } catch(final IllegalArgumentException e) {
+      // success
+    }
+  }
+
+  /**
    * Tests special cases in the iteration of edges.
    */
   @Test
@@ -196,6 +219,8 @@ public class BusStationTests {
     final int maxTime = e.getMaxTimeHours();
     e.setMaxTimeHours(0);
     assertNull(e.routeTo(h, new BusTime(0, 0), 0));
+    e.setMaxTimeHours(1);
+    assertEquals(4, e.routeTo(h, new BusTime(0, 0), 0).getLast().getEnd().getMinute());
     e.setMaxTimeHours(maxTime);
   }
 
