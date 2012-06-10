@@ -7,6 +7,7 @@ import infovis.data.BusStation;
 import infovis.data.BusTime;
 
 import java.awt.Color;
+import java.util.Deque;
 import java.util.Iterator;
 
 import org.junit.Test;
@@ -19,6 +20,7 @@ import org.junit.Test;
 public class BusStationTests {
 
   static {
+    BusStation.clearStations();
     final BusLine line = new BusLine("1", Color.RED);
     final BusStation a = BusStation.createStation("a", 0, 0, 0);
     final BusStation b = BusStation.createStation("b", 1, 0, 0);
@@ -29,7 +31,7 @@ public class BusStationTests {
     a.addEdge(line, b, new BusTime(3, 10), new BusTime(3, 12));
     a.addEdge(line, d, new BusTime(3, 10), new BusTime(3, 11));
     b.addEdge(line, a, new BusTime(3, 10), new BusTime(3, 20));
-    b.addEdge(line, c, new BusTime(3, 9), new BusTime(3, 5));
+    b.addEdge(line, c, new BusTime(3, 9), new BusTime(3, 10));
     c.addEdge(line, a, new BusTime(2, 0), new BusTime(2, 1));
     d.addEdge(line, a, new BusTime(0, 1), new BusTime(0, 2));
     d.addEdge(line, b, new BusTime(0, 2), new BusTime(0, 3));
@@ -163,6 +165,23 @@ public class BusStationTests {
         assertEquals(ids[i++], e.getTo().getId());
       }
     }
+  }
+
+  /**
+   * Tests the routing.
+   */
+  @Test
+  public void routing() {
+    final BusStation c = BusStation.getForId(2);
+    final BusStation e = BusStation.getForId(4);
+    final Deque<BusEdge> routeTo = c.routeTo(e, new BusTime(2, 0), 0);
+    final int[] ids = { 2, 0, 3, 4};
+    int i = 0;
+    assertEquals(ids[i++], routeTo.getFirst().getFrom().getId());
+    for(final BusEdge edge : routeTo) {
+      assertEquals(ids[i++], edge.getTo().getId());
+    }
+    assertNull(e.routeTo(c, new BusTime(2, 0), 0));
   }
 
 }

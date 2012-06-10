@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -59,6 +61,13 @@ public final class BusStation {
     final BusStation bus = new BusStation(name, id, x, y);
     STATIONS.put(id, bus);
     return bus;
+  }
+
+  /**
+   * Clears all bus stations.
+   */
+  public static void clearStations() {
+    STATIONS.clear();
   }
 
   /**
@@ -345,7 +354,8 @@ public final class BusStation {
       final int changeTime) {
     int best = -1;
     final Deque<BusEdge> edges = new LinkedList<BusEdge>();
-    addAllEdges(edges, this, start, changeTime, null);
+    final Set<BusEdge> already = new HashSet<BusEdge>();
+    addAllEdges(edges, already, this, start, changeTime, null);
     for(;;) {
       if(edges.isEmpty()) {
         break;
@@ -369,7 +379,7 @@ public final class BusStation {
       if(to.equals(dest)) {
         best = curTime;
       } else {
-        addAllEdges(edges, to, curEnd, changeTime, e.getLine());
+        addAllEdges(edges, already, to, curEnd, changeTime, e.getLine());
       }
     }
     return routes.get(dest.getId()).hasFrom();
@@ -380,29 +390,34 @@ public final class BusStation {
    * then the edges of the other lines.
    * 
    * @param edges The deque.
+   * @param already The set of already used edges.
    * @param station The station where the edges are originating.
    * @param time The current time.
    * @param changeTime The change time.
    * @param line The current bus line or <code>null</code> if there is none.
    */
-  private static void addAllEdges(final Deque<BusEdge> edges, final BusStation station,
+  private static void addAllEdges(final Deque<BusEdge> edges, final Set<BusEdge> already,
+      final BusStation station,
       final BusTime time, final int changeTime, final BusLine line) {
     if(line == null) {
       for(final BusEdge edge : station.getEdges(time)) {
         edges.addLast(edge);
+        already.add(edge);
       }
       return;
     }
     for(final BusEdge edge : station.getEdges(time)) {
-      if(edge.getLine().equals(line)) {
+      if(edge.getLine().equals(line) && !already.contains(edge)) {
         edges.addLast(edge);
+        already.add(edge);
       }
     }
     for(final BusEdge edge : station.getEdges(time.later(changeTime))) {
-      if(edge.getLine().equals(line)) {
+      if(edge.getLine().equals(line) || already.contains(edge)) {
         continue;
       }
       edges.addLast(edge);
+      already.add(edge);
     }
   }
 
