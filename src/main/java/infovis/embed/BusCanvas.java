@@ -1,14 +1,14 @@
 package infovis.embed;
 
-import infovis.data.BusLine;
+import infovis.data.BusData;
 import infovis.data.BusStation;
-import infovis.data.BusTime;
 import infovis.gui.Canvas;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
@@ -28,37 +28,12 @@ public class BusCanvas extends Canvas {
    */
   public static void main(final String[] args) {
     BusStation.clearStations();
-    // TODO load real data
-    final BusLine line = new BusLine("1", Color.RED);
-    final BusLine other = new BusLine("2", Color.BLUE);
-    final BusStation a = BusStation.createStation("a", 0, 0, 0);
-    final BusStation b = BusStation.createStation("b", 1, 0, 15);
-    final BusStation c = BusStation.createStation("c", 2, 0, 30);
-    final BusStation d = BusStation.createStation("d", 3, 0, 45);
-    final BusStation e = BusStation.createStation("e", 4, 0, 60);
-    a.addEdge(line, c, new BusTime(3, 10), new BusTime(3, 13));
-    a.addEdge(line, b, new BusTime(3, 10), new BusTime(3, 12));
-    a.addEdge(line, d, new BusTime(3, 10), new BusTime(3, 11));
-    b.addEdge(line, a, new BusTime(3, 10), new BusTime(3, 20));
-    b.addEdge(line, c, new BusTime(3, 9), new BusTime(3, 10));
-    c.addEdge(line, a, new BusTime(2, 0), new BusTime(2, 1));
-    d.addEdge(line, a, new BusTime(0, 1), new BusTime(0, 2));
-    d.addEdge(line, b, new BusTime(0, 2), new BusTime(0, 3));
-    d.addEdge(line, c, new BusTime(0, 3), new BusTime(0, 4));
-    d.addEdge(line, e, new BusTime(0, 4), new BusTime(0, 5));
-    final BusStation f = BusStation.createStation("f", 5, 15, 15);
-    final BusStation g = BusStation.createStation("g", 6, 15, 30);
-    final BusStation h = BusStation.createStation("h", 7, 15, 45);
-    e.addEdge(line, h, new BusTime(0, 0), new BusTime(0, 6));
-    e.addEdge(line, h, new BusTime(0, 6), new BusTime(0, 8));
-    e.addEdge(line, h, new BusTime(0, 50), new BusTime(1, 0));
-    e.addEdge(line, f, new BusTime(0, 0), new BusTime(0, 2));
-    e.addEdge(other, f, new BusTime(0, 0), new BusTime(0, 1));
-    e.addEdge(line, g, new BusTime(0, 1), new BusTime(0, 3));
-    f.addEdge(line, h, new BusTime(1, 2), new BusTime(1, 3));
-    f.addEdge(line, h, new BusTime(0, 2), new BusTime(0, 5));
-    g.addEdge(other, h, new BusTime(0, 3), new BusTime(0, 4));
-    g.addEdge(line, h, new BusTime(0, 4), new BusTime(0, 7));
+    try {
+      BusData.load("src/main/resources/");
+    } catch(final IOException e) {
+      e.printStackTrace();
+      return;
+    }
     // ini
     final JFrame frame = new JFrame("Bus test");
     final BusCanvas canvas = createBusCanvas(800, 600);
