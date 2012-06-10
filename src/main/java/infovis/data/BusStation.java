@@ -48,12 +48,15 @@ public final class BusStation {
    * @param name The name.
    * @param id The id. If the id is already used an
    *          {@link IllegalArgumentException} is thrown.
+   * @param x The x position.
+   * @param y The y position.
    * @return The newly created bus station.
    */
-  public static BusStation createStation(final String name, final int id) {
+  public static BusStation createStation(final String name, final int id, final double x,
+      final double y) {
     if(STATIONS.containsKey(id)) throw new IllegalArgumentException("id: " + id
         + " already in use");
-    final BusStation bus = new BusStation(name, id);
+    final BusStation bus = new BusStation(name, id, x, y);
     STATIONS.put(id, bus);
     return bus;
   }
@@ -79,10 +82,14 @@ public final class BusStation {
    * 
    * @param name The name.
    * @param id The id.
+   * @param x The x position.
+   * @param y The y position.
    */
-  private BusStation(final String name, final int id) {
+  private BusStation(final String name, final int id, final double x, final double y) {
     this.name = name;
     this.id = id;
+    this.x = x;
+    this.y = y;
   }
 
   /**
@@ -413,14 +420,12 @@ public final class BusStation {
   /**
    * The default x coordinate for this bus station.
    */
-  // TODO set to meaningful value
-  private final double x = 0;
+  private final double x;
 
   /**
    * The default y coordinate for this bus station.
    */
-  // TODO set to meaningful value
-  private final double y = 0;
+  private final double y;
 
   /**
    * Getter.

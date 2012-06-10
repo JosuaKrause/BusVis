@@ -20,11 +20,11 @@ public class BusStationTests {
 
   static {
     final BusLine line = new BusLine("1", Color.RED);
-    final BusStation a = BusStation.createStation("a", 0);
-    final BusStation b = BusStation.createStation("b", 1);
-    final BusStation c = BusStation.createStation("c", 2);
-    final BusStation d = BusStation.createStation("d", 3);
-    final BusStation e = BusStation.createStation("e", 4);
+    final BusStation a = BusStation.createStation("a", 0, 0, 0);
+    final BusStation b = BusStation.createStation("b", 1, 0, 0);
+    final BusStation c = BusStation.createStation("c", 2, 0, 0);
+    final BusStation d = BusStation.createStation("d", 3, 0, 0);
+    final BusStation e = BusStation.createStation("e", 4, 0, 0);
     a.addEdge(line, c, new BusTime(3, 10), new BusTime(3, 13));
     a.addEdge(line, b, new BusTime(3, 10), new BusTime(3, 12));
     a.addEdge(line, d, new BusTime(3, 10), new BusTime(3, 11));
@@ -118,7 +118,7 @@ public class BusStationTests {
   public void emptyEdges() {
     assertFalse(
         "must be empty",
-        BusStation.createStation("r", -1).getEdges(new BusTime(12, 15)).iterator().hasNext());
+        BusStation.createStation("r", -1, 0, 0).getEdges(new BusTime(12, 15)).iterator().hasNext());
   }
 
   /**
@@ -127,7 +127,7 @@ public class BusStationTests {
   @Test
   public void duplicateStation() {
     try {
-      BusStation.createStation("fail", 0);
+      BusStation.createStation("fail", 0, 0, 0);
       fail("bus stations must have unique ids");
     } catch(final IllegalArgumentException e) {
       // success
