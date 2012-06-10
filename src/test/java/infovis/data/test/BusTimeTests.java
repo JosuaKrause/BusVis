@@ -146,4 +146,26 @@ public class BusTimeTests {
     assertTrue("should be contained", times.contains(new BusTime(13, 37)));
   }
 
+  /**
+   * Later and earlier.
+   */
+  @Test
+  public void later() {
+    final BusTime time = new BusTime(12, 34);
+    assertEquals(new BusTime(23, 0), time.later(-34 - 13 * 60));
+    assertEquals(new BusTime(23, 5), time.later(-34 - 13 * 60 + 5));
+    assertEquals(new BusTime(9, 59), time.later(-35 - 2 * 60));
+    assertEquals(new BusTime(10, 0), time.later(-34 - 2 * 60));
+    assertEquals(new BusTime(11, 59), time.later(-35));
+    assertEquals(new BusTime(12, 0), time.later(-34));
+    assertEquals(new BusTime(12, 33), time.later(-1));
+    assertEquals(new BusTime(12, 34), time.later(0));
+    assertEquals(new BusTime(12, 35), time.later(1));
+    assertEquals(new BusTime(12, 59), time.later(25));
+    assertEquals(new BusTime(13, 0), time.later(26));
+    assertEquals(new BusTime(23, 0), time.later(26 + 10 * 60));
+    assertEquals(new BusTime(9, 0), time.later(26 + 20 * 60));
+    assertEquals(new BusTime(9, 5), time.later(26 + 20 * 60 + 5));
+  }
+
 }

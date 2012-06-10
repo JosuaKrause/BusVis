@@ -105,8 +105,8 @@ public class BusEdge implements Comparable<BusEdge> {
 
   @Override
   public String toString() {
-    return String.format("%s[%s, from=%s, %s, %s, to=%s]", getClass().getSimpleName(),
-        line.getName(), from.getName(), start, end, to.getName());
+    return String.format("%s[%s, from=%s, to=%s, %s, %s]", getClass().getSimpleName(),
+        line.getName(), from.getName(), to.getName(), start, end);
   }
 
 }

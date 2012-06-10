@@ -2,8 +2,10 @@ package infovis.data;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -32,19 +34,38 @@ public final class BusStation {
   }
 
   /**
+   * Getter.
+   * 
+   * @return All registered {@link BusStation}s.
+   */
+  public static Iterable<BusStation> getStations() {
+    return STATIONS.values();
+  }
+
+  /**
    * Creates a new bus station.
    * 
    * @param name The name.
    * @param id The id. If the id is already used an
    *          {@link IllegalArgumentException} is thrown.
+   * @param x The x position.
+   * @param y The y position.
    * @return The newly created bus station.
    */
-  public static BusStation createStation(final String name, final int id) {
+  public static BusStation createStation(final String name, final int id, final double x,
+      final double y) {
     if(STATIONS.containsKey(id)) throw new IllegalArgumentException("id: " + id
         + " already in use");
-    final BusStation bus = new BusStation(name, id);
+    final BusStation bus = new BusStation(name, id, x, y);
     STATIONS.put(id, bus);
     return bus;
+  }
+
+  /**
+   * Clears all bus stations.
+   */
+  public static void clearStations() {
+    STATIONS.clear();
   }
 
   /**
@@ -68,10 +89,14 @@ public final class BusStation {
    * 
    * @param name The name.
    * @param id The id.
+   * @param x The x position.
+   * @param y The y position.
    */
-  private BusStation(final String name, final int id) {
+  private BusStation(final String name, final int id, final double x, final double y) {
     this.name = name;
     this.id = id;
+    this.x = x;
+    this.y = y;
   }
 
   /**
@@ -193,6 +218,312 @@ public final class BusStation {
       }
 
     };
+  }
+
+  /**
+   * A route is given by the best edges per bus station.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  private static final class Route {
+
+    /**
+     * The bus station.
+     */
+    private final BusStation station;
+
+    /**
+     * The best edge leading to the bus station.
+     */
+    private BusEdge from;
+
+    /**
+     * The time away from the start.
+     */
+    private int time = Integer.MAX_VALUE;
+
+    /**
+     * Creates a route object.
+     * 
+     * @param station The bus station.
+     */
+    public Route(final BusStation station) {
+      this.station = station;
+    }
+
+    /**
+     * Getter.
+     * 
+     * @return The bus station.
+     */
+    public BusStation getStation() {
+      return station;
+    }
+
+    /**
+     * Getter.
+     * 
+     * @return The best edge leading to the bus station or <code>null</code> if
+     *         it is not assigned yet.
+     */
+    public BusEdge getFrom() {
+      return from;
+    }
+
+    /**
+     * Getter.
+     * 
+     * @return Whether there is already a best edge.
+     */
+    public boolean hasFrom() {
+      return from != null;
+    }
+
+    /**
+     * Setter.
+     * 
+     * @param from Sets the new best edge.
+     * @param start The original starting time.
+     */
+    public void setFrom(final BusEdge from, final BusTime start) {
+      this.from = from;
+      time = start.minutesTo(from.getEnd());
+    }
+
+    /**
+     * Getter.
+     * 
+     * @return The time in minutes from the start.
+     */
+    public int getTime() {
+      return time;
+    }
+
+    /**
+     * Marks this Route as start.
+     */
+    public void setStart() {
+      from = null;
+      time = 0;
+    }
+
+  }
+
+  /**
+   * Finds the shortest route to the given station.
+   * 
+   * @param dest The destination.
+   * @param start The start time.
+   * @param changeTime The time to change lines.
+   * @return The shortest route to the destination or <code>null</code> if there
+   *         exists no route to the given destination.
+   */
+  public Deque<BusEdge> routeTo(final BusStation dest, final BusTime start,
+      final int changeTime) {
+    final Map<Integer, Route> routes = new HashMap<Integer, Route>();
+    iniRoutes(routes);
+    if(!findRoutes(routes, dest, start, changeTime)) return null;
+    return convertRoutes(routes, dest);
+  }
+
+  /**
+   * Converts the route objects back into a meaningful path by going from the
+   * destination to the start.
+   * 
+   * @param routes The route map.
+   * @param dest The destination.
+   * @return The path.
+   */
+  private Deque<BusEdge> convertRoutes(final Map<Integer, Route> routes,
+      final BusStation dest) {
+    // final Set<BusEdge> already = new HashSet<BusEdge>();
+    Route cur = routes.get(dest.getId());
+    final Deque<BusEdge> res = new LinkedList<BusEdge>();
+    do {
+      final BusEdge edge = cur.getFrom();
+      res.addFirst(edge);
+      // if(already.contains(edge)) {
+      // System.err.println(res);
+      // throw new IllegalStateException("loop detected");
+      // }
+      // already.add(edge);
+      cur = routes.get(edge.getFrom().getId());
+    } while(!cur.getStation().equals(this));
+    return res;
+  }
+
+  /**
+   * Finds the shortest route.
+   * 
+   * @param routes The route map.
+   * @param dest The destination.
+   * @param start The start time.
+   * @param changeTime The changing time in minutes.
+   * @return Whether there exists an route to the destination.
+   */
+  private boolean findRoutes(final Map<Integer, Route> routes, final BusStation dest,
+      final BusTime start,
+      final int changeTime) {
+    int best = -1;
+    final Deque<BusEdge> edges = new LinkedList<BusEdge>();
+    routes.get(getId()).setStart();
+    addAllEdges(edges, this, start, changeTime, null);
+    for(;;) {
+      if(edges.isEmpty()) {
+        break;
+      }
+      final BusEdge e = edges.pollFirst();
+      final BusStation to = e.getTo();
+      if(to.equals(this)) {
+        continue;
+      }
+      final BusTime curStart = e.getStart();
+      if(best >= 0 && start.minutesTo(curStart) >= best) {
+        continue;
+      }
+      final BusStation from = e.getFrom();
+      final Route last = routes.get(from.getId());
+      final int startTime = start.minutesTo(e.getStart())
+          + (!last.hasFrom() || e.getLine().equals(last.getFrom().getLine()) ? 0
+              : changeTime);
+      if(last.getTime() > startTime) {
+        continue;
+      }
+      final BusTime curEnd = e.getEnd();
+      final int curTime = start.minutesTo(curEnd);
+      final Route next = routes.get(to.getId());
+      if(next.hasFrom() && next.getTime() < curTime) {
+        continue;
+      }
+      next.setFrom(e, start);
+      if(to.equals(dest)) {
+        best = curTime;
+      } else {
+        addAllEdges(edges, to, curEnd, changeTime, e.getLine());
+      }
+    }
+    return routes.get(dest.getId()).hasFrom();
+  }
+
+  /**
+   * The maximum amount of time a route can take.
+   */
+  private int maxTimeHours = 24;
+
+  /**
+   * Getter.
+   * 
+   * @return The maximum amount of time a route can take in hours. This may not
+   *         be exact. The value limits the starting time of an edge.
+   */
+  public int getMaxTimeHours() {
+    return maxTimeHours;
+  }
+
+  /**
+   * Setter.
+   * 
+   * @param maxTimeHours Sets the maximum amount of time a route can take in
+   *          hours.
+   */
+  public void setMaxTimeHours(final int maxTimeHours) {
+    if(maxTimeHours < 0 || maxTimeHours > 24) throw new IllegalArgumentException(
+        "max time out of bounds " + maxTimeHours);
+    this.maxTimeHours = maxTimeHours;
+  }
+
+  /**
+   * Adds all edges to the deque. First all edges of the same line are added and
+   * then the edges of the other lines.
+   * 
+   * @param edges The deque.
+   * @param station The station where the edges are originating.
+   * @param time The current time.
+   * @param changeTime The change time.
+   * @param line The current bus line or <code>null</code> if there is none.
+   */
+  private void addAllEdges(final Deque<BusEdge> edges, final BusStation station,
+      final BusTime time, final int changeTime, final BusLine line) {
+    final int maxTime = maxTimeHours * 60;
+    if(line == null) {
+      for(final BusEdge edge : station.getEdges(time)) {
+        if(!validEdge(edge, time, maxTime)) {
+          continue;
+        }
+        edges.addLast(edge);
+      }
+      return;
+    }
+    for(final BusEdge edge : station.getEdges(time)) {
+      if(!validEdge(edge, time, maxTime)) {
+        continue;
+      }
+      if(edge.getLine().equals(line)) {
+        edges.addLast(edge);
+      }
+    }
+    final BusTime nt = time.later(changeTime);
+    for(final BusEdge edge : station.getEdges(nt)) {
+      if(!validEdge(edge, nt, maxTime - changeTime)) {
+        continue;
+      }
+      if(edge.getLine().equals(line)) {
+        continue;
+      }
+      edges.addLast(edge);
+    }
+  }
+
+  /**
+   * If an edge is in a valid time span.
+   * 
+   * @param edge The edge.
+   * @param start The start time.
+   * @param maxTime The maximum time.
+   * @return Whether the start time of the edge is in the given interval.
+   */
+  private static boolean validEdge(final BusEdge edge, final BusTime start,
+      final int maxTime) {
+    return start.minutesTo(edge.getStart()) < maxTime;
+  }
+
+  /**
+   * Initializes the route objects.
+   * 
+   * @param routes The route map.
+   */
+  private static void iniRoutes(final Map<Integer, Route> routes) {
+    for(final BusStation station : getStations()) {
+      routes.put(station.getId(), new Route(station));
+    }
+  }
+
+  /**
+   * The default x coordinate for this bus station.
+   */
+  private final double x;
+
+  /**
+   * The default y coordinate for this bus station.
+   */
+  private final double y;
+
+  /**
+   * Getter.
+   * 
+   * @return The default x coordinate for this bus station.
+   */
+  public double getDefaultX() {
+    return x;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The default y coordinate for this bus station.
+   */
+  public double getDefaultY() {
+    return y;
   }
 
   @Override

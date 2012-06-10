@@ -1,5 +1,6 @@
 package infovis.data;
 
+import static java.lang.Double.*;
 import static java.lang.Integer.*;
 
 import java.awt.Color;
@@ -36,7 +37,8 @@ public final class BusData {
 
     final CSVReader stops = readerFor(new File(root, "stops.csv"));
     for(String[] stop; (stop = stops.readNext()) != null;) {
-      BusStation.createStation(stop[0], parseInt(stop[1]));
+      BusStation.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[2]),
+          parseDouble(stop[3]));
     }
 
     final Map<String, Color> colors = new HashMap<String, Color>();

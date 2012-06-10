@@ -80,6 +80,32 @@ public final class BusTime implements Comparable<BusTime> {
   }
 
   /**
+   * Getter.
+   * 
+   * @param min The difference in minutes.
+   * @return The time that is the given amount of minutes later.
+   */
+  public BusTime later(final int min) {
+    final int newMin = minute + min;
+    if(min < 0) {
+      if(newMin >= 0) return new BusTime(hour, newMin);
+      int nh = hour;
+      int nm = newMin;
+      // slow but secure :)
+      while(nm < 0) {
+        --nh;
+        nm += MINUTES_PER_HOUR;
+      }
+      while(nh < 0) {
+        nh += HOURS_PER_DAY;
+      }
+      return new BusTime(nh, nm);
+    }
+    final int newHour = hour + newMin / MINUTES_PER_HOUR;
+    return new BusTime(newHour % HOURS_PER_DAY, newMin % MINUTES_PER_HOUR);
+  }
+
+  /**
    * Creates a comparator that assumes this {@link BusTime} as lowest possible
    * value. Meaning the {@link BusTime} one minute before this is considered the
    * largest value. The times wrap around 24 hours.

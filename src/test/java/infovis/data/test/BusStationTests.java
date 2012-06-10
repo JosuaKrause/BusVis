@@ -7,6 +7,7 @@ import infovis.data.BusStation;
 import infovis.data.BusTime;
 
 import java.awt.Color;
+import java.util.Deque;
 import java.util.Iterator;
 
 import org.junit.Test;
@@ -19,22 +20,37 @@ import org.junit.Test;
 public class BusStationTests {
 
   static {
+    BusStation.clearStations();
     final BusLine line = new BusLine("1", Color.RED);
-    final BusStation a = BusStation.createStation("a", 0);
-    final BusStation b = BusStation.createStation("b", 1);
-    final BusStation c = BusStation.createStation("c", 2);
-    final BusStation d = BusStation.createStation("d", 3);
-    final BusStation e = BusStation.createStation("e", 4);
+    final BusLine other = new BusLine("2", Color.BLUE);
+    final BusStation a = BusStation.createStation("a", 0, 0, 0);
+    final BusStation b = BusStation.createStation("b", 1, 0, 0);
+    final BusStation c = BusStation.createStation("c", 2, 0, 0);
+    final BusStation d = BusStation.createStation("d", 3, 0, 0);
+    final BusStation e = BusStation.createStation("e", 4, 0, 0);
     a.addEdge(line, c, new BusTime(3, 10), new BusTime(3, 13));
     a.addEdge(line, b, new BusTime(3, 10), new BusTime(3, 12));
     a.addEdge(line, d, new BusTime(3, 10), new BusTime(3, 11));
     b.addEdge(line, a, new BusTime(3, 10), new BusTime(3, 20));
-    b.addEdge(line, c, new BusTime(3, 9), new BusTime(3, 5));
+    b.addEdge(line, c, new BusTime(3, 9), new BusTime(3, 10));
     c.addEdge(line, a, new BusTime(2, 0), new BusTime(2, 1));
     d.addEdge(line, a, new BusTime(0, 1), new BusTime(0, 2));
     d.addEdge(line, b, new BusTime(0, 2), new BusTime(0, 3));
     d.addEdge(line, c, new BusTime(0, 3), new BusTime(0, 4));
     d.addEdge(line, e, new BusTime(0, 4), new BusTime(0, 5));
+    final BusStation f = BusStation.createStation("f", 5, 0, 0);
+    final BusStation g = BusStation.createStation("g", 6, 0, 0);
+    final BusStation h = BusStation.createStation("h", 7, 0, 0);
+    e.addEdge(line, h, new BusTime(0, 0), new BusTime(0, 6));
+    e.addEdge(line, h, new BusTime(0, 6), new BusTime(0, 8));
+    e.addEdge(line, h, new BusTime(0, 50), new BusTime(1, 0));
+    e.addEdge(line, f, new BusTime(0, 0), new BusTime(0, 2));
+    e.addEdge(other, f, new BusTime(0, 0), new BusTime(0, 1));
+    e.addEdge(line, g, new BusTime(0, 1), new BusTime(0, 3));
+    f.addEdge(line, h, new BusTime(1, 2), new BusTime(1, 3));
+    f.addEdge(line, h, new BusTime(0, 2), new BusTime(0, 5));
+    g.addEdge(other, h, new BusTime(0, 3), new BusTime(0, 4));
+    g.addEdge(line, h, new BusTime(0, 4), new BusTime(0, 7));
   }
 
   /**
@@ -46,10 +62,7 @@ public class BusStationTests {
     final int[] es = { 3, 1, 2};
     int i = 0;
     for(final BusEdge e : a.getEdges(new BusTime(3, 10))) {
-      if(e.getTo().getId() != es[i++]) {
-        fail("expected edge " + es[i - 1] + " got " + e.getTo().getId() + " at "
-            + (i - 1));
-      }
+      assertEquals(es[i++], e.getTo().getId());
     }
   }
 
@@ -62,22 +75,13 @@ public class BusStationTests {
     final int[] es = { 0, 2, 2, 0, 2, 0};
     int i = 0;
     for(final BusEdge e : b.getEdges(new BusTime(3, 10))) {
-      if(e.getTo().getId() != es[i++]) {
-        fail("expected edge " + es[i - 1] + " got " + e.getTo().getId() + " at "
-            + (i - 1));
-      }
+      assertEquals(es[i++], e.getTo().getId());
     }
     for(final BusEdge e : b.getEdges(new BusTime(0, 0))) {
-      if(e.getTo().getId() != es[i++]) {
-        fail("expected edge " + es[i - 1] + " got " + e.getTo().getId() + " at "
-            + (i - 1));
-      }
+      assertEquals(es[i++], e.getTo().getId());
     }
     for(final BusEdge e : b.getEdges(new BusTime(3, 15))) {
-      if(e.getTo().getId() != es[i++]) {
-        fail("expected edge " + es[i - 1] + " got " + e.getTo().getId() + " at "
-            + (i - 1));
-      }
+      assertEquals(es[i++], e.getTo().getId());
     }
   }
 
@@ -118,7 +122,7 @@ public class BusStationTests {
   public void emptyEdges() {
     assertFalse(
         "must be empty",
-        BusStation.createStation("r", -1).getEdges(new BusTime(12, 15)).iterator().hasNext());
+        BusStation.createStation("r", -1, 0, 0).getEdges(new BusTime(12, 15)).iterator().hasNext());
   }
 
   /**
@@ -127,8 +131,29 @@ public class BusStationTests {
   @Test
   public void duplicateStation() {
     try {
-      BusStation.createStation("fail", 0);
+      BusStation.createStation("fail", 0, 0, 0);
       fail("bus stations must have unique ids");
+    } catch(final IllegalArgumentException e) {
+      // success
+    }
+  }
+
+  /**
+   * Trivial tests.
+   */
+  @Test
+  public void trivial() {
+    final BusStation a = BusStation.getForId(0);
+    assertFalse(a.equals(null));
+    try {
+      a.setMaxTimeHours(-1);
+      fail("must throw an exception");
+    } catch(final IllegalArgumentException e) {
+      // success
+    }
+    try {
+      a.setMaxTimeHours(25);
+      fail("must throw an exception");
     } catch(final IllegalArgumentException e) {
       // success
     }
@@ -161,6 +186,53 @@ public class BusStationTests {
     for(final BusTime start : times) {
       for(final BusEdge e : d.getEdges(start)) {
         assertEquals(ids[i++], e.getTo().getId());
+      }
+    }
+  }
+
+  /**
+   * Tests the routing.
+   */
+  @Test
+  public void routing() {
+    final BusStation c = BusStation.getForId(2);
+    final BusStation e = BusStation.getForId(4);
+    final Deque<BusEdge> routeTo = c.routeTo(e, new BusTime(2, 0), 0);
+    final int[] ids = { 2, 0, 3, 4};
+    int i = 0;
+    assertEquals(ids[i++], routeTo.getFirst().getFrom().getId());
+    for(final BusEdge edge : routeTo) {
+      assertEquals(ids[i++], edge.getTo().getId());
+    }
+    assertNull(e.routeTo(c, new BusTime(2, 0), 0));
+  }
+
+  /**
+   * Tests with line changes and different max time.
+   */
+  @Test
+  public void lineChanging() {
+    final BusStation e = BusStation.getForId(4);
+    final BusStation h = BusStation.getForId(7);
+    assertEquals(4, e.routeTo(h, new BusTime(0, 0), 0).getLast().getEnd().getMinute());
+    assertEquals(5, e.routeTo(h, new BusTime(0, 0), 1).getLast().getEnd().getMinute());
+    final int maxTime = e.getMaxTimeHours();
+    e.setMaxTimeHours(0);
+    assertNull(e.routeTo(h, new BusTime(0, 0), 0));
+    e.setMaxTimeHours(1);
+    assertEquals(4, e.routeTo(h, new BusTime(0, 0), 0).getLast().getEnd().getMinute());
+    e.setMaxTimeHours(maxTime);
+  }
+
+  /**
+   * Ensures that no loops are created during routing.
+   */
+  @Test
+  public void loops() {
+    // just has to terminate :)
+    for(final BusStation a : BusStation.getStations()) {
+      for(final BusStation b : BusStation.getStations()) {
+        a.routeTo(b, new BusTime(12, 0), 5);
       }
     }
   }
