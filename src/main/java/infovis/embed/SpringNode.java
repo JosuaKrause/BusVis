@@ -124,6 +124,15 @@ public class SpringNode {
   }
 
   /**
+   * Getter.
+   * 
+   * @return The current position.
+   */
+  public Point2D getPos() {
+    return new Point2D.Double(getX(), getY());
+  }
+
+  /**
    * Manually adds a movement to the current motion.
    * 
    * @param dx The x movement.

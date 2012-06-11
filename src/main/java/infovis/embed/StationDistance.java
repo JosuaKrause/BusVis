@@ -293,7 +293,19 @@ public class StationDistance implements Weighter, NodeDrawer {
 
   @Override
   public void drawBackground(final Graphics2D g) {
-    // void
+    final SpringNode ref = getReferenceNode();
+    if(ref == null) return;
+    final Point2D center = ref.getPos();
+    boolean b = true;
+    for(int i = 11; i > 0; i -= 2) {
+      final double radius = factor * 5 * i;
+      final double r2 = radius * 2;
+      final Ellipse2D circ = new Ellipse2D.Double(center.getX() - radius, center.getY()
+          - radius, r2, r2);
+      g.setColor(b ? Color.LIGHT_GRAY : Color.WHITE);
+      b = !b;
+      g.fill(circ);
+    }
   }
 
   @Override

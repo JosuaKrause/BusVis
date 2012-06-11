@@ -30,13 +30,16 @@ public class CircularEmbedder extends AbstractEmbedder {
     final SpringNode ref = weighter.getReferenceNode();
     Point2D refP;
     if(ref != null) {
-      refP = weighter.getDefaultPosition(ref);
+      refP = ref.getPos();
     } else {
       refP = null;
     }
     for(final SpringNode n : weighter.nodes()) {
       final Point2D pos = weighter.getDefaultPosition(n);
-      if(refP == null || n == ref) {
+      if(n == ref) {
+        continue;
+      }
+      if(refP == null) {
         n.setPosition(pos);
         continue;
       }
