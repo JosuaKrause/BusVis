@@ -37,8 +37,15 @@ public final class BusData {
 
     final CSVReader stops = readerFor(new File(root, "stops.csv"));
     for(String[] stop; (stop = stops.readNext()) != null;) {
+      double abstractX, abstractY;
+      if(stop[4].equals("UNKNOWN")) {
+        abstractX = abstractY = Double.MIN_VALUE;
+      } else {
+        abstractX = parseDouble(stop[4]);
+        abstractY = parseDouble(stop[5]);
+      }
       BusStation.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[3]) * 10000,
-          -parseDouble(stop[2]) * 10000);
+          -parseDouble(stop[2]) * 10000, abstractX, abstractY);
     }
 
     final Map<String, Color> colors = new HashMap<String, Color>();
