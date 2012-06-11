@@ -32,45 +32,37 @@ public class EmbedderTest implements NodeDrawer, Weighter {
     final EmbedderTest test = new EmbedderTest();
     final SpringEmbedder embed = new SpringEmbedder(test, test);
     final JFrame frame = new JFrame("Test");
-    final Canvas c = new Canvas(embed, 800, 600) {
+    final Canvas c = new Canvas(embed, 800, 600);
+    c.addAction(KeyEvent.VK_L, new AbstractAction() {
 
-      private static final long serialVersionUID = -6834426709928877533L;
+      private static final long serialVersionUID = 3840566617434458358L;
 
       @Override
-      public void setupKeyActions() {
-        addAction(KeyEvent.VK_L, new AbstractAction() {
-
-          private static final long serialVersionUID = 3840566617434458358L;
-
-          @Override
-          public void actionPerformed(final ActionEvent arg0) {
-            test.toggleMode();
-          }
-
-        });
-        addAction(KeyEvent.VK_Q, new AbstractAction() {
-
-          private static final long serialVersionUID = -6529074015382752666L;
-
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            frame.dispose();
-          }
-
-        });
-        addAction(KeyEvent.VK_M, new AbstractAction() {
-
-          private static final long serialVersionUID = 8243341373949395480L;
-
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            embed.setCorrectMovement(!embed.isCorrectingMovement());
-          }
-
-        });
+      public void actionPerformed(final ActionEvent arg0) {
+        test.toggleMode();
       }
 
-    };
+    });
+    c.addAction(KeyEvent.VK_Q, new AbstractAction() {
+
+      private static final long serialVersionUID = -6529074015382752666L;
+
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        frame.dispose();
+      }
+
+    });
+    c.addAction(KeyEvent.VK_M, new AbstractAction() {
+
+      private static final long serialVersionUID = 8243341373949395480L;
+
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        embed.setCorrectMovement(!embed.isCorrectingMovement());
+      }
+
+    });
     embed.addRefreshable(c);
     frame.add(c);
     frame.pack();

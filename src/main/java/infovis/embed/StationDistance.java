@@ -12,6 +12,7 @@ import java.awt.geom.Ellipse2D;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -112,6 +113,11 @@ public class StationDistance implements Weighter, NodeDrawer {
         pool.shutdownNow();
         Thread.currentThread().interrupt();
         return;
+      }
+    } else {
+      for(final Entry<SpringNode, BusStation> e : map.entrySet()) {
+        final BusStation station = e.getValue();
+        e.getKey().setPosition(station.getDefaultX(), station.getDefaultY());
       }
     }
     this.from = from;
