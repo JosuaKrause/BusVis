@@ -46,6 +46,7 @@ public class BusStationTests {
     final BusStation f = manager.createStation("f", 5, 0, 0);
     final BusStation g = manager.createStation("g", 6, 0, 0);
     final BusStation h = manager.createStation("h", 7, 0, 0);
+    e.addEdge(line, h, new BusTime(23, 59), new BusTime(0, 1));
     e.addEdge(line, h, new BusTime(0, 0), new BusTime(0, 6));
     e.addEdge(line, h, new BusTime(0, 6), new BusTime(0, 8));
     e.addEdge(line, h, new BusTime(0, 50), new BusTime(1, 0));
@@ -225,6 +226,8 @@ public class BusStationTests {
     assertNull(e.routeTo(h, new BusTime(0, 0), 0));
     manager.setMaxTimeHours(1);
     assertEquals(4, e.routeTo(h, new BusTime(0, 0), 0).getLast().getEnd().getMinute());
+    manager.setMaxTimeHours(24);
+    assertEquals(5, e.routeTo(h, new BusTime(0, 0), 1).getLast().getEnd().getMinute());
     manager.setMaxTimeHours(maxTime);
   }
 

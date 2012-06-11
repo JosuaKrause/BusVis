@@ -107,7 +107,7 @@ public class BusEdge implements Comparable<BusEdge> {
 
   /**
    * Creates a comparator that assumes the reference time as lowest possible
-   * value.
+   * value. The edges are primarily sorted by the end time.
    * 
    * @param time The time.
    * @return The comparator.
@@ -118,8 +118,8 @@ public class BusEdge implements Comparable<BusEdge> {
 
       @Override
       public int compare(final BusEdge o1, final BusEdge o2) {
-        final int c = cmp.compare(o1.getStart(), o2.getStart());
-        return c == 0 ? cmp.compare(o1.getEnd(), o2.getEnd()) : c;
+        final int c = cmp.compare(o1.getEnd(), o2.getEnd());
+        return c == 0 ? cmp.compare(o1.getStart(), o2.getStart()) : c;
       }
 
     };
