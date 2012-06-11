@@ -175,4 +175,9 @@ public class EmbedderTest implements NodeDrawer, Weighter {
     return new Ellipse2D.Double(x - 2, y - 2, 4, 4);
   }
 
+  @Override
+  public void drawBackground(final Graphics2D g) {
+    // void
+  }
+
 }

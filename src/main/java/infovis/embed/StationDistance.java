@@ -277,4 +277,9 @@ public class StationDistance implements Weighter, NodeDrawer {
     return new Ellipse2D.Double(n.getX() - 5, n.getY() - 5, 10, 10);
   }
 
+  @Override
+  public void drawBackground(final Graphics2D g) {
+    // void
+  }
+
 }
