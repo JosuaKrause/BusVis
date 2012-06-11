@@ -11,6 +11,10 @@ import java.awt.geom.Ellipse2D;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Weights the station network after the distance from one start station.
@@ -53,7 +57,7 @@ public class StationDistance implements Weighter, NodeDrawer {
    * Creates a station distance without a reference station.
    */
   public StationDistance() {
-    distance = new HashMap<BusStation, Double>();
+    distance = new ConcurrentHashMap<BusStation, Double>();
     map = new HashMap<SpringNode, BusStation>();
     for(final BusStation s : BusStation.getStations()) {
       final SpringNode node = new SpringNode();
@@ -70,18 +74,34 @@ public class StationDistance implements Weighter, NodeDrawer {
    * @param changeTime The change time.
    */
   public void set(final BusStation from, final BusTime time, final int changeTime) {
-    distance.clear();
+    final Map<BusStation, Double> dist = distance;
+    dist.clear();
     if(from != null) {
+      final ExecutorService pool = Executors.newCachedThreadPool();
       for(final BusStation s : BusStation.getStations()) {
         if(s.equals(from)) {
           continue;
         }
-        final Deque<BusEdge> route = from.routeTo(s, time, changeTime);
-        if(route == null) {
-          continue;
+        pool.execute(new Runnable() {
+
+          @Override
+          public void run() {
+            final Deque<BusEdge> route = from.routeTo(s, time, changeTime);
+            if(route == null) return;
+            final double t = time.minutesTo(route.getLast().getEnd());
+            dist.put(s, t);
+          }
+
+        });
+      }
+      pool.shutdown();
+      try {
+        while(!pool.isTerminated()) {
+          pool.awaitTermination(1, TimeUnit.SECONDS);
         }
-        final double t = time.minutesTo(route.getLast().getEnd());
-        distance.put(s, t);
+      } catch(final InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return;
       }
     }
     this.from = from;
