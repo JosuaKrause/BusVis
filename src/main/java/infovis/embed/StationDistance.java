@@ -9,6 +9,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Point2D;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +30,11 @@ public class StationDistance implements Weighter, NodeDrawer {
    * The backing map for the spring nodes.
    */
   private final Map<SpringNode, BusStation> map;
+
+  /**
+   * The reverse backing map for the spring nodes.
+   */
+  private final Map<BusStation, SpringNode> rev;
 
   /**
    * The distances from the bus station.
@@ -69,10 +75,12 @@ public class StationDistance implements Weighter, NodeDrawer {
     this.manager = manager;
     distance = new ConcurrentHashMap<BusStation, Double>();
     map = new HashMap<SpringNode, BusStation>();
+    rev = new HashMap<BusStation, SpringNode>();
     for(final BusStation s : manager.getStations()) {
       final SpringNode node = new SpringNode();
       node.setPosition(s.getDefaultX(), s.getDefaultY());
       map.put(node, s);
+      rev.put(s, node);
     }
   }
 
@@ -286,6 +294,17 @@ public class StationDistance implements Weighter, NodeDrawer {
   @Override
   public void drawBackground(final Graphics2D g) {
     // void
+  }
+
+  @Override
+  public Point2D getDefaultPosition(final SpringNode node) {
+    final BusStation station = map.get(node);
+    return new Point2D.Double(station.getDefaultX(), station.getDefaultY());
+  }
+
+  @Override
+  public SpringNode getReferenceNode() {
+    return from == null ? null : rev.get(from);
   }
 
 }

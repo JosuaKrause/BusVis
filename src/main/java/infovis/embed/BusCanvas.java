@@ -114,7 +114,7 @@ public final class BusCanvas extends Canvas {
     final StationDistance dist = new StationDistance(manager);
     dist.setMinDist(60.0);
     dist.setFactor(10);
-    final SpringEmbedder embed = new SpringEmbedder(dist, dist);
+    final AbstractEmbedder embed = new CircularEmbedder(dist, dist);
     final BusCanvas res = new BusCanvas(embed, dist, width, height);
     embed.addRefreshable(res);
     res.setBackground(Color.WHITE);

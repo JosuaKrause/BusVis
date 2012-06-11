@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -170,6 +171,16 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   @Override
   public void drawBackground(final Graphics2D g) {
     // void
+  }
+
+  @Override
+  public Point2D getDefaultPosition(final SpringNode node) {
+    return new Point2D.Double();
+  }
+
+  @Override
+  public SpringNode getReferenceNode() {
+    return null;
   }
 
 }

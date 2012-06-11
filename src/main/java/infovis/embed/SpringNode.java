@@ -1,5 +1,6 @@
 package infovis.embed;
 
+import java.awt.geom.Point2D;
 import java.util.Random;
 
 /**
@@ -144,6 +145,15 @@ public class SpringNode {
     this.y = y;
     dx = 0;
     dy = 0;
+  }
+
+  /**
+   * Sets a new position for the node and resets velocity.
+   * 
+   * @param pos The new position.
+   */
+  public void setPosition(final Point2D pos) {
+    setPosition(pos.getX(), pos.getY());
   }
 
 }
