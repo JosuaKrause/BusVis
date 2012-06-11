@@ -304,7 +304,7 @@ public final class BusStation {
     final Queue<BusEdge> edges = new PriorityQueue<BusEdge>(20,
         BusEdge.createRelativeComparator(start));
     routes.get(getId()).setStart();
-    addAllEdges(edges, this, start, changeTime, null);
+    addAllEdges(edges, this, start, changeTime, null, start);
     while(!edges.isEmpty()) {
       final BusEdge e = edges.poll();
       final int startTime = start.minutesTo(e.getStart());
@@ -325,27 +325,28 @@ public final class BusStation {
         break;
       }
       final BusTime curEnd = e.getEnd();
-      addAllEdges(edges, to, curEnd, changeTime, e.getLine());
+      addAllEdges(edges, to, curEnd, changeTime, e.getLine(), start);
     }
     return routes.get(dest.getId()).hasFrom();
   }
 
   /**
-   * Adds all edges to the deque. First all edges of the same line are added and
+   * Adds all edges to the queue. First all edges of the same line are added and
    * then the edges of the other lines.
    * 
-   * @param edges The deque.
+   * @param edges The queue.
    * @param station The station where the edges are originating.
    * @param time The current time.
    * @param changeTime The change time.
    * @param line The current bus line or <code>null</code> if there is none.
+   * @param max The maximal time.
    */
   private void addAllEdges(final Queue<BusEdge> edges, final BusStation station,
-      final BusTime time, final int changeTime, final BusLine line) {
-    final int maxTime = Math.max(manager.getMaxTimeHours() * 60 - 1, 0);
+      final BusTime time, final int changeTime, final BusLine line, final BusTime max) {
+    final int maxTime = manager.getMaxTimeHours() * 60;
     if(line == null) {
       for(final BusEdge edge : station.getEdges(time)) {
-        if(!validEdge(edge, time, maxTime)) {
+        if(!validEdge(edge, time, maxTime, max)) {
           continue;
         }
         edges.add(edge);
@@ -353,7 +354,7 @@ public final class BusStation {
       return;
     }
     for(final BusEdge edge : station.getEdges(time)) {
-      if(!validEdge(edge, time, maxTime)) {
+      if(!validEdge(edge, time, maxTime, max)) {
         continue;
       }
       if(edge.getLine().equals(line)) {
@@ -362,7 +363,7 @@ public final class BusStation {
     }
     final BusTime nt = time.later(changeTime);
     for(final BusEdge edge : station.getEdges(nt)) {
-      if(!validEdge(edge, nt, maxTime - changeTime)) {
+      if(!validEdge(edge, nt, maxTime - changeTime, max.later(-changeTime))) {
         continue;
       }
       if(edge.getLine().equals(line)) {
@@ -378,11 +379,14 @@ public final class BusStation {
    * @param edge The edge.
    * @param start The start time.
    * @param maxTime The maximum time.
+   * @param max The maximal time.
    * @return Whether the start time of the edge is in the given interval.
    */
   private static boolean validEdge(final BusEdge edge, final BusTime start,
-      final int maxTime) {
-    return start.minutesTo(edge.getStart()) < maxTime;
+      final int maxTime, final BusTime max) {
+    final int time = start.minutesTo(edge.getStart());
+    final int maxMin = start.minutesTo(max);
+    return time < maxTime && (maxMin == 0 || maxMin > time);
   }
 
   /**

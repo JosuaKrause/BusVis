@@ -34,7 +34,6 @@ public final class BusCanvas extends Canvas {
     final BusStationManager m;
     try {
       m = BusData.load("src/main/resources/");
-      m.setMaxTimeHours(23);
     } catch(final IOException e) {
       e.printStackTrace();
       return;

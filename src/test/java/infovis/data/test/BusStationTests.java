@@ -47,6 +47,7 @@ public class BusStationTests {
     final BusStation g = manager.createStation("g", 6, 0, 0);
     final BusStation h = manager.createStation("h", 7, 0, 0);
     e.addEdge(line, h, new BusTime(23, 59), new BusTime(0, 1));
+    e.addEdge(line, h, new BusTime(0, 7), new BusTime(0, 0));
     e.addEdge(line, h, new BusTime(0, 0), new BusTime(0, 6));
     e.addEdge(line, h, new BusTime(0, 6), new BusTime(0, 8));
     e.addEdge(line, h, new BusTime(0, 50), new BusTime(1, 0));
@@ -57,6 +58,7 @@ public class BusStationTests {
     f.addEdge(line, h, new BusTime(0, 2), new BusTime(0, 5));
     g.addEdge(other, h, new BusTime(0, 3), new BusTime(0, 4));
     g.addEdge(line, h, new BusTime(0, 4), new BusTime(0, 7));
+    g.addEdge(line, h, new BusTime(0, 1), new BusTime(0, 2));
   }
 
   /**
