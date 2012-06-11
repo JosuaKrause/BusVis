@@ -2,6 +2,7 @@ package infovis.embed;
 
 import infovis.data.BusEdge;
 import infovis.data.BusStation;
+import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 
 import java.awt.Color;
@@ -54,12 +55,20 @@ public class StationDistance implements Weighter, NodeDrawer {
   private double factor = .1;
 
   /**
-   * Creates a station distance without a reference station.
+   * The bus station manager.
    */
-  public StationDistance() {
+  private final BusStationManager manager;
+
+  /**
+   * Creates a station distance without a reference station.
+   * 
+   * @param manager The bus station manager.
+   */
+  public StationDistance(final BusStationManager manager) {
+    this.manager = manager;
     distance = new ConcurrentHashMap<BusStation, Double>();
     map = new HashMap<SpringNode, BusStation>();
-    for(final BusStation s : BusStation.getStations()) {
+    for(final BusStation s : manager.getStations()) {
       final SpringNode node = new SpringNode();
       node.setPosition(s.getDefaultX(), s.getDefaultY());
       map.put(node, s);
@@ -78,7 +87,7 @@ public class StationDistance implements Weighter, NodeDrawer {
     dist.clear();
     if(from != null) {
       final ExecutorService pool = Executors.newCachedThreadPool();
-      for(final BusStation s : BusStation.getStations()) {
+      for(final BusStation s : manager.getStations()) {
         if(s.equals(from)) {
           continue;
         }
@@ -100,6 +109,7 @@ public class StationDistance implements Weighter, NodeDrawer {
           pool.awaitTermination(1, TimeUnit.SECONDS);
         }
       } catch(final InterruptedException e) {
+        pool.shutdownNow();
         Thread.currentThread().interrupt();
         return;
       }
