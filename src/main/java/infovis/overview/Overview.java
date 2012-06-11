@@ -1,17 +1,18 @@
 package infovis.overview;
 
 import infovis.data.BusData;
-import infovis.data.BusStation;
+import infovis.data.BusStationManager;
 import infovis.gui.Canvas;
 import infovis.gui.PainterAdapter;
 
-import java.awt.Graphics2D;
 import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 /**
+ * Visualization of the schematic overview of the konstanz bus network.
+ * 
  * @author Marc Spicker
  */
 public class Overview extends PainterAdapter {
@@ -22,10 +23,10 @@ public class Overview extends PainterAdapter {
    * @param args Ignored.
    */
   public static void main(final String[] args) {
-    BusStation.clearStations();
-    BusStation.setMaxTimeHours(3);
+    final BusStationManager m;
     try {
-      BusData.load("src/main/resources/");
+      m = BusData.load("src/main/resources/");
+      m.setMaxTimeHours(3);
     } catch(final IOException e) {
       e.printStackTrace();
       return;
@@ -40,9 +41,5 @@ public class Overview extends PainterAdapter {
     frame.setVisible(true);
   }
 
-  @Override
-  public void draw(final Graphics2D gfx) {
-
-  }
 
 }

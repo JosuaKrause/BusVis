@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -19,58 +21,6 @@ import java.util.TreeSet;
  * @author Joschi <josua.krause@googlemail.com>
  */
 public final class BusStation {
-
-  /**
-   * The backing map for bus station ids.
-   */
-  private static final Map<Integer, BusStation> STATIONS = new HashMap<Integer, BusStation>();
-
-  /**
-   * Getter.
-   * 
-   * @param id The id of a bus station.
-   * @return The bus station with the given id.
-   */
-  public static BusStation getForId(final int id) {
-    return STATIONS.get(id);
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return All registered {@link BusStation}s.
-   */
-  public static Iterable<BusStation> getStations() {
-    return STATIONS.values();
-  }
-
-  /**
-   * Creates a new bus station.
-   * 
-   * @param name The name.
-   * @param id The id. If the id is already used an
-   *          {@link IllegalArgumentException} is thrown.
-   * @param x The x position.
-   * @param y The y position.
-   * @param abstractX The x position on the abstract map.
-   * @param abstractY The y position on the abstract map.
-   * @return The newly created bus station.
-   */
-  public static BusStation createStation(final String name, final int id, final double x,
-      final double y, final double abstractX, final double abstractY) {
-    if(STATIONS.containsKey(id)) throw new IllegalArgumentException("id: " + id
-        + " already in use");
-    final BusStation bus = new BusStation(name, id, x, y, abstractX, abstractY);
-    STATIONS.put(id, bus);
-    return bus;
-  }
-
-  /**
-   * Clears all bus stations.
-   */
-  public static void clearStations() {
-    STATIONS.clear();
-  }
 
   /**
    * The name of the bus station.
@@ -89,8 +39,14 @@ public final class BusStation {
   private final SortedSet<BusEdge> edges = new TreeSet<BusEdge>();
 
   /**
+   * The bus manager.
+   */
+  private final BusStationManager manager;
+
+  /**
    * Creates a bus station.
    * 
+   * @param manager The manager.
    * @param name The name.
    * @param id The id.
    * @param x The x position.
@@ -98,8 +54,9 @@ public final class BusStation {
    * @param abstractX The x position on the abstract map.
    * @param abstractY The y position on the abstract map.
    */
-  private BusStation(final String name, final int id, final double x, final double y,
-      final double abstractX, final double abstractY) {
+  BusStation(final BusStationManager manager, final String name, final int id,
+      final double x, final double y, final double abstractX, final double abstractY) {
+    this.manager = manager;
     this.name = name;
     this.id = id;
     this.x = x;
@@ -374,14 +331,15 @@ public final class BusStation {
       final BusTime start,
       final int changeTime) {
     int best = -1;
-    final Deque<BusEdge> edges = new LinkedList<BusEdge>();
+    final Queue<BusEdge> edges = new PriorityQueue<BusEdge>(20,
+        BusEdge.createRelativeComparator(start));
     routes.get(getId()).setStart();
     addAllEdges(edges, this, start, changeTime, null);
     for(;;) {
       if(edges.isEmpty()) {
         break;
       }
-      final BusEdge e = edges.pollFirst();
+      final BusEdge e = edges.poll();
       final BusStation to = e.getTo();
       if(to.equals(this)) {
         continue;
@@ -415,33 +373,6 @@ public final class BusStation {
   }
 
   /**
-   * The maximum amount of time a route can take.
-   */
-  private static int maxTimeHours = 24;
-
-  /**
-   * Getter.
-   * 
-   * @return The maximum amount of time a route can take in hours. This may not
-   *         be exact. The value limits the starting time of an edge.
-   */
-  public static int getMaxTimeHours() {
-    return maxTimeHours;
-  }
-
-  /**
-   * Setter.
-   * 
-   * @param maxTimeHours Sets the maximum amount of time a route can take in
-   *          hours.
-   */
-  public static void setMaxTimeHours(final int maxTimeHours) {
-    if(maxTimeHours < 0 || maxTimeHours > 24) throw new IllegalArgumentException(
-        "max time out of bounds " + maxTimeHours);
-    BusStation.maxTimeHours = maxTimeHours;
-  }
-
-  /**
    * Adds all edges to the deque. First all edges of the same line are added and
    * then the edges of the other lines.
    * 
@@ -451,15 +382,15 @@ public final class BusStation {
    * @param changeTime The change time.
    * @param line The current bus line or <code>null</code> if there is none.
    */
-  private static void addAllEdges(final Deque<BusEdge> edges, final BusStation station,
+  private void addAllEdges(final Queue<BusEdge> edges, final BusStation station,
       final BusTime time, final int changeTime, final BusLine line) {
-    final int maxTime = maxTimeHours * 60;
+    final int maxTime = manager.getMaxTimeHours() * 60;
     if(line == null) {
       for(final BusEdge edge : station.getEdges(time)) {
         if(!validEdge(edge, time, maxTime)) {
           continue;
         }
-        edges.addLast(edge);
+        edges.add(edge);
       }
       return;
     }
@@ -468,7 +399,7 @@ public final class BusStation {
         continue;
       }
       if(edge.getLine().equals(line)) {
-        edges.addLast(edge);
+        edges.add(edge);
       }
     }
     final BusTime nt = time.later(changeTime);
@@ -479,7 +410,7 @@ public final class BusStation {
       if(edge.getLine().equals(line)) {
         continue;
       }
-      edges.addLast(edge);
+      edges.add(edge);
     }
   }
 
@@ -501,8 +432,8 @@ public final class BusStation {
    * 
    * @param routes The route map.
    */
-  private static void iniRoutes(final Map<Integer, Route> routes) {
-    for(final BusStation station : getStations()) {
+  private void iniRoutes(final Map<Integer, Route> routes) {
+    for(final BusStation station : manager.getStations()) {
       routes.put(station.getId(), new Route(station));
     }
   }

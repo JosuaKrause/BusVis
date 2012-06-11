@@ -1,5 +1,7 @@
 package infovis.data;
 
+import java.util.Comparator;
+
 /**
  * An edge for a bus to drive. It has a starting point and a destination. As
  * well as a starting and arrival time.
@@ -101,6 +103,26 @@ public class BusEdge implements Comparable<BusEdge> {
   public int compareTo(final BusEdge o) {
     final int cmp = start.compareTo(o.start);
     return cmp == 0 ? end.compareTo(o.end) : cmp;
+  }
+
+  /**
+   * Creates a comparator that assumes the reference time as lowest possible
+   * value.
+   * 
+   * @param time The time.
+   * @return The comparator.
+   */
+  public static Comparator<BusEdge> createRelativeComparator(final BusTime time) {
+    final Comparator<BusTime> cmp = time.createRelativeComparator();
+    return new Comparator<BusEdge>() {
+
+      @Override
+      public int compare(final BusEdge o1, final BusEdge o2) {
+        final int c = cmp.compare(o1.getStart(), o2.getStart());
+        return c == 0 ? cmp.compare(o1.getEnd(), o2.getEnd()) : c;
+      }
+
+    };
   }
 
   @Override

@@ -156,16 +156,6 @@ public class Canvas extends JComponent implements Refreshable {
     addMouseWheelListener(mouse);
     setFocusable(true);
     grabFocus();
-    setupKeyActions();
-  }
-
-  /**
-   * This method is called when it is save to add keyboard actions with
-   * {@link #addAction(int, Action)}. You should overwrite this method if you
-   * want keyboard interaction for this canvas.
-   */
-  public void setupKeyActions() {
-    // to be overwritten
   }
 
   /**
@@ -175,7 +165,7 @@ public class Canvas extends JComponent implements Refreshable {
    *          <code>VK</code>)
    * @param a The action that is performed.
    */
-  protected void addAction(final int key, final Action a) {
+  public void addAction(final int key, final Action a) {
     final Object token = new Object();
     final InputMap input = getInputMap();
     input.put(KeyStroke.getKeyStroke(key, 0), token);

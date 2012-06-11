@@ -19,6 +19,13 @@ public interface NodeDrawer {
   void drawNode(Graphics2D g, SpringNode n);
 
   /**
+   * Draws the background.
+   * 
+   * @param g The graphics context.
+   */
+  void drawBackground(Graphics2D g);
+
+  /**
    * A shape defining the area, where a click is associated with the given node.
    * The position of the node must be added manually.
    * 
@@ -37,5 +44,12 @@ public interface NodeDrawer {
    * @param dy The y difference to the original starting point.
    */
   void dragNode(SpringNode n, double startX, double startY, double dx, double dy);
+
+  /**
+   * An iteration over all nodes in the spring embedder system.
+   * 
+   * @return The iterable.
+   */
+  Iterable<SpringNode> nodes();
 
 }
