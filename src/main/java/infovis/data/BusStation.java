@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -325,14 +327,15 @@ public final class BusStation {
       final BusTime start,
       final int changeTime) {
     int best = -1;
-    final Deque<BusEdge> edges = new LinkedList<BusEdge>();
+    final Queue<BusEdge> edges = new PriorityQueue<BusEdge>(20,
+        BusEdge.createRelativeComparator(start));
     routes.get(getId()).setStart();
     addAllEdges(edges, this, start, changeTime, null);
     for(;;) {
       if(edges.isEmpty()) {
         break;
       }
-      final BusEdge e = edges.pollFirst();
+      final BusEdge e = edges.poll();
       final BusStation to = e.getTo();
       if(to.equals(this)) {
         continue;
@@ -375,7 +378,7 @@ public final class BusStation {
    * @param changeTime The change time.
    * @param line The current bus line or <code>null</code> if there is none.
    */
-  private void addAllEdges(final Deque<BusEdge> edges, final BusStation station,
+  private void addAllEdges(final Queue<BusEdge> edges, final BusStation station,
       final BusTime time, final int changeTime, final BusLine line) {
     final int maxTime = manager.getMaxTimeHours() * 60;
     if(line == null) {
@@ -383,7 +386,7 @@ public final class BusStation {
         if(!validEdge(edge, time, maxTime)) {
           continue;
         }
-        edges.addLast(edge);
+        edges.add(edge);
       }
       return;
     }
@@ -392,7 +395,7 @@ public final class BusStation {
         continue;
       }
       if(edge.getLine().equals(line)) {
-        edges.addLast(edge);
+        edges.add(edge);
       }
     }
     final BusTime nt = time.later(changeTime);
@@ -403,7 +406,7 @@ public final class BusStation {
       if(edge.getLine().equals(line)) {
         continue;
       }
-      edges.addLast(edge);
+      edges.add(edge);
     }
   }
 
