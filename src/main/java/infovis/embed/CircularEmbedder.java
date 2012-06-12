@@ -28,15 +28,10 @@ public class CircularEmbedder extends AbstractEmbedder {
     this.weighter = weighter;
   }
 
-  /**
-   * The current reference node.
-   */
-  private SpringNode curRef;
-
   @Override
   protected void step() {
     final SpringNode ref = weighter.getReferenceNode();
-    if(ref != curRef) {
+    if(weighter.hasChanged()) {
       Point2D refP;
       if(ref != null) {
         refP = ref.getPos();
@@ -61,7 +56,6 @@ public class CircularEmbedder extends AbstractEmbedder {
         }
         n.startAnimationTo(dest, Interpolator.INTERPOLATOR, Interpolator.DURATION);
       }
-      curRef = ref;
     }
     for(final SpringNode n : weighter.nodes()) {
       n.animate();

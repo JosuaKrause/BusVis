@@ -57,4 +57,12 @@ public interface Weighter {
    */
   SpringNode getReferenceNode();
 
+  /**
+   * This method returns whether the weights have changed. The change status is
+   * cleared after this call.
+   * 
+   * @return Whether the weights have changed.
+   */
+  boolean hasChanged();
+
 }

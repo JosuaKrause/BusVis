@@ -131,13 +131,16 @@ public final class StationDistance implements Weighter, NodeDrawer {
         synchronized(StationDistance.this) {
           if(currentCalculator != this) return;
           distance = dist;
-          fadeOut = StationDistance.this.from;
-          fadingStart = System.currentTimeMillis();
-          fadingEnd = fadingStart + Interpolator.DURATION;
+          if(from != StationDistance.this.from) {
+            fadeOut = StationDistance.this.from;
+            fadingStart = System.currentTimeMillis();
+            fadingEnd = fadingStart + Interpolator.DURATION;
+            fade = true;
+          }
           StationDistance.this.from = from;
           StationDistance.this.time = time;
           StationDistance.this.changeTime = changeTime;
-          fade = true;
+          changed = true;
         }
       }
 
@@ -145,6 +148,18 @@ public final class StationDistance implements Weighter, NodeDrawer {
     t.setDaemon(true);
     currentCalculator = t;
     t.start();
+  }
+
+  /**
+   * Whether the weights have changed.
+   */
+  protected volatile boolean changed;
+
+  @Override
+  public boolean hasChanged() {
+    final boolean res = changed;
+    changed = false;
+    return res;
   }
 
   /**

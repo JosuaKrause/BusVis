@@ -198,4 +198,9 @@ public class EmbedderTest implements NodeDrawer, Weighter {
     // nothing to do
   }
 
+  @Override
+  public boolean hasChanged() {
+    return false;
+  }
+
 }

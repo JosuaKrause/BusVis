@@ -178,9 +178,10 @@ public final class BusTime implements Comparable<BusTime> {
    * @return The string.
    */
   public static String minutesToString(final int minutes) {
-    final int h = minutes / MINUTES_PER_HOUR;
-    final int m = minutes % MINUTES_PER_HOUR;
-    return (h > 0 ? h + " h" : "")
+    final int min = Math.abs(minutes);
+    final int h = min / MINUTES_PER_HOUR;
+    final int m = min % MINUTES_PER_HOUR;
+    return (minutes < 0 ? "-" : "") + (h > 0 ? h + " h" : "")
         + (m > 0 ? (h > 0 ? " " : "") + m + " min" : (h > 0 ? "" : "0 min"));
   }
 
