@@ -1,7 +1,7 @@
 package infovis.embed;
 
-import infovis.data.BusEdge;
 import infovis.data.BusStation;
+import infovis.data.BusStation.Route;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.embed.pol.Interpolator;
@@ -11,13 +11,9 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
-import java.util.Deque;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Weights the station network after the distance from one start station.
@@ -39,7 +35,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   /**
    * The distances from the bus station.
    */
-  private final Map<BusStation, Integer> distance;
+  protected volatile Map<BusStation, Integer> distance;
 
   /**
    * The current reference time.
@@ -62,18 +58,12 @@ public final class StationDistance implements Weighter, NodeDrawer {
   private double factor = .1;
 
   /**
-   * The bus station manager.
-   */
-  private final BusStationManager manager;
-
-  /**
    * Creates a station distance without a reference station.
    * 
    * @param manager The bus station manager.
    */
   public StationDistance(final BusStationManager manager) {
-    this.manager = manager;
-    distance = new ConcurrentHashMap<BusStation, Integer>();
+    distance = new HashMap<BusStation, Integer>();
     map = new HashMap<SpringNode, BusStation>();
     rev = new HashMap<BusStation, SpringNode>();
     for(final BusStation s : manager.getStations()) {
@@ -87,7 +77,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   /**
    * The current waiter thread.
    */
-  protected volatile Thread currentWaiter;
+  protected volatile Thread currentCalculator;
 
   /**
    * The fading bus station.
@@ -117,56 +107,35 @@ public final class StationDistance implements Weighter, NodeDrawer {
    * @param changeTime The change time.
    */
   public void set(final BusStation from, final BusTime time, final int changeTime) {
-    final Map<BusStation, Integer> dist = distance;
-    dist.clear();
-    final ExecutorService pool;
-    if(from != null) {
-      pool = Executors.newCachedThreadPool();
-      for(final BusStation s : manager.getStations()) {
-        if(s.equals(from)) {
-          continue;
-        }
-        pool.execute(new Runnable() {
-
-          @Override
-          public void run() {
-            final Deque<BusEdge> route = from.routeTo(s, time, changeTime);
-            if(route == null) return;
-            dist.put(s, time.minutesTo(route.getLast().getEnd()));
-          }
-
-        });
-      }
-      pool.shutdown();
-    } else {
-      pool = null;
-    }
     final Thread t = new Thread() {
 
       @Override
       public void run() {
-        if(pool != null) {
-          try {
-            while(!pool.isTerminated()) {
-              pool.awaitTermination(1, TimeUnit.SECONDS);
+        final Map<BusStation, Integer> dist = new HashMap<BusStation, Integer>();
+        if(from != null) {
+          final Collection<Route> routes = from.routes(time, changeTime);
+          for(final Route r : routes) {
+            if(r.isNotReachable() || r.isStart()) {
+              continue;
             }
-          } catch(final InterruptedException e) {
-            pool.shutdownNow();
-            return;
+            dist.put(r.getStation(), r.minutes());
           }
         }
-        if(currentWaiter != this) return;
-        fadeOut = StationDistance.this.from;
-        fadingStart = System.currentTimeMillis();
-        fadingEnd = fadingStart + Interpolator.DURATION;
-        StationDistance.this.from = from;
-        StationDistance.this.time = time;
-        StationDistance.this.changeTime = changeTime;
-        fade = true;
+        synchronized(StationDistance.this) {
+          if(currentCalculator != this) return;
+          distance = dist;
+          fadeOut = StationDistance.this.from;
+          fadingStart = System.currentTimeMillis();
+          fadingEnd = fadingStart + Interpolator.DURATION;
+          StationDistance.this.from = from;
+          StationDistance.this.time = time;
+          StationDistance.this.changeTime = changeTime;
+          fade = true;
+        }
       }
 
     };
-    currentWaiter = t;
+    currentCalculator = t;
     t.start();
   }
 
