@@ -63,6 +63,16 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   private final JLabel ctLabel;
 
   /**
+   * The time window slider.
+   */
+  protected final JSlider tw;
+
+  /**
+   * The time window label.
+   */
+  private final JLabel twLabel;
+
+  /**
    * Creates a control panel.
    * 
    * @param ctrl The corresponding controller.
@@ -118,6 +128,22 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     });
     ctLabel = new JLabel();
     addHor(new JLabel("Change Time:"), ct, ctLabel);
+    // time window
+    tw = new JSlider(0, 24);
+    tw.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(final ChangeEvent arg0) {
+        final int v = tw.getValue();
+        if(ctrl.getMaxTimeHours() != v) {
+          ctrl.setMaxTimeHours(v);
+        }
+      }
+
+    });
+    twLabel = new JLabel();
+    addHor(new JLabel("Time window:"), tw, twLabel);
+    // end of layout
     constraint = null;
     ctrl.addBusVisualization(this);
   }
@@ -166,6 +192,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   @Override
   public void focusStation() {
     // already covered by select bus station
+  }
+
+  @Override
+  public void undefinedChange(final Controller ctrl) {
+    final int mth = ctrl.getMaxTimeHours();
+    tw.setValue(mth);
+    twLabel.setText(BusTime.minutesToString(mth * BusTime.MINUTES_PER_HOUR));
   }
 
 }

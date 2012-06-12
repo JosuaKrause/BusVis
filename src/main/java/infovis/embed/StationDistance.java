@@ -166,6 +166,13 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   /**
+   * Signals undefined changes.
+   */
+  public void changeUndefined() {
+    set(from, time, changeTime);
+  }
+
+  /**
    * Setter.
    * 
    * @param from Sets the reference station.

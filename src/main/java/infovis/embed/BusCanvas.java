@@ -228,4 +228,9 @@ public final class BusCanvas extends Canvas implements BusVisualization {
     reset(dist.getPredict());
   }
 
+  @Override
+  public void undefinedChange(final Controller ctrl) {
+    dist.changeUndefined();
+  }
+
 }

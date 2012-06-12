@@ -36,4 +36,11 @@ public interface BusVisualization {
    */
   void focusStation();
 
+  /**
+   * Signals an undefined change.
+   * 
+   * @param ctrl The controller to identify the changes.
+   */
+  void undefinedChange(Controller ctrl);
+
 }

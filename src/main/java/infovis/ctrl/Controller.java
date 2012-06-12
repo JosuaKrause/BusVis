@@ -96,6 +96,9 @@ public class Controller {
    */
   public void setMaxTimeHours(final int hours) {
     manager.setMaxTimeHours(hours);
+    for(final BusVisualization v : vis) {
+      v.undefinedChange(this);
+    }
   }
 
   /**
@@ -183,6 +186,7 @@ public class Controller {
     v.setChangeTime(curChangeTime);
     v.setStartTime(curStartTime);
     v.selectBusStation(curSelection);
+    v.undefinedChange(this);
   }
 
   /**
