@@ -142,7 +142,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     });
     twLabel = new JLabel();
-    addHor(new JLabel("Time window:"), tw, twLabel);
+    addHor(new JLabel("Max Wait:"), tw, twLabel);
     // end of layout
     constraint = null;
     ctrl.addBusVisualization(this);
