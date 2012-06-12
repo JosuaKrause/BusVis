@@ -9,6 +9,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -121,6 +123,14 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    */
   private static BusStationName[] getStations(final Controller ctrl) {
     final BusStation[] arr = ctrl.getAllStations();
+    Arrays.sort(arr, new Comparator<BusStation>() {
+
+      @Override
+      public int compare(final BusStation b0, final BusStation b1) {
+        return b0.getName().compareTo(b1.getName());
+      }
+
+    });
     final BusStationName[] res = new BusStationName[arr.length + 1];
     res[0] = new BusStationName(null);
     for(int i = 0; i < arr.length; ++i) {
