@@ -1,6 +1,7 @@
 package infovis.data;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
@@ -185,7 +186,7 @@ public final class BusStation {
    * 
    * @author Joschi <josua.krause@googlemail.com>
    */
-  private static final class Route {
+  public static final class Route {
 
     /**
      * The bus station.
@@ -198,12 +199,24 @@ public final class BusStation {
     private BusEdge from;
 
     /**
+     * The start time.
+     */
+    private final BusTime start;
+
+    /**
+     * The parent route.
+     */
+    private Route parent;
+
+    /**
      * Creates a route object.
      * 
      * @param station The bus station.
+     * @param start The start time.
      */
-    public Route(final BusStation station) {
+    public Route(final BusStation station, final BusTime start) {
       this.station = station;
+      this.start = start;
     }
 
     /**
@@ -235,12 +248,51 @@ public final class BusStation {
     }
 
     /**
+     * Getter.
+     * 
+     * @return The minutes that are needed to arrive this bus station.
+     */
+    public int minutes() {
+      return start.minutesTo(from.getEnd());
+    }
+
+    /**
+     * Getter.
+     * 
+     * @return Whether the bus station is reachable.
+     */
+    public boolean isNotReachable() {
+      return parent == null;
+    }
+
+    /**
+     * Getter.
+     * 
+     * @return Whether the bus station is the starting point.
+     */
+    public boolean isStart() {
+      return parent == this;
+    }
+
+    /**
+     * Getter.
+     * 
+     * @return The parent bus station or <code>null</code> if it is the start or
+     *         not reachable.
+     */
+    public Route getParent() {
+      return parent != this ? parent : null;
+    }
+
+    /**
      * Setter.
      * 
      * @param from Sets the new best edge.
+     * @param parent The parent route.
      */
-    public void setFrom(final BusEdge from) {
+    public void setFrom(final BusEdge from, final Route parent) {
       this.from = from;
+      this.parent = parent;
     }
 
     /**
@@ -248,6 +300,7 @@ public final class BusStation {
      */
     public void setStart() {
       from = null;
+      parent = this;
     }
 
   }
@@ -264,9 +317,23 @@ public final class BusStation {
   public Deque<BusEdge> routeTo(final BusStation dest, final BusTime start,
       final int changeTime) {
     final Map<Integer, Route> routes = new HashMap<Integer, Route>();
-    iniRoutes(routes);
+    iniRoutes(routes, start);
     if(!findRoutes(routes, dest, start, changeTime)) return null;
     return convertRoutes(routes, dest);
+  }
+
+  /**
+   * Finds shortest routes to all bus stations.
+   * 
+   * @param start The start time.
+   * @param changeTime The time to change lines.
+   * @return The reachability of all bus stations.
+   */
+  public Collection<Route> routes(final BusTime start, final int changeTime) {
+    final Map<Integer, Route> routes = new HashMap<Integer, Route>();
+    iniRoutes(routes, start);
+    findRoutes(routes, null, start, changeTime);
+    return routes.values();
   }
 
   /**
@@ -320,14 +387,14 @@ public final class BusStation {
       if(next.hasFrom()) { // destination already visited
         continue;
       }
-      next.setFrom(e);
+      next.setFrom(e, routes.get(e.getFrom().getId()));
       if(to.equals(dest)) { // we are done
         break;
       }
       final BusTime curEnd = e.getEnd();
       addAllEdges(edges, to, curEnd, changeTime, e.getLine(), start);
     }
-    return routes.get(dest.getId()).hasFrom();
+    return dest == null || routes.get(dest.getId()).hasFrom();
   }
 
   /**
@@ -393,10 +460,11 @@ public final class BusStation {
    * Initializes the route objects.
    * 
    * @param routes The route map.
+   * @param start The start time.
    */
-  private void iniRoutes(final Map<Integer, Route> routes) {
+  private void iniRoutes(final Map<Integer, Route> routes, final BusTime start) {
     for(final BusStation station : manager.getStations()) {
-      routes.put(station.getId(), new Route(station));
+      routes.put(station.getId(), new Route(station, start));
     }
   }
 
