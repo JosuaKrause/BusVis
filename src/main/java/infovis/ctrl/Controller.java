@@ -216,4 +216,13 @@ public class Controller {
     return res.toArray(new BusStation[res.size()]);
   }
 
+  /**
+   * Sets the focus on the current selected bus station.
+   */
+  public void focusStation() {
+    for(final BusVisualization v : vis) {
+      v.focusStation();
+    }
+  }
+
 }

@@ -16,6 +16,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 
@@ -148,6 +149,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
       @Override
       public void actionPerformed(final ActionEvent e) {
         dist.setFrom(null);
+        reset();
       }
 
     });
@@ -175,13 +177,28 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
   @Override
   public void reset() {
+    reset(dist.getFrom());
+  }
+
+  /**
+   * Resets the viewport such that the given station is centered or that all
+   * nodes are visible when <code>null</code> is passed as argument.
+   * 
+   * @param station The station or <code>null</code>.
+   */
+  public void reset(final BusStation station) {
     Rectangle2D bbox = null;
-    for(final SpringNode n : dist.nodes()) {
-      final Rectangle2D b = dist.nodeClickArea(n).getBounds2D();
-      if(bbox == null) {
-        bbox = b;
-      } else {
-        bbox.add(b);
+    if(station != null) {
+      final Point2D pos = dist.getNode(station).getPos();
+      bbox = dist.getCircle(StationDistance.MAX_INTERVAL, pos).getBounds2D();
+    } else {
+      for(final SpringNode n : dist.nodes()) {
+        final Rectangle2D b = dist.nodeClickArea(n).getBounds2D();
+        if(bbox == null) {
+          bbox = b;
+        } else {
+          bbox.add(b);
+        }
       }
     }
     if(bbox == null) {
@@ -204,6 +221,11 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   @Override
   public void setChangeTime(final int minutes) {
     dist.setChangeTime(minutes);
+  }
+
+  @Override
+  public void focusStation() {
+    reset(dist.getPredict());
   }
 
 }

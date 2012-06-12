@@ -81,6 +81,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
         final Object station = box.getSelectedItem();
         if(station != ctrl.getSelectedStation()) {
           ctrl.selectStation((BusStation) station);
+          ctrl.focusStation();
         }
       }
 
@@ -160,6 +161,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   public void setChangeTime(final int minutes) {
     ct.setValue(minutes);
     ctLabel.setText(BusTime.minutesToString(minutes));
+  }
+
+  @Override
+  public void focusStation() {
+    // already covered by select bus station
   }
 
 }

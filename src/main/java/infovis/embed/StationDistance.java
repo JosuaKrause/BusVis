@@ -36,7 +36,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   /**
    * The distances from the bus station.
    */
-  protected volatile Map<BusStation, Integer> distance;
+  protected volatile Map<BusStation, Route> routes;
 
   /**
    * The current reference time.
@@ -70,7 +70,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
    */
   public StationDistance(final Controller ctrl) {
     this.ctrl = ctrl;
-    distance = new HashMap<BusStation, Integer>();
+    routes = new HashMap<BusStation, Route>();
     map = new HashMap<SpringNode, BusStation>();
     rev = new HashMap<BusStation, SpringNode>();
     for(final BusStation s : ctrl.getStations()) {
@@ -80,6 +80,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
       rev.put(s, node);
     }
   }
+
+  /**
+   * The predicted next bus station.
+   */
+  protected volatile BusStation predict;
 
   /**
    * The current waiter thread.
@@ -114,23 +119,21 @@ public final class StationDistance implements Weighter, NodeDrawer {
    * @param changeTime The change time.
    */
   public void set(final BusStation from, final BusTime time, final int changeTime) {
+    predict = from;
     final Thread t = new Thread() {
 
       @Override
       public void run() {
-        final Map<BusStation, Integer> dist = new HashMap<BusStation, Integer>();
+        final Map<BusStation, Route> route = new HashMap<BusStation, Route>();
         if(from != null) {
           final Collection<Route> routes = from.routes(time, changeTime);
           for(final Route r : routes) {
-            if(r.isNotReachable() || r.isStart()) {
-              continue;
-            }
-            dist.put(r.getStation(), r.minutes());
+            route.put(r.getStation(), r);
           }
         }
         synchronized(StationDistance.this) {
           if(currentCalculator != this) return;
-          distance = dist;
+          routes = route;
           if(from != StationDistance.this.from) {
             fadeOut = StationDistance.this.from;
             fadingStart = System.currentTimeMillis();
@@ -264,7 +267,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     if(fr.equals(from)) return 0;
     final BusStation to = map.get(t);
     if(to.equals(from)) {
-      final Integer d = distance.get(fr);
+      final Integer d = routes.get(fr).minutes();
       if(d == null) return 0;
       return factor * d;
     }
@@ -277,7 +280,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation fr = map.get(f);
     if(fr.equals(from)) return false;
     final BusStation to = map.get(t);
-    if(to.equals(from)) return distance.containsKey(fr);
+    if(to.equals(from)) return !routes.get(fr).isNotReachable();
     return true;
   }
 
@@ -350,15 +353,31 @@ public final class StationDistance implements Weighter, NodeDrawer {
     }
     if(center == null) return;
     boolean b = true;
-    for(int i = 12; i > 0; --i) {
-      final double radius = factor * 5 * i;
-      final double r2 = radius * 2;
-      final Ellipse2D circ = new Ellipse2D.Double(center.getX() - radius, center.getY()
-          - radius, r2, r2);
+    for(int i = MAX_INTERVAL; i > 0; --i) {
+      final Shape circ = getCircle(i, center);
       g.setColor(b ? col : Color.WHITE);
       b = !b;
       g.fill(circ);
     }
+  }
+
+  /**
+   * The highest drawn circle interval.
+   */
+  public static final int MAX_INTERVAL = 12;
+
+  /**
+   * Getter.
+   * 
+   * @param i The interval.
+   * @param center The center of the circle.
+   * @return The circle.
+   */
+  public Ellipse2D getCircle(final int i, final Point2D center) {
+    final Point2D c = center != null ? center : getReferenceNode().getPos();
+    final double radius = factor * 5 * i;
+    final double r2 = radius * 2;
+    return new Ellipse2D.Double(c.getX() - radius, c.getY() - radius, r2, r2);
   }
 
   @Override
@@ -377,9 +396,9 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation station = map.get(node);
     String dist;
     if(from != null && from != station) {
-      final SpringNode ref = getReferenceNode();
-      if(hasWeight(node, ref)) {
-        dist = " (" + BusTime.minutesToString(distance.get(station)) + ")";
+      final Route route = routes.get(station);
+      if(!route.isNotReachable()) {
+        dist = " (" + BusTime.minutesToString(route.minutes()) + ")";
       } else {
         dist = " (not reachable)";
       }
@@ -397,6 +416,25 @@ public final class StationDistance implements Weighter, NodeDrawer {
     } else {
       ctrl.setTitle(null);
     }
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The predicted next bus station.
+   */
+  public BusStation getPredict() {
+    return predict;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @param station The station.
+   * @return The corresponding node.
+   */
+  public SpringNode getNode(final BusStation station) {
+    return station == null ? null : rev.get(station);
   }
 
 }

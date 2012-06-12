@@ -252,12 +252,20 @@ public final class BusStation {
     }
 
     /**
+     * The cached minutes value.
+     */
+    private int min = -1;
+
+    /**
      * Getter.
      * 
      * @return The minutes that are needed to arrive this bus station.
      */
     public int minutes() {
-      return start.minutesTo(from.getEnd());
+      if(min == -1) {
+        min = start.minutesTo(from.getEnd());
+      }
+      return min;
     }
 
     /**
@@ -305,6 +313,7 @@ public final class BusStation {
     public void setStart() {
       from = null;
       parent = this;
+      min = 0;
     }
 
   }

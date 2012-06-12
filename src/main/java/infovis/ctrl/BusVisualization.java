@@ -31,4 +31,9 @@ public interface BusVisualization {
    */
   void setChangeTime(int minutes);
 
+  /**
+   * Sets the focus on the current selected bus station.
+   */
+  void focusStation();
+
 }
