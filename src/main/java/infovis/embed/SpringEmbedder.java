@@ -24,8 +24,23 @@ public class SpringEmbedder extends AbstractEmbedder {
     this.weighter = weighter;
   }
 
+  /**
+   * Whether the nodes should be reset.
+   */
+  private boolean reset;
+
   @Override
   protected void step() {
+    if(weighter.getReferenceNode() == null) {
+      if(!reset) {
+        for(final SpringNode n : weighter.nodes()) {
+          n.setPosition(weighter.getDefaultPosition(n));
+        }
+        reset = true;
+      }
+    } else {
+      reset = false;
+    }
     double mx = 0;
     double my = 0;
     double m = 0;

@@ -13,18 +13,19 @@ import java.awt.geom.Point2D;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import javax.swing.SwingUtilities;
 
 /**
  * Weights the station network after the distance from one start station.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class StationDistance implements Weighter, NodeDrawer {
+public final class StationDistance implements Weighter, NodeDrawer {
 
   /**
    * The backing map for the spring nodes.
@@ -44,17 +45,17 @@ public class StationDistance implements Weighter, NodeDrawer {
   /**
    * The current reference time.
    */
-  private BusTime time = new BusTime(12, 0);
+  protected BusTime time = new BusTime(12, 0);
 
   /**
    * The change time for lines.
    */
-  private int changeTime = 5;
+  protected int changeTime = 5;
 
   /**
    * The start bus station or <code>null</code> if there is none.
    */
-  private BusStation from;
+  protected BusStation from;
 
   /**
    * The factor to scale the distances.
@@ -94,8 +95,9 @@ public class StationDistance implements Weighter, NodeDrawer {
   public void set(final BusStation from, final BusTime time, final int changeTime) {
     final Map<BusStation, Integer> dist = distance;
     dist.clear();
+    final ExecutorService pool;
     if(from != null) {
-      final ExecutorService pool = Executors.newCachedThreadPool();
+      pool = Executors.newCachedThreadPool();
       for(final BusStation s : manager.getStations()) {
         if(s.equals(from)) {
           continue;
@@ -112,24 +114,30 @@ public class StationDistance implements Weighter, NodeDrawer {
         });
       }
       pool.shutdown();
-      try {
-        while(!pool.isTerminated()) {
-          pool.awaitTermination(1, TimeUnit.SECONDS);
-        }
-      } catch(final InterruptedException e) {
-        pool.shutdownNow();
-        Thread.currentThread().interrupt();
-        return;
-      }
     } else {
-      for(final Entry<SpringNode, BusStation> e : map.entrySet()) {
-        final BusStation station = e.getValue();
-        e.getKey().setPosition(station.getDefaultX(), station.getDefaultY());
-      }
+      pool = null;
     }
-    this.from = from;
-    this.time = time;
-    this.changeTime = changeTime;
+    SwingUtilities.invokeLater(new Runnable() {
+
+      @Override
+      public void run() {
+        if(pool != null) {
+          try {
+            while(!pool.isTerminated()) {
+              pool.awaitTermination(1, TimeUnit.SECONDS);
+            }
+          } catch(final InterruptedException e) {
+            pool.shutdownNow();
+            Thread.currentThread().interrupt();
+            return;
+          }
+        }
+        StationDistance.this.from = from;
+        StationDistance.this.time = time;
+        StationDistance.this.changeTime = changeTime;
+      }
+
+    });
   }
 
   /**
