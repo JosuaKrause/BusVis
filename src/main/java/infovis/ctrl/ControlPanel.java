@@ -9,6 +9,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -73,6 +75,61 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   private final JLabel twLabel;
 
   /**
+   * Maps bus stations to indices in the combo box.
+   */
+  private final Map<BusStation, Integer> indexMap = new HashMap<BusStation, Integer>();
+
+  /**
+   * A thin wrapper for the bus station name. Also allows the <code>null</code>
+   * bus station, representing no selection. Joschi
+   * <josua.krause@googlemail.com>
+   */
+  private static final class BusStationName {
+
+    /**
+     * The associated bus station.
+     */
+    public final BusStation station;
+
+    /**
+     * Creates a bus station name object.
+     * 
+     * @param station The station.
+     */
+    public BusStationName(final BusStation station) {
+      this.station = station;
+      name = station != null ? station.getName() : "(no selection)";
+    }
+
+    /**
+     * The name of the station.
+     */
+    private final String name;
+
+    @Override
+    public String toString() {
+      return name;
+    }
+
+  }
+
+  /**
+   * Creates a list of all bus station names.
+   * 
+   * @param ctrl The controller.
+   * @return All bus station names.
+   */
+  private static BusStationName[] getStations(final Controller ctrl) {
+    final BusStation[] arr = ctrl.getAllStations();
+    final BusStationName[] res = new BusStationName[arr.length + 1];
+    res[0] = new BusStationName(null);
+    for(int i = 0; i < arr.length; ++i) {
+      res[i + 1] = new BusStationName(arr[i]);
+    }
+    return res;
+  }
+
+  /**
    * Creates a control panel.
    * 
    * @param ctrl The corresponding controller.
@@ -83,14 +140,18 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     constraint.gridx = 0;
     constraint.fill = GridBagConstraints.BOTH;
     // station selection
-    box = new JComboBox(ctrl.getAllStations());
+    final BusStationName[] stations = getStations(ctrl);
+    for(int i = 0; i < stations.length; ++i) {
+      indexMap.put(stations[i].station, i);
+    }
+    box = new JComboBox(stations);
     box.addActionListener(new ActionListener() {
 
       @Override
       public void actionPerformed(final ActionEvent e) {
-        final Object station = box.getSelectedItem();
+        final BusStation station = ((BusStationName) box.getSelectedItem()).station;
         if(station != ctrl.getSelectedStation()) {
-          ctrl.selectStation((BusStation) station);
+          ctrl.selectStation(station);
           ctrl.focusStation();
         }
       }
@@ -174,7 +235,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   @Override
   public void selectBusStation(final BusStation station) {
-    box.setSelectedItem(station);
+    box.setSelectedIndex(indexMap.get(station));
   }
 
   @Override
