@@ -18,8 +18,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.swing.SwingUtilities;
-
 /**
  * Weights the station network after the distance from one start station.
  * 
@@ -117,7 +115,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     } else {
       pool = null;
     }
-    SwingUtilities.invokeLater(new Runnable() {
+    new Thread() {
 
       @Override
       public void run() {
@@ -128,7 +126,6 @@ public final class StationDistance implements Weighter, NodeDrawer {
             }
           } catch(final InterruptedException e) {
             pool.shutdownNow();
-            Thread.currentThread().interrupt();
             return;
           }
         }
@@ -137,7 +134,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
         StationDistance.this.changeTime = changeTime;
       }
 
-    });
+    }.start();
   }
 
   /**
