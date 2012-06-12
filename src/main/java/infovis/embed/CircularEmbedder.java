@@ -1,6 +1,7 @@
 package infovis.embed;
 
 import static infovis.VecUtil.*;
+import infovis.embed.pol.Interpolator;
 
 import java.awt.geom.Point2D;
 
@@ -27,30 +28,43 @@ public class CircularEmbedder extends AbstractEmbedder {
     this.weighter = weighter;
   }
 
+  /**
+   * The current reference node.
+   */
+  private SpringNode curRef;
+
   @Override
   protected void step() {
     final SpringNode ref = weighter.getReferenceNode();
-    Point2D refP;
-    if(ref != null) {
-      refP = ref.getPos();
-    } else {
-      refP = null;
+    if(ref != curRef) {
+      Point2D refP;
+      if(ref != null) {
+        refP = ref.getPos();
+      } else {
+        refP = null;
+      }
+      for(final SpringNode n : weighter.nodes()) {
+        final Point2D pos = weighter.getDefaultPosition(n);
+        if(n == ref) {
+          continue;
+        }
+        Point2D dest;
+        if(refP == null) {
+          dest = pos;
+        } else {
+          if(!weighter.hasWeight(n, ref)) {
+            dest = new Point2D.Double();
+          } else {
+            final double w = weighter.weight(n, ref);
+            dest = addVec(setLength(subVec(pos, refP), w), refP);
+          }
+        }
+        n.startAnimationTo(dest, Interpolator.INTERPOLATOR, Interpolator.DURATION);
+      }
+      curRef = ref;
     }
     for(final SpringNode n : weighter.nodes()) {
-      final Point2D pos = weighter.getDefaultPosition(n);
-      if(n == ref) {
-        continue;
-      }
-      if(refP == null) {
-        n.setPosition(pos);
-        continue;
-      }
-      if(!weighter.hasWeight(n, ref)) {
-        n.setPosition(new Point2D.Double());
-        continue;
-      }
-      final double w = weighter.weight(n, ref);
-      n.setPosition(addVec(setLength(subVec(pos, refP), w), refP));
+      n.animate();
     }
   }
 

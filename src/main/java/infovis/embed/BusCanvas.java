@@ -101,6 +101,11 @@ public final class BusCanvas extends Canvas {
   private final StationDistance dist;
 
   /**
+   * Whether to use a pring embedder.
+   */
+  private static final boolean USE_SPRING_EMBEDDER = false;
+
+  /**
    * Creates a bus canvas.
    * 
    * @param manager The bus station manager.
@@ -113,7 +118,8 @@ public final class BusCanvas extends Canvas {
     final StationDistance dist = new StationDistance(manager);
     dist.setMinDist(60.0);
     dist.setFactor(10);
-    final AbstractEmbedder embed = new CircularEmbedder(dist, dist);
+    final AbstractEmbedder embed = USE_SPRING_EMBEDDER ? new SpringEmbedder(dist, dist)
+    : new CircularEmbedder(dist, dist);
     final BusCanvas res = new BusCanvas(embed, dist, width, height);
     embed.addRefreshable(res);
     res.setBackground(Color.WHITE);
