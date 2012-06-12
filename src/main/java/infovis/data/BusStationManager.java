@@ -42,13 +42,15 @@ public final class BusStationManager {
    *          {@link IllegalArgumentException} is thrown.
    * @param x The x position.
    * @param y The y position.
+   * @param abstractX The abstract x position.
+   * @param abstractY The abstract y position.
    * @return The newly created bus station.
    */
   public BusStation createStation(final String name, final int id, final double x,
-      final double y) {
+      final double y, final double abstractX, final double abstractY) {
     if(stations.containsKey(id)) throw new IllegalArgumentException("id: " + id
         + " already in use");
-    final BusStation bus = new BusStation(this, name, id, x, y);
+    final BusStation bus = new BusStation(this, name, id, x, y, abstractX, abstractY);
     stations.put(id, bus);
     return bus;
   }

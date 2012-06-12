@@ -50,14 +50,18 @@ public final class BusStation {
    * @param id The id.
    * @param x The x position.
    * @param y The y position.
+   * @param abstractX The x position on the abstract map.
+   * @param abstractY The y position on the abstract map.
    */
   BusStation(final BusStationManager manager, final String name, final int id,
-      final double x, final double y) {
+      final double x, final double y, final double abstractX, final double abstractY) {
     this.manager = manager;
     this.name = name;
     this.id = id;
     this.x = x;
     this.y = y;
+    this.abstractX = abstractX;
+    this.abstractY = abstractY;
   }
 
   /**
@@ -494,6 +498,34 @@ public final class BusStation {
    */
   public double getDefaultY() {
     return y;
+  }
+
+  /**
+   * The x coordinate for this bus station on the abstract map.
+   */
+  private final double abstractX;
+
+  /**
+   * The y coordinate for this bus station on the abstact map.
+   */
+  private final double abstractY;
+
+  /**
+   * Getter.
+   * 
+   * @return The x coordinate for this bus station on the abstract map.
+   */
+  public double getAbstractX() {
+    return abstractX;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The y coordinate for this bus station on the abstact map.
+   */
+  public double getAbstractY() {
+    return abstractY;
   }
 
   @Override

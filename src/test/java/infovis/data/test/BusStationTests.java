@@ -28,11 +28,11 @@ public class BusStationTests {
   static {
     final BusLine line = new BusLine("1", Color.RED);
     final BusLine other = new BusLine("2", Color.BLUE);
-    final BusStation a = manager.createStation("a", 0, 0, 0);
-    final BusStation b = manager.createStation("b", 1, 0, 0);
-    final BusStation c = manager.createStation("c", 2, 0, 0);
-    final BusStation d = manager.createStation("d", 3, 0, 0);
-    final BusStation e = manager.createStation("e", 4, 0, 0);
+    final BusStation a = manager.createStation("a", 0, 0, 0, 0, 0);
+    final BusStation b = manager.createStation("b", 1, 0, 0, 0, 0);
+    final BusStation c = manager.createStation("c", 2, 0, 0, 0, 0);
+    final BusStation d = manager.createStation("d", 3, 0, 0, 0, 0);
+    final BusStation e = manager.createStation("e", 4, 0, 0, 0, 0);
     a.addEdge(line, c, new BusTime(3, 10), new BusTime(3, 13));
     a.addEdge(line, b, new BusTime(3, 10), new BusTime(3, 12));
     a.addEdge(line, d, new BusTime(3, 10), new BusTime(3, 11));
@@ -43,9 +43,9 @@ public class BusStationTests {
     d.addEdge(line, b, new BusTime(0, 2), new BusTime(0, 3));
     d.addEdge(line, c, new BusTime(0, 3), new BusTime(0, 4));
     d.addEdge(line, e, new BusTime(0, 4), new BusTime(0, 5));
-    final BusStation f = manager.createStation("f", 5, 0, 0);
-    final BusStation g = manager.createStation("g", 6, 0, 0);
-    final BusStation h = manager.createStation("h", 7, 0, 0);
+    final BusStation f = manager.createStation("f", 5, 0, 0, 0, 0);
+    final BusStation g = manager.createStation("g", 6, 0, 0, 0, 0);
+    final BusStation h = manager.createStation("h", 7, 0, 0, 0, 0);
     e.addEdge(line, h, new BusTime(23, 59), new BusTime(0, 1));
     e.addEdge(line, h, new BusTime(0, 7), new BusTime(0, 0));
     e.addEdge(line, h, new BusTime(0, 0), new BusTime(0, 6));
@@ -130,7 +130,8 @@ public class BusStationTests {
   public void emptyEdges() {
     assertFalse(
         "must be empty",
-        manager.createStation("r", -1, 0, 0).getEdges(new BusTime(12, 15)).iterator().hasNext());
+        manager.createStation("r", -1, 0, 0, 0, 0).
+            getEdges(new BusTime(12, 15)).iterator().hasNext());
   }
 
   /**
@@ -139,7 +140,7 @@ public class BusStationTests {
   @Test
   public void duplicateStation() {
     try {
-      manager.createStation("fail", 0, 0, 0);
+      manager.createStation("fail", 0, 0, 0, 0, 0);
       fail("bus stations must have unique ids");
     } catch(final IllegalArgumentException e) {
       // success
