@@ -84,6 +84,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   /**
+   * The current waiter thread.
+   */
+  protected volatile Thread currentWaiter;
+
+  /**
    * Sets the values for the distance.
    * 
    * @param from The reference station.
@@ -115,7 +120,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     } else {
       pool = null;
     }
-    new Thread() {
+    final Thread t = new Thread() {
 
       @Override
       public void run() {
@@ -129,12 +134,15 @@ public final class StationDistance implements Weighter, NodeDrawer {
             return;
           }
         }
+        if(currentWaiter != this) return;
         StationDistance.this.from = from;
         StationDistance.this.time = time;
         StationDistance.this.changeTime = changeTime;
       }
 
-    }.start();
+    };
+    currentWaiter = t;
+    t.start();
   }
 
   /**
