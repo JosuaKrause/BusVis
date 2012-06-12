@@ -183,4 +183,9 @@ public class EmbedderTest implements NodeDrawer, Weighter {
     return null;
   }
 
+  @Override
+  public String getTooltipText(final SpringNode n) {
+    return null;
+  }
+
 }

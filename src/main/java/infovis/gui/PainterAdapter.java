@@ -33,6 +33,18 @@ public class PainterAdapter implements Painter {
   }
 
   @Override
+  public String getTooltip(final Point2D p) {
+    // no tool-tip
+    return null;
+  }
+
+  @Override
+  public String getTooltipHUD(final Point2D p) {
+    // no tool-tip
+    return null;
+  }
+
+  @Override
   public boolean acceptDrag(final Point2D p) {
     // the event is not consumed
     return false;

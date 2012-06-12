@@ -35,6 +35,14 @@ public interface NodeDrawer {
   Shape nodeClickArea(SpringNode n);
 
   /**
+   * Defines the tool-tip text for the given node.
+   * 
+   * @param n The node.
+   * @return The tool-tip text or <code>null</code> if none is needed.
+   */
+  String getTooltipText(SpringNode n);
+
+  /**
    * Drags a single node.
    * 
    * @param n The node.

@@ -159,6 +159,21 @@ public abstract class AbstractEmbedder extends PainterAdapter {
   }
 
   @Override
+  public String getTooltip(final Point2D p) {
+    String str = null;
+    for(final SpringNode n : drawer.nodes()) {
+      final Shape s = drawer.nodeClickArea(n);
+      if(s.contains(p)) {
+        final String text = drawer.getTooltipText(n);
+        if(text != null) {
+          str = text;
+        }
+      }
+    }
+    return str;
+  }
+
+  @Override
   public void drag(final Point2D start, final Point2D cur, final double dx,
       final double dy) {
     for(final SelectedNode n : selected) {

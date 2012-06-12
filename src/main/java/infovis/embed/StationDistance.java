@@ -297,7 +297,7 @@ public class StationDistance implements Weighter, NodeDrawer {
     if(ref == null) return;
     final Point2D center = ref.getPos();
     boolean b = true;
-    for(int i = 11; i > 0; i -= 2) {
+    for(int i = 11; i > 0; --i) {
       final double radius = factor * 5 * i;
       final double r2 = radius * 2;
       final Ellipse2D circ = new Ellipse2D.Double(center.getX() - radius, center.getY()
@@ -317,6 +317,23 @@ public class StationDistance implements Weighter, NodeDrawer {
   @Override
   public SpringNode getReferenceNode() {
     return from == null ? null : rev.get(from);
+  }
+
+  @Override
+  public String getTooltipText(final SpringNode node) {
+    final BusStation station = map.get(node);
+    String dist;
+    if(from != null && from != station) {
+      final SpringNode ref = getReferenceNode();
+      if(hasWeight(node, ref)) {
+        dist = " (" + distance.get(station) + " min)";
+      } else {
+        dist = " (not reachable)";
+      }
+    } else {
+      dist = "";
+    }
+    return station.getName() + dist;
   }
 
 }

@@ -150,6 +150,23 @@ public class Canvas extends JComponent implements Refreshable {
         }
       }
 
+      @Override
+      public void mouseMoved(final MouseEvent e) {
+        final Point2D p = e.getPoint();
+        String strHUD;
+        if((strHUD = painter.getTooltipHUD(p)) != null) {
+          Canvas.this.setToolTipText(strHUD);
+          return;
+        }
+        final Point2D c = getForScreen(p);
+        String str;
+        if((str = painter.getTooltip(c)) != null) {
+          Canvas.this.setToolTipText(str);
+          return;
+        }
+        Canvas.this.setToolTipText(null);
+      }
+
     };
     addMouseListener(mouse);
     addMouseMotionListener(mouse);
