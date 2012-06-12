@@ -89,12 +89,24 @@ public final class StationDistance implements Weighter, NodeDrawer {
    */
   protected volatile Thread currentWaiter;
 
+  /**
+   * The fading bus station.
+   */
   protected BusStation fadeOut;
 
+  /**
+   * The fading start time.
+   */
   protected long fadingStart;
 
+  /**
+   * The fading end time.
+   */
   protected long fadingEnd;
 
+  /**
+   * Whether we do fade currently.
+   */
   protected boolean fade;
 
   /**
