@@ -2,6 +2,7 @@ package infovis.embed;
 
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.geom.Point2D;
 
 /**
  * Draws spring nodes and interacts with them.
@@ -54,10 +55,24 @@ public interface NodeDrawer {
   void dragNode(SpringNode n, double startX, double startY, double dx, double dy);
 
   /**
+   * A click on the node occured.
+   * 
+   * @param n The node.
+   */
+  void selectNode(SpringNode n);
+
+  /**
    * An iteration over all nodes in the spring embedder system.
    * 
    * @return The iterable.
    */
   Iterable<SpringNode> nodes();
+
+  /**
+   * Is called when the user moves the mouse.
+   * 
+   * @param cur The current mouse position.
+   */
+  void moveMouse(Point2D cur);
 
 }

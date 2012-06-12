@@ -11,6 +11,11 @@ import java.util.Comparator;
 public final class BusTime implements Comparable<BusTime> {
 
   /**
+   * Midnight.
+   */
+  public static final BusTime MIDNIGHT = new BusTime(0, 0);
+
+  /**
    * The number of hours per day.
    */
   public static final int HOURS_PER_DAY = 24;
@@ -154,6 +159,16 @@ public final class BusTime implements Comparable<BusTime> {
   @Override
   public String toString() {
     return String.format("%s[%dh, %dmin]", getClass().getSimpleName(), hour, minute);
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return A pretty representation.
+   */
+  public String pretty() {
+    final String min = "0" + minute;
+    return hour + ":" + min.substring(min.length() - 2) + "h";
   }
 
   /**

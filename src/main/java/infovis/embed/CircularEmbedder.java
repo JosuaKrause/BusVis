@@ -68,4 +68,9 @@ public class CircularEmbedder extends AbstractEmbedder {
     }
   }
 
+  @Override
+  protected boolean doesDrag() {
+    return false;
+  }
+
 }

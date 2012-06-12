@@ -162,6 +162,11 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
+  public void selectNode(final SpringNode n) {
+    // nothing
+  }
+
+  @Override
   public Shape nodeClickArea(final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
@@ -186,6 +191,11 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   @Override
   public String getTooltipText(final SpringNode n) {
     return null;
+  }
+
+  @Override
+  public void moveMouse(final Point2D cur) {
+    // nothing to do
   }
 
 }

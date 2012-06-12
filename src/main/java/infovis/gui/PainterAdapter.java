@@ -62,4 +62,9 @@ public class PainterAdapter implements Painter {
     drag(start, cur, dx, dy);
   }
 
+  @Override
+  public void moveMouse(final Point2D cur) {
+    // nothing to do
+  }
+
 }

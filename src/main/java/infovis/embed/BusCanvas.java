@@ -1,9 +1,15 @@
 package infovis.embed;
 
+import infovis.ctrl.BusVisualization;
+import infovis.ctrl.ControlPanel;
+import infovis.ctrl.Controller;
 import infovis.data.BusData;
+import infovis.data.BusStation;
 import infovis.data.BusStationManager;
+import infovis.data.BusTime;
 import infovis.gui.Canvas;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
@@ -23,7 +29,7 @@ import javax.swing.WindowConstants;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class BusCanvas extends Canvas {
+public final class BusCanvas extends Canvas implements BusVisualization {
 
   /**
    * Starts a sample application.
@@ -40,20 +46,13 @@ public final class BusCanvas extends Canvas {
     }
     // ini
     final JFrame frame = new JFrame("Bus test");
-    final BusCanvas canvas = createBusCanvas(m, 800, 600);
-    frame.add(canvas);
+    final Controller ctrl = new Controller(m, frame);
+    final BusCanvas canvas = createBusCanvas(ctrl, 800, 600);
+    frame.setLayout(new BorderLayout());
+    frame.add(canvas, BorderLayout.CENTER);
+    frame.add(new ControlPanel(ctrl), BorderLayout.EAST);
     frame.pack();
     canvas.reset();
-    canvas.addAction(KeyEvent.VK_Q, new AbstractAction() {
-
-      private static final long serialVersionUID = -3089254363439068506L;
-
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        frame.dispose();
-      }
-
-    });
     canvas.addAction(KeyEvent.VK_F, new AbstractAction() {
 
       private static final long serialVersionUID = 3038019958008049173L;
@@ -108,19 +107,20 @@ public final class BusCanvas extends Canvas {
   /**
    * Creates a bus canvas.
    * 
-   * @param manager The bus station manager.
+   * @param ctrl The controller.
    * @param width The width.
    * @param height The height.
    * @return The bus canvas.
    */
-  public static BusCanvas createBusCanvas(final BusStationManager manager,
-      final int width, final int height) {
-    final StationDistance dist = new StationDistance(manager);
+  public static BusCanvas createBusCanvas(final Controller ctrl, final int width,
+      final int height) {
+    final StationDistance dist = new StationDistance(ctrl);
     dist.setMinDist(60.0);
     dist.setFactor(10);
     final AbstractEmbedder embed = USE_SPRING_EMBEDDER ? new SpringEmbedder(dist, dist)
     : new CircularEmbedder(dist, dist);
-    final BusCanvas res = new BusCanvas(embed, dist, width, height);
+    final BusCanvas res = new BusCanvas(ctrl, embed, dist, width, height);
+    ctrl.addBusVisualization(res);
     embed.addRefreshable(res);
     res.setBackground(Color.WHITE);
     return res;
@@ -129,12 +129,14 @@ public final class BusCanvas extends Canvas {
   /**
    * Private constructor.
    * 
+   * @param ctrl The controller.
    * @param embed The embedder.
    * @param dist The distance measure.
    * @param width The width.
    * @param height The height.
    */
-  private BusCanvas(final AbstractEmbedder embed, final StationDistance dist,
+  private BusCanvas(final Controller ctrl, final AbstractEmbedder embed,
+      final StationDistance dist,
       final int width, final int height) {
     super(embed, width, height);
     this.embed = embed;
@@ -159,6 +161,16 @@ public final class BusCanvas extends Canvas {
       }
 
     });
+    addAction(KeyEvent.VK_Q, new AbstractAction() {
+
+      private static final long serialVersionUID = -3089254363439068506L;
+
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        ctrl.quit();
+      }
+
+    });
   }
 
   @Override
@@ -177,6 +189,21 @@ public final class BusCanvas extends Canvas {
     } else {
       reset(bbox);
     }
+  }
+
+  @Override
+  public void selectBusStation(final BusStation station) {
+    dist.setFrom(station);
+  }
+
+  @Override
+  public void setStartTime(final BusTime time) {
+    dist.setTime(time);
+  }
+
+  @Override
+  public void setChangeTime(final int minutes) {
+    dist.setChangeTime(minutes);
   }
 
 }

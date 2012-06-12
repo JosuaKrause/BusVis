@@ -1,8 +1,9 @@
 package infovis.embed;
 
+import static infovis.VecUtil.*;
+import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusStation.Route;
-import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.embed.pol.Interpolator;
 
@@ -58,15 +59,21 @@ public final class StationDistance implements Weighter, NodeDrawer {
   private double factor = .1;
 
   /**
+   * The controller.
+   */
+  private final Controller ctrl;
+
+  /**
    * Creates a station distance without a reference station.
    * 
-   * @param manager The bus station manager.
+   * @param ctrl The controller.
    */
-  public StationDistance(final BusStationManager manager) {
+  public StationDistance(final Controller ctrl) {
+    this.ctrl = ctrl;
     distance = new HashMap<BusStation, Integer>();
     map = new HashMap<SpringNode, BusStation>();
     rev = new HashMap<BusStation, SpringNode>();
-    for(final BusStation s : manager.getStations()) {
+    for(final BusStation s : ctrl.getStations()) {
       final SpringNode node = new SpringNode();
       node.setPosition(s.getDefaultX(), s.getDefaultY());
       map.put(node, s);
@@ -135,6 +142,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
       }
 
     };
+    t.setDaemon(true);
     currentCalculator = t;
     t.start();
   }
@@ -285,11 +293,15 @@ public final class StationDistance implements Weighter, NodeDrawer {
   @Override
   public void dragNode(final SpringNode n, final double startX, final double startY,
       final double dx, final double dy) {
+    n.setPosition(startX + dx, startY + dy);
+  }
+
+  @Override
+  public void selectNode(final SpringNode n) {
     final BusStation station = map.get(n);
     if(!station.equals(from)) {
-      setFrom(station);
+      ctrl.selectStation(station);
     }
-    n.setPosition(startX + dx, startY + dy);
   }
 
   @Override
@@ -360,6 +372,16 @@ public final class StationDistance implements Weighter, NodeDrawer {
       dist = "";
     }
     return station.getName() + dist;
+  }
+
+  @Override
+  public void moveMouse(final Point2D cur) {
+    if(from != null) {
+      ctrl.setTitle(BusTime.minutesToString((int) Math.ceil(getLength(subVec(cur,
+          getReferenceNode().getPos())) / factor)));
+    } else {
+      ctrl.setTitle(null);
+    }
   }
 
 }

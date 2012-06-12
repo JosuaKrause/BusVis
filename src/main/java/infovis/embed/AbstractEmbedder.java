@@ -106,6 +106,11 @@ public abstract class AbstractEmbedder extends PainterAdapter {
     }
   }
 
+  @Override
+  public void moveMouse(final Point2D cur) {
+    drawer.moveMouse(cur);
+  }
+
   /**
    * A selected node.
    * 
@@ -148,6 +153,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
 
   @Override
   public boolean acceptDrag(final Point2D p) {
+    if(!doesDrag()) return false;
     selected.clear();
     for(final SpringNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n);
@@ -156,6 +162,28 @@ public abstract class AbstractEmbedder extends PainterAdapter {
       }
     }
     return !selected.isEmpty();
+  }
+
+  @Override
+  public boolean click(final Point2D p) {
+    if(doesDrag()) return false;
+    for(final SpringNode n : drawer.nodes()) {
+      final Shape s = drawer.nodeClickArea(n);
+      if(s.contains(p)) {
+        drawer.selectNode(n);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Whether the embedder allows node dragging.
+   */
+  protected boolean doesDrag() {
+    return true;
   }
 
   @Override

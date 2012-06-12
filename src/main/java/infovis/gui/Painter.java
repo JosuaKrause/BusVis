@@ -104,4 +104,11 @@ public interface Painter {
    */
   void endDrag(Point2D start, Point2D end, double dx, double dy);
 
+  /**
+   * Is called when the mouse was moved.
+   * 
+   * @param cur The current position in canvas coordinates.
+   */
+  void moveMouse(Point2D cur);
+
 }
