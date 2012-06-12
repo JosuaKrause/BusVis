@@ -296,7 +296,7 @@ public class StationDistance implements Weighter, NodeDrawer {
     if(ref == null) return;
     final Point2D center = ref.getPos();
     boolean b = true;
-    for(int i = 11; i > 0; --i) {
+    for(int i = 12; i > 0; --i) {
       final double radius = factor * 5 * i;
       final double r2 = radius * 2;
       final Ellipse2D circ = new Ellipse2D.Double(center.getX() - radius, center.getY()
