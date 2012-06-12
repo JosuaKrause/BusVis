@@ -156,4 +156,17 @@ public final class BusTime implements Comparable<BusTime> {
     return String.format("%s[%dh, %dmin]", getClass().getSimpleName(), hour, minute);
   }
 
+  /**
+   * Converts minutes into a readable string.
+   * 
+   * @param minutes The minutes.
+   * @return The string.
+   */
+  public static String minutesToString(final int minutes) {
+    final int h = minutes / MINUTES_PER_HOUR;
+    final int m = minutes % MINUTES_PER_HOUR;
+    return (h > 0 ? h + " h" : "")
+        + (m > 0 ? (h > 0 ? " " : "") + m + " min" : (h > 0 ? "" : "0 min"));
+  }
+
 }

@@ -39,7 +39,7 @@ public class StationDistance implements Weighter, NodeDrawer {
   /**
    * The distances from the bus station.
    */
-  private final Map<BusStation, Double> distance;
+  private final Map<BusStation, Integer> distance;
 
   /**
    * The current reference time.
@@ -73,7 +73,7 @@ public class StationDistance implements Weighter, NodeDrawer {
    */
   public StationDistance(final BusStationManager manager) {
     this.manager = manager;
-    distance = new ConcurrentHashMap<BusStation, Double>();
+    distance = new ConcurrentHashMap<BusStation, Integer>();
     map = new HashMap<SpringNode, BusStation>();
     rev = new HashMap<BusStation, SpringNode>();
     for(final BusStation s : manager.getStations()) {
@@ -92,7 +92,7 @@ public class StationDistance implements Weighter, NodeDrawer {
    * @param changeTime The change time.
    */
   public void set(final BusStation from, final BusTime time, final int changeTime) {
-    final Map<BusStation, Double> dist = distance;
+    final Map<BusStation, Integer> dist = distance;
     dist.clear();
     if(from != null) {
       final ExecutorService pool = Executors.newCachedThreadPool();
@@ -106,8 +106,7 @@ public class StationDistance implements Weighter, NodeDrawer {
           public void run() {
             final Deque<BusEdge> route = from.routeTo(s, time, changeTime);
             if(route == null) return;
-            final double t = time.minutesTo(route.getLast().getEnd());
-            dist.put(s, t);
+            dist.put(s, time.minutesTo(route.getLast().getEnd()));
           }
 
         });
@@ -235,7 +234,7 @@ public class StationDistance implements Weighter, NodeDrawer {
     if(fr.equals(from)) return 0;
     final BusStation to = map.get(t);
     if(to.equals(from)) {
-      final Double d = distance.get(fr);
+      final Integer d = distance.get(fr);
       if(d == null) return 0;
       return factor * d;
     }
@@ -326,7 +325,7 @@ public class StationDistance implements Weighter, NodeDrawer {
     if(from != null && from != station) {
       final SpringNode ref = getReferenceNode();
       if(hasWeight(node, ref)) {
-        dist = " (" + distance.get(station) + " min)";
+        dist = " (" + BusTime.minutesToString(distance.get(station)) + ")";
       } else {
         dist = " (not reachable)";
       }
