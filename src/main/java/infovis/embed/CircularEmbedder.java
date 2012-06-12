@@ -2,7 +2,6 @@ package infovis.embed;
 
 import static infovis.VecUtil.*;
 import infovis.embed.pol.Interpolator;
-import infovis.embed.pol.SinInterpolator;
 
 import java.awt.geom.Point2D;
 
@@ -28,16 +27,6 @@ public class CircularEmbedder extends AbstractEmbedder {
     super(drawer);
     this.weighter = weighter;
   }
-
-  /**
-   * The standard interpolator.
-   */
-  private static final Interpolator INTERPOLATOR = new SinInterpolator();
-
-  /**
-   * The standard animation duration.
-   */
-  private static final int DURATION = 1000;
 
   /**
    * The current reference node.
@@ -70,7 +59,7 @@ public class CircularEmbedder extends AbstractEmbedder {
             dest = addVec(setLength(subVec(pos, refP), w), refP);
           }
         }
-        n.startAnimationTo(dest, INTERPOLATOR, DURATION);
+        n.startAnimationTo(dest, Interpolator.INTERPOLATOR, Interpolator.DURATION);
       }
       curRef = ref;
     }

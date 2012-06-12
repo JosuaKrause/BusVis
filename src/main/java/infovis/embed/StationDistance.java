@@ -4,6 +4,7 @@ import infovis.data.BusEdge;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.embed.pol.Interpolator;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -88,6 +89,14 @@ public final class StationDistance implements Weighter, NodeDrawer {
    */
   protected volatile Thread currentWaiter;
 
+  protected BusStation fadeOut;
+
+  protected long fadingStart;
+
+  protected long fadingEnd;
+
+  protected boolean fade;
+
   /**
    * Sets the values for the distance.
    * 
@@ -135,9 +144,13 @@ public final class StationDistance implements Weighter, NodeDrawer {
           }
         }
         if(currentWaiter != this) return;
+        fadeOut = StationDistance.this.from;
+        fadingStart = System.currentTimeMillis();
+        fadingEnd = fadingStart + Interpolator.DURATION;
         StationDistance.this.from = from;
         StationDistance.this.time = time;
         StationDistance.this.changeTime = changeTime;
+        fade = true;
       }
 
     };
@@ -306,15 +319,35 @@ public final class StationDistance implements Weighter, NodeDrawer {
   @Override
   public void drawBackground(final Graphics2D g) {
     final SpringNode ref = getReferenceNode();
-    if(ref == null) return;
-    final Point2D center = ref.getPos();
+    if(ref == null && !fade) return;
+    Point2D center;
+    Color col;
+    if(fade) {
+      final long time = System.currentTimeMillis();
+      final double t = ((double) time - fadingStart) / ((double) fadingEnd - fadingStart);
+      final double f = Interpolator.INTERPOLATOR.interpolate(t);
+      final SpringNode n = f > 0.5 ? ref : rev.get(fadeOut);
+      center = n != null ? n.getPos() : null;
+      final double split = f > 0.5 ? (f - 0.5) * 2 : 1 - f * 2;
+      final int alpha = Math.max(0, Math.min((int) (split * 255), 255));
+      col = new Color(alpha << 24
+          | (Color.LIGHT_GRAY.getRGB() & 0x00ffffff), true);
+      if(t >= 1.0) {
+        fadeOut = null;
+        fade = false;
+      }
+    } else {
+      center = ref.getPos();
+      col = Color.LIGHT_GRAY;
+    }
+    if(center == null) return;
     boolean b = true;
     for(int i = 12; i > 0; --i) {
       final double radius = factor * 5 * i;
       final double r2 = radius * 2;
       final Ellipse2D circ = new Ellipse2D.Double(center.getX() - radius, center.getY()
           - radius, r2, r2);
-      g.setColor(b ? Color.LIGHT_GRAY : Color.WHITE);
+      g.setColor(b ? col : Color.WHITE);
       b = !b;
       g.fill(circ);
     }

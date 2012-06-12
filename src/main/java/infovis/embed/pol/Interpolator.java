@@ -15,4 +15,14 @@ public interface Interpolator {
    */
   double interpolate(double t);
 
+  /**
+   * The standard interpolator.
+   */
+  Interpolator INTERPOLATOR = new SinInterpolator();
+
+  /**
+   * The standard animation duration.
+   */
+  int DURATION = 1000;
+
 }
