@@ -251,6 +251,19 @@ public final class BusStation {
   }
 
   /**
+   * Getter.
+   * 
+   * @return The maximum degree of this station.
+   */
+  public int getMaxDegree() {
+    int max = 0;
+    for(final Neighbor edge : getNeighbors()) {
+      max = Math.max(max, edge.lines.length);
+    }
+    return max;
+  }
+
+  /**
    * A route is given by the best edges per bus station.
    * 
    * @author Joschi <josua.krause@googlemail.com>
