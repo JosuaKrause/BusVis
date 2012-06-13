@@ -103,4 +103,5 @@ public class Overview extends PainterAdapter {
       gfx.drawString(station.getName(), x + 2 * STATION_RADIUS, y + STATION_RADIUS);
     }
   }
+
 }

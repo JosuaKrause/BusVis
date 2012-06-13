@@ -5,11 +5,14 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -183,6 +186,61 @@ public final class BusStation {
       }
 
     };
+  }
+
+  /**
+   * A neighbor is a bus station with lines that connect to the given station.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  public static final class Neighbor {
+
+    /**
+     * The neighboring station.
+     */
+    public final BusStation station;
+
+    /**
+     * The lines that connect to the neighbor.
+     */
+    public final BusLine[] lines;
+
+    /**
+     * Creates a new neighbor.
+     * 
+     * @param station The station.
+     * @param lines The lines.
+     */
+    public Neighbor(final BusStation station, final BusLine[] lines) {
+      this.station = station;
+      this.lines = lines;
+    }
+
+  }
+
+  /**
+   * Returns all neighbors of this node.
+   * 
+   * @param time The starting time.
+   * @return The neighbors.
+   */
+  public Neighbor[] getNeighbors(final BusTime time) {
+    final Map<BusStation, Set<BusLine>> acc = new HashMap<BusStation, Set<BusLine>>();
+    for(final BusEdge edge : getEdges(time)) {
+      final BusStation to = edge.getTo();
+      final BusLine line = edge.getLine();
+      if(!acc.containsKey(to)) {
+        acc.put(to, new HashSet<BusLine>());
+      }
+      acc.get(to).add(line);
+    }
+    final Neighbor[] res = new Neighbor[acc.size()];
+    int i = 0;
+    for(final Entry<BusStation, Set<BusLine>> e : acc.entrySet()) {
+      final Set<BusLine> lines = e.getValue();
+      res[i++] = new Neighbor(e.getKey(), lines.toArray(new BusLine[lines.size()]));
+    }
+    return res;
   }
 
   /**
