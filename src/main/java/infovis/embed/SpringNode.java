@@ -128,6 +128,24 @@ public class SpringNode {
   /**
    * Getter.
    * 
+   * @return The x final position after the animation has finished.
+   */
+  public double getPredictX() {
+    return end != null ? end.getX() : getX();
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The final y position after the animation has finished.
+   */
+  public double getPredictY() {
+    return end != null ? end.getY() : getY();
+  }
+
+  /**
+   * Getter.
+   * 
    * @return The current position.
    */
   public Point2D getPos() {

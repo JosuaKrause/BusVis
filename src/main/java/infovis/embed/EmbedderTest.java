@@ -170,9 +170,9 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public Shape nodeClickArea(final SpringNode n) {
-    final double x = n.getX();
-    final double y = n.getY();
+  public Shape nodeClickArea(final SpringNode n, final boolean real) {
+    final double x = real ? n.getX() : n.getPredictX();
+    final double y = real ? n.getY() : n.getPredictY();
     return new Ellipse2D.Double(x - 2, y - 2, 4, 4);
   }
 

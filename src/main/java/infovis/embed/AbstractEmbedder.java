@@ -161,7 +161,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
     if(!doesDrag()) return false;
     selected.clear();
     for(final SpringNode n : drawer.nodes()) {
-      final Shape s = drawer.nodeClickArea(n);
+      final Shape s = drawer.nodeClickArea(n, true);
       if(s.contains(p)) {
         selected.add(new SelectedNode(n));
       }
@@ -173,7 +173,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
   public boolean click(final Point2D p) {
     if(doesDrag()) return false;
     for(final SpringNode n : drawer.nodes()) {
-      final Shape s = drawer.nodeClickArea(n);
+      final Shape s = drawer.nodeClickArea(n, true);
       if(s.contains(p)) {
         drawer.selectNode(n);
         return true;
@@ -195,7 +195,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
   public String getTooltip(final Point2D p) {
     String str = null;
     for(final SpringNode n : drawer.nodes()) {
-      final Shape s = drawer.nodeClickArea(n);
+      final Shape s = drawer.nodeClickArea(n, true);
       if(s.contains(p)) {
         final String text = drawer.getTooltipText(n);
         if(text != null) {

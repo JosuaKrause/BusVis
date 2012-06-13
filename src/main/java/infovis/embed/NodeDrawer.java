@@ -40,9 +40,11 @@ public interface NodeDrawer {
    * The position of the node must be added manually.
    * 
    * @param n The node.
+   * @param real Whether the real position or the position after the complete
+   *          animation should be returned.
    * @return The clickable shape of the node.
    */
-  Shape nodeClickArea(SpringNode n);
+  Shape nodeClickArea(SpringNode n, boolean real);
 
   /**
    * Defines the tool-tip text for the given node.

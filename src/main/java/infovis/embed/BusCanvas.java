@@ -98,7 +98,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   /**
    * The distance measure.
    */
-  private final StationDistance dist;
+  protected final StationDistance dist;
 
   /**
    * Whether to use a pring embedder.
@@ -149,6 +149,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
       @Override
       public void actionPerformed(final ActionEvent e) {
         ctrl.selectStation(null);
+        ctrl.focusStation();
       }
 
     });
@@ -186,25 +187,33 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    * @param station The station or <code>null</code>.
    */
   public void reset(final BusStation station) {
-    Rectangle2D bbox = null;
-    if(station != null) {
-      final Point2D pos = dist.getNode(station).getPos();
-      bbox = dist.getCircle(StationDistance.MAX_INTERVAL, pos).getBounds2D();
-    } else {
-      for(final SpringNode n : dist.nodes()) {
-        final Rectangle2D b = dist.nodeClickArea(n).getBounds2D();
-        if(bbox == null) {
-          bbox = b;
+    SwingUtilities.invokeLater(new Runnable() {
+
+      @SuppressWarnings("synthetic-access")
+      @Override
+      public void run() {
+        Rectangle2D bbox = null;
+        if(station != null) {
+          final Point2D pos = dist.getNode(station).getPos();
+          bbox = dist.getCircle(StationDistance.MAX_INTERVAL, pos).getBounds2D();
         } else {
-          bbox.add(b);
+          for(final SpringNode n : dist.nodes()) {
+            final Rectangle2D b = dist.nodeClickArea(n, false).getBounds2D();
+            if(bbox == null) {
+              bbox = b;
+            } else {
+              bbox.add(b);
+            }
+          }
+        }
+        if(bbox == null) {
+          BusCanvas.super.reset();
+        } else {
+          BusCanvas.this.reset(bbox);
         }
       }
-    }
-    if(bbox == null) {
-      super.reset();
-    } else {
-      reset(bbox);
-    }
+
+    });
   }
 
   @Override
