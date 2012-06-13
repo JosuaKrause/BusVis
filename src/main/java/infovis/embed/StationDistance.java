@@ -368,7 +368,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
     boolean b = true;
     for(int i = MAX_INTERVAL; i > 0; --i) {
       final Shape circ = getCircle(i, center);
-      g.setColor(b ? col : Color.WHITE);
+      final double d = (MAX_INTERVAL - i + 2.0) / (MAX_INTERVAL + 2);
+      final int oldAlpha = col.getAlpha();
+      final int newAlpha = (int) Math.round(oldAlpha * d);
+      final Color c = new Color(newAlpha << 24 | (col.getRGB() & 0x00ffffff), true);
+      g.setColor(b ? c : Color.WHITE);
       b = !b;
       g.fill(circ);
     }
