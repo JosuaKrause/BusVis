@@ -148,8 +148,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
       @Override
       public void actionPerformed(final ActionEvent e) {
-        dist.setFrom(null);
-        reset();
+        ctrl.selectStation(null);
       }
 
     });
