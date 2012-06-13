@@ -2,6 +2,7 @@ package infovis.embed;
 
 import static infovis.VecUtil.*;
 import infovis.ctrl.Controller;
+import infovis.data.BusEdge;
 import infovis.data.BusStation;
 import infovis.data.BusStation.Route;
 import infovis.data.BusTime;
@@ -11,6 +12,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.HashMap;
@@ -305,17 +307,27 @@ public final class StationDistance implements Weighter, NodeDrawer {
   public void drawNode(final Graphics2D g, final SpringNode n) {
     final BusStation station = map.get(n);
     //
-    routes.get(station).getFrom();
+    if(from != null) {
+      routes.get(station).getFrom();
+    }
     //
     final Route route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
+    final double x1 = n.getX();
+    final double y1 = n.getY();
+    // edge
+    for(final BusEdge edge : station.getEdges(getTime())) {
+      final SpringNode node = rev.get(edge.getTo());
+      final double x2 = node.getX();
+      final double y2 = node.getY();
+      g.setColor(edge.getLine().getColor());
+      g.draw(new Line2D.Double(x1, y1, x2, y2));
+    }
     g.setColor(!station.equals(from) ? Color.BLUE : Color.RED);
     g.fill(nodeClickArea(n));
-    final double x = n.getX();
-    final double y = n.getY();
     final Graphics2D gfx = (Graphics2D) g.create();
     gfx.setColor(Color.BLACK);
-    gfx.translate(x, y);
+    gfx.translate(x1, y1);
     gfx.drawString(station.getName(), 0, 0);
     gfx.dispose();
   }
