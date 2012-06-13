@@ -11,6 +11,7 @@ import infovis.gui.PainterAdapter;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.Line2D;
 import java.io.IOException;
 
 import javax.swing.JFrame;
@@ -80,9 +81,8 @@ public class Overview extends PainterAdapter {
             || to.getAbstractX() == Double.MIN_VALUE) {
           continue;
         }
-        gfx.drawLine((int) from.getAbstractX(), (int) from.getAbstractY(),
-            (int) to.getAbstractX(),
-            (int) to.getAbstractY());
+        gfx.draw(new Line2D.Double(from.getAbstractX(), from.getAbstractY(),
+            to.getAbstractX(), to.getAbstractY()));
       }
     }
     // Draw Bus stations
