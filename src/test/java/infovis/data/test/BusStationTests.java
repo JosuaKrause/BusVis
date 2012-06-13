@@ -131,7 +131,7 @@ public class BusStationTests {
     assertFalse(
         "must be empty",
         manager.createStation("r", -1, 0, 0, 0, 0).
-            getEdges(new BusTime(12, 15)).iterator().hasNext());
+        getEdges(new BusTime(12, 15)).iterator().hasNext());
   }
 
   /**
@@ -247,4 +247,32 @@ public class BusStationTests {
     }
   }
 
+  /**
+   * Tests if routes without changes are taken if suitable.
+   * 
+   * <pre>
+   *     , 00:00 ---1--- 00:01.
+   *    /                      \
+   *  (A) 00:01 ---2---> 00:02 (B) 00:02 ---2---> 00:03 (C)
+   *                             \                      /
+   *                              ` 00:03 ---3--- 00:04´
+   * </pre>
+   */
+  @Test
+  public void continuous() {
+    final BusStationManager man = new BusStationManager();
+    final BusLine s1 = new BusLine("B1", Color.RED), s2 = new BusLine("B2",
+        Color.BLUE), s3 = new BusLine("B3", Color.YELLOW);
+    final BusStation a = man.createStation("A", 0, 0, 0, 0, 0), b = man.createStation(
+        "B", 1, 0, 0, 0, 0), c = man.createStation("C", 2, 0, 0, 0, 0);
+
+    a.addEdge(s1, b, new BusTime(0, 0), new BusTime(0, 1));
+
+    a.addEdge(s2, b, new BusTime(0, 1), new BusTime(0, 2));
+    b.addEdge(s2, c, new BusTime(0, 2), new BusTime(0, 3));
+
+    b.addEdge(s3, c, new BusTime(0, 3), new BusTime(0, 4));
+
+    assertEquals(new BusTime(0, 3), a.routeTo(c, new BusTime(0, 0), 5).getLast().getEnd());
+  }
 }
