@@ -320,6 +320,10 @@ public final class StationDistance implements Weighter, NodeDrawer {
   @Override
   public void dragNode(final SpringNode n, final double startX, final double startY,
       final double dx, final double dy) {
+    final BusStation station = map.get(n);
+    if(!station.equals(from)) {
+      ctrl.selectStation(station);
+    }
     n.setPosition(startX + dx, startY + dy);
   }
 

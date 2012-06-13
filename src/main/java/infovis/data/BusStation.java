@@ -219,28 +219,35 @@ public final class BusStation {
   }
 
   /**
+   * The cached neighbors of this node.
+   */
+  private Neighbor[] neighbors;
+
+  /**
    * Returns all neighbors of this node.
    * 
-   * @param time The starting time.
    * @return The neighbors.
    */
-  public Neighbor[] getNeighbors(final BusTime time) {
-    final Map<BusStation, Set<BusLine>> acc = new HashMap<BusStation, Set<BusLine>>();
-    for(final BusEdge edge : getEdges(time)) {
-      final BusStation to = edge.getTo();
-      final BusLine line = edge.getLine();
-      if(!acc.containsKey(to)) {
-        acc.put(to, new HashSet<BusLine>());
+  public Neighbor[] getNeighbors() {
+    if(neighbors == null) {
+      final Map<BusStation, Set<BusLine>> acc = new HashMap<BusStation, Set<BusLine>>();
+      for(final BusEdge edge : edges) {
+        final BusStation to = edge.getTo();
+        final BusLine line = edge.getLine();
+        if(!acc.containsKey(to)) {
+          acc.put(to, new HashSet<BusLine>());
+        }
+        acc.get(to).add(line);
       }
-      acc.get(to).add(line);
+      final Neighbor[] res = new Neighbor[acc.size()];
+      int i = 0;
+      for(final Entry<BusStation, Set<BusLine>> e : acc.entrySet()) {
+        final Set<BusLine> lines = e.getValue();
+        res[i++] = new Neighbor(e.getKey(), lines.toArray(new BusLine[lines.size()]));
+      }
+      neighbors = res;
     }
-    final Neighbor[] res = new Neighbor[acc.size()];
-    int i = 0;
-    for(final Entry<BusStation, Set<BusLine>> e : acc.entrySet()) {
-      final Set<BusLine> lines = e.getValue();
-      res[i++] = new Neighbor(e.getKey(), lines.toArray(new BusLine[lines.size()]));
-    }
-    return res;
+    return neighbors;
   }
 
   /**
