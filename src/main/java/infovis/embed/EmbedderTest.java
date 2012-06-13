@@ -100,12 +100,15 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   public void drawNode(final Graphics2D g, final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
+    g.setColor(Color.RED);
+    g.fill(new Ellipse2D.Double(x - 2, y - 2, 4, 4));
+  }
+
+  @Override
+  public void drawEdges(final Graphics2D g, final SpringNode n) {
+    final double x = n.getX();
+    final double y = n.getY();
     for(final SpringNode o : nodes) {
-      if(o == n) {
-        g.setColor(Color.RED);
-        g.fill(new Ellipse2D.Double(x - 2, y - 2, 4, 4));
-        continue;
-      }
       if(!areNeighbors(n, o)) {
         continue;
       }

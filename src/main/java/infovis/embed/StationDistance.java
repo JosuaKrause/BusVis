@@ -2,15 +2,19 @@ package infovis.embed;
 
 import static infovis.VecUtil.*;
 import infovis.ctrl.Controller;
+import infovis.data.BusLine;
 import infovis.data.BusStation;
+import infovis.data.BusStation.Neighbor;
 import infovis.data.BusStation.Route;
 import infovis.data.BusTime;
 import infovis.embed.pol.Interpolator;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.HashMap;
@@ -302,14 +306,46 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   @Override
+  public void drawEdges(final Graphics2D g, final SpringNode n) {
+    final BusStation station = map.get(n);
+    //
+    if(from != null) {
+      routes.get(station).getFrom();
+    }
+    //
+    final double x1 = n.getX();
+    final double y1 = n.getY();
+    for(final Neighbor edge : station.getNeighbors()) {
+      final SpringNode node = rev.get(edge.station);
+      final Route route = routes.get(station);
+      if(route != null && route.isNotReachable()) return;
+      final double x2 = node.getX();
+      final double y2 = node.getY();
+      int counter = 0;
+      for(final BusLine line : edge.lines) {
+        g.setStroke(new BasicStroke(edge.lines.length - counter, BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_BEVEL));
+        g.setColor(line.getColor());
+        g.draw(new Line2D.Double(x1, y1, x2, y2));
+        counter++;
+      }
+    }
+  }
+
+  @Override
   public void drawNode(final Graphics2D g, final SpringNode n) {
     final BusStation station = map.get(n);
     final Route route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
-    g.setColor(!station.equals(from) ? Color.BLUE : Color.RED);
-    g.fill(nodeClickArea(n));
     final double x = n.getX();
     final double y = n.getY();
+    g.setColor(!station.equals(from) ? Color.WHITE : Color.RED);
+    final Shape shape = nodeClickArea(n);
+    g.fill(shape);
+    g.setColor(Color.BLACK);
+    g.draw(shape);
+    final int neighborCount = station.getNeighbors().length;
+    if(neighborCount > 1 && 3 > neighborCount) return;
     final Graphics2D gfx = (Graphics2D) g.create();
     gfx.setColor(Color.BLACK);
     gfx.translate(x, y);
@@ -337,7 +373,13 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
   @Override
   public Shape nodeClickArea(final SpringNode n) {
-    return new Ellipse2D.Double(n.getX() - 5, n.getY() - 5, 10, 10);
+    final BusStation station = map.get(n);
+    double max = 2;
+    for(final Neighbor edge : station.getNeighbors()) {
+      max = Math.max(max, edge.lines.length / 2);
+    }
+    final double r = max;
+    return new Ellipse2D.Double(n.getX() - r, n.getY() - r, r * 2, r * 2);
   }
 
   @Override

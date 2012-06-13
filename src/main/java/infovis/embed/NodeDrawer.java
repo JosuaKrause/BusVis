@@ -20,6 +20,15 @@ public interface NodeDrawer {
   void drawNode(Graphics2D g, SpringNode n);
 
   /**
+   * Draws the edges of the given node. The graphics device must be translated
+   * manually.
+   * 
+   * @param g The device.
+   * @param n The node.
+   */
+  void drawEdges(Graphics2D g, SpringNode n);
+
+  /**
    * Draws the background.
    * 
    * @param g The graphics context.
