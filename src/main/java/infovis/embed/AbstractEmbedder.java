@@ -101,6 +101,11 @@ public abstract class AbstractEmbedder extends PainterAdapter {
     g2.dispose();
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
+      drawer.drawEdges(g, n);
+      g.dispose();
+    }
+    for(final SpringNode n : drawer.nodes()) {
+      final Graphics2D g = (Graphics2D) gfx.create();
       drawer.drawNode(g, n);
       g.dispose();
     }
