@@ -315,7 +315,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     //
     final double x1 = n.getX();
     final double y1 = n.getY();
-    for(final Neighbor edge : station.getNeighbors(getTime())) {
+    for(final Neighbor edge : station.getNeighbors()) {
       final SpringNode node = rev.get(edge.station);
       final Route route = routes.get(station);
       if(route != null && route.isNotReachable()) return;
@@ -339,9 +339,12 @@ public final class StationDistance implements Weighter, NodeDrawer {
     if(route != null && route.isNotReachable()) return;
     final double x = n.getX();
     final double y = n.getY();
-    g.setColor(!station.equals(from) ? Color.BLUE : Color.RED);
-    g.fill(nodeClickArea(n));
-    final int neighborCount = station.getNeighbors(getTime()).length;
+    g.setColor(!station.equals(from) ? Color.WHITE : Color.RED);
+    final Shape shape = nodeClickArea(n);
+    g.fill(shape);
+    g.setColor(Color.BLACK);
+    g.draw(shape);
+    final int neighborCount = station.getNeighbors().length;
     if(neighborCount > 1 && 3 > neighborCount) return;
     final Graphics2D gfx = (Graphics2D) g.create();
     gfx.setColor(Color.BLACK);
@@ -372,7 +375,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   public Shape nodeClickArea(final SpringNode n) {
     final BusStation station = map.get(n);
     double max = 2;
-    for(final Neighbor edge : station.getNeighbors(getTime())) {
+    for(final Neighbor edge : station.getNeighbors()) {
       max = Math.max(max, edge.lines.length / 2);
     }
     final double r = max;
