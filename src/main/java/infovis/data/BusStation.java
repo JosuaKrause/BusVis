@@ -593,9 +593,18 @@ public final class BusStation {
   private final double abstractX;
 
   /**
-   * The y coordinate for this bus station on the abstact map.
+   * The y coordinate for this bus station on the abstract map.
    */
   private final double abstractY;
+
+  /**
+   * Getter.
+   * 
+   * @return Whether this bus station has an abstract position.
+   */
+  public boolean hasAbstractPosition() {
+    return getAbstractX() != Double.MIN_VALUE;
+  }
 
   /**
    * Getter.
