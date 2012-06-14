@@ -29,16 +29,25 @@ public final class BusData {
    * Loads the bus system data from CSV files.
    * 
    * @param path data file path
+   * @return The bus manager holding the informations.
    * @throws IOException I/O exception
    */
-  public static void load(final String path) throws IOException {
+  public static BusStationManager load(final String path) throws IOException {
+    final BusStationManager manager = new BusStationManager();
     final File root = new File(path).getCanonicalFile();
     if(!root.exists()) throw new IllegalArgumentException(root + " does not exist.");
 
     final CSVReader stops = readerFor(new File(root, "stops.csv"));
     for(String[] stop; (stop = stops.readNext()) != null;) {
-      BusStation.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[3]) * 10000,
-          -parseDouble(stop[2]) * 10000);
+      double abstractX, abstractY;
+      if(stop[4].equals("UNKNOWN")) {
+        abstractX = abstractY = Double.MIN_VALUE;
+      } else {
+        abstractX = parseDouble(stop[4]);
+        abstractY = parseDouble(stop[5]);
+      }
+      manager.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[3]) * 10000,
+          -parseDouble(stop[2]) * 10000, abstractX, abstractY);
     }
 
     final Map<String, Color> colors = new HashMap<String, Color>();
@@ -59,7 +68,7 @@ public final class BusData {
         BusStation before = null;
         BusTime depart = null;
         for(int i = 0; i < tour.length; i++) {
-          final BusStation current = BusStation.getForId(parseInt(tour[i++]));
+          final BusStation current = manager.getForId(parseInt(tour[i++]));
           final BusTime arrive = parse(tour[i++]);
 
           if(before != null) {
@@ -74,6 +83,7 @@ public final class BusData {
         }
       }
     }
+    return manager;
   }
 
   /**

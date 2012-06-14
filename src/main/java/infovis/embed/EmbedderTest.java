@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,45 +33,37 @@ public class EmbedderTest implements NodeDrawer, Weighter {
     final EmbedderTest test = new EmbedderTest();
     final SpringEmbedder embed = new SpringEmbedder(test, test);
     final JFrame frame = new JFrame("Test");
-    final Canvas c = new Canvas(embed, 800, 600) {
+    final Canvas c = new Canvas(embed, 800, 600);
+    c.addAction(KeyEvent.VK_L, new AbstractAction() {
 
-      private static final long serialVersionUID = -6834426709928877533L;
+      private static final long serialVersionUID = 3840566617434458358L;
 
       @Override
-      public void setupKeyActions() {
-        addAction(KeyEvent.VK_L, new AbstractAction() {
-
-          private static final long serialVersionUID = 3840566617434458358L;
-
-          @Override
-          public void actionPerformed(final ActionEvent arg0) {
-            test.toggleMode();
-          }
-
-        });
-        addAction(KeyEvent.VK_Q, new AbstractAction() {
-
-          private static final long serialVersionUID = -6529074015382752666L;
-
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            frame.dispose();
-          }
-
-        });
-        addAction(KeyEvent.VK_M, new AbstractAction() {
-
-          private static final long serialVersionUID = 8243341373949395480L;
-
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            embed.setCorrectMovement(!embed.isCorrectingMovement());
-          }
-
-        });
+      public void actionPerformed(final ActionEvent arg0) {
+        test.toggleMode();
       }
 
-    };
+    });
+    c.addAction(KeyEvent.VK_Q, new AbstractAction() {
+
+      private static final long serialVersionUID = -6529074015382752666L;
+
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        frame.dispose();
+      }
+
+    });
+    c.addAction(KeyEvent.VK_M, new AbstractAction() {
+
+      private static final long serialVersionUID = 8243341373949395480L;
+
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        embed.setCorrectMovement(!embed.isCorrectingMovement());
+      }
+
+    });
     embed.addRefreshable(c);
     frame.add(c);
     frame.pack();
@@ -107,12 +100,15 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   public void drawNode(final Graphics2D g, final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
+    g.setColor(Color.RED);
+    g.fill(new Ellipse2D.Double(x - 2, y - 2, 4, 4));
+  }
+
+  @Override
+  public void drawEdges(final Graphics2D g, final SpringNode n) {
+    final double x = n.getX();
+    final double y = n.getY();
     for(final SpringNode o : nodes) {
-      if(o == n) {
-        g.setColor(Color.RED);
-        g.fill(new Ellipse2D.Double(x - 2, y - 2, 4, 4));
-        continue;
-      }
       if(!areNeighbors(n, o)) {
         continue;
       }
@@ -169,10 +165,45 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public Shape nodeClickArea(final SpringNode n) {
-    final double x = n.getX();
-    final double y = n.getY();
+  public void selectNode(final SpringNode n) {
+    // nothing
+  }
+
+  @Override
+  public Shape nodeClickArea(final SpringNode n, final boolean real) {
+    final double x = real ? n.getX() : n.getPredictX();
+    final double y = real ? n.getY() : n.getPredictY();
     return new Ellipse2D.Double(x - 2, y - 2, 4, 4);
+  }
+
+  @Override
+  public void drawBackground(final Graphics2D g) {
+    // void
+  }
+
+  @Override
+  public Point2D getDefaultPosition(final SpringNode node) {
+    return new Point2D.Double();
+  }
+
+  @Override
+  public SpringNode getReferenceNode() {
+    return null;
+  }
+
+  @Override
+  public String getTooltipText(final SpringNode n) {
+    return null;
+  }
+
+  @Override
+  public void moveMouse(final Point2D cur) {
+    // nothing to do
+  }
+
+  @Override
+  public boolean hasChanged() {
+    return false;
   }
 
 }

@@ -1,5 +1,8 @@
 package infovis.embed;
 
+import infovis.embed.pol.Interpolator;
+
+import java.awt.geom.Point2D;
 import java.util.Random;
 
 /**
@@ -123,6 +126,33 @@ public class SpringNode {
   }
 
   /**
+   * Getter.
+   * 
+   * @return The x final position after the animation has finished.
+   */
+  public double getPredictX() {
+    return end != null ? end.getX() : getX();
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The final y position after the animation has finished.
+   */
+  public double getPredictY() {
+    return end != null ? end.getY() : getY();
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The current position.
+   */
+  public Point2D getPos() {
+    return new Point2D.Double(getX(), getY());
+  }
+
+  /**
    * Manually adds a movement to the current motion.
    * 
    * @param dx The x movement.
@@ -144,6 +174,77 @@ public class SpringNode {
     this.y = y;
     dx = 0;
     dy = 0;
+  }
+
+  /**
+   * Sets a new position for the node and resets velocity.
+   * 
+   * @param pos The new position.
+   */
+  public void setPosition(final Point2D pos) {
+    setPosition(pos.getX(), pos.getY());
+  }
+
+  /**
+   * The animation start point.
+   */
+  private Point2D start;
+
+  /**
+   * The animation end point.
+   */
+  private Point2D end;
+
+  /**
+   * The animation interpolator or <code>null</code> if no animation is
+   * currently active.
+   */
+  private Interpolator pol;
+
+  /**
+   * The start time.
+   */
+  private long startTime;
+
+  /**
+   * The end time.
+   */
+  private long endTime;
+
+  /**
+   * Starts an animation to the given point.
+   * 
+   * @param pos The end point.
+   * @param pol The interpolator.
+   * @param duration The duration.
+   */
+  public void startAnimationTo(final Point2D pos, final Interpolator pol,
+      final int duration) {
+    final long millis = System.currentTimeMillis();
+    startTime = millis;
+    endTime = millis + duration;
+    this.pol = pol;
+    start = getPos();
+    end = pos;
+  }
+
+  /**
+   * Animates the position.
+   */
+  public void animate() {
+    if(pol == null) return;
+    final long millis = System.currentTimeMillis();
+    if(millis >= endTime) {
+      setPosition(end);
+      start = null;
+      end = null;
+      pol = null;
+      return;
+    }
+    final double t = ((double) millis - startTime) / ((double) endTime - startTime);
+    final double f = pol.interpolate(t);
+    setPosition(start.getX() * (1 - f) + end.getX() * f,
+        start.getY() * (1 - f) + end.getY() * f);
   }
 
 }

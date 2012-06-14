@@ -51,6 +51,28 @@ public interface Painter {
   boolean clickHUD(Point2D p);
 
   /**
+   * Is called when the user moves the mouse over the component and
+   * {@link #getTooltipHUD(Point2D)} has returned <code>null</code>. This method
+   * returns the tool-tip that should be displayed at the given canvas position.
+   * 
+   * @param p The mouse position in canvas coordinates.
+   * @return The tool-tip text or <code>null</code> if no tool-tip should be
+   *         displayed.
+   */
+  String getTooltip(Point2D p);
+
+  /**
+   * Is called when the user moves the mouse over the component. This method
+   * returns the tool-tip that should be displayed at the given position. This
+   * method is called before {@link #getTooltip(Point2D)}.
+   * 
+   * @param p The mouse position in component coordinates.
+   * @return The tool-tip text or <code>null</code> if no tool-tip should be
+   *         displayed.
+   */
+  String getTooltipHUD(Point2D p);
+
+  /**
    * Is called when the user starts a dragging operation on the canvas. The
    * coordinates are in the {@link Painter Painters} coordinate space and
    * therefore suitable for dragging of objects on the canvas.
@@ -81,5 +103,12 @@ public interface Painter {
    * @param dy The y distance of the drag in canvas coordinates.
    */
   void endDrag(Point2D start, Point2D end, double dx, double dy);
+
+  /**
+   * Is called when the mouse was moved.
+   * 
+   * @param cur The current position in canvas coordinates.
+   */
+  void moveMouse(Point2D cur);
 
 }

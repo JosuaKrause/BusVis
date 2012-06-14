@@ -150,22 +150,28 @@ public class Canvas extends JComponent implements Refreshable {
         }
       }
 
+      @Override
+      public void mouseMoved(final MouseEvent e) {
+        painter.moveMouse(getForScreen(e.getPoint()));
+      }
+
     };
     addMouseListener(mouse);
     addMouseMotionListener(mouse);
     addMouseWheelListener(mouse);
+    setToolTipText("");
     setFocusable(true);
     grabFocus();
-    setupKeyActions();
   }
 
-  /**
-   * This method is called when it is save to add keyboard actions with
-   * {@link #addAction(int, Action)}. You should overwrite this method if you
-   * want keyboard interaction for this canvas.
-   */
-  public void setupKeyActions() {
-    // to be overwritten
+  @Override
+  public String getToolTipText(final MouseEvent e) {
+    final Point2D p = e.getPoint();
+    String strHUD;
+    if((strHUD = painter.getTooltipHUD(p)) != null) return strHUD;
+    final Point2D c = getForScreen(p);
+    String str;
+    return ((str = painter.getTooltip(c)) != null) ? str : null;
   }
 
   /**
@@ -175,7 +181,7 @@ public class Canvas extends JComponent implements Refreshable {
    *          <code>VK</code>)
    * @param a The action that is performed.
    */
-  protected void addAction(final int key, final Action a) {
+  public void addAction(final int key, final Action a) {
     final Object token = new Object();
     final InputMap input = getInputMap();
     input.put(KeyStroke.getKeyStroke(key, 0), token);
