@@ -33,7 +33,7 @@ public final class BusData {
    * @throws IOException I/O exception
    */
   public static BusStationManager load(final String path) throws IOException {
-    final BusStationManager manager = new BusStationManager();
+    final BusStationManager manager = new BusStationManager(path);
     final File root = new File(path).getCanonicalFile();
     if(!root.exists()) throw new IllegalArgumentException(root + " does not exist.");
 
