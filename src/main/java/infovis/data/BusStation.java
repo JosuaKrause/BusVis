@@ -603,7 +603,7 @@ public final class BusStation {
    * @return Whether this bus station has an abstract position.
    */
   public boolean hasAbstractPosition() {
-    return getAbstractX() != Double.MIN_VALUE;
+    return Double.isNaN(getAbstractX());
   }
 
   /**

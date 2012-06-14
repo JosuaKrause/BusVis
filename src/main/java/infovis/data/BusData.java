@@ -41,7 +41,7 @@ public final class BusData {
     for(String[] stop; (stop = stops.readNext()) != null;) {
       double abstractX, abstractY;
       if(stop[4].equals("UNKNOWN")) {
-        abstractX = abstractY = Double.MIN_VALUE;
+        abstractX = abstractY = Double.NaN;
       } else {
         abstractX = parseDouble(stop[4]);
         abstractY = parseDouble(stop[5]);
