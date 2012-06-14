@@ -29,6 +29,14 @@ public interface NodeDrawer {
   void drawEdges(Graphics2D g, SpringNode n);
 
   /**
+   * Draws the label of a given node.
+   * 
+   * @param g The device.
+   * @param n The node.
+   */
+  void drawLabel(Graphics2D g, SpringNode n);
+
+  /**
    * Draws the background.
    * 
    * @param g The graphics context.
