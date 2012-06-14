@@ -33,7 +33,7 @@ public final class BusData {
    * @throws IOException I/O exception
    */
   public static BusStationManager load(final String path) throws IOException {
-    final BusStationManager manager = new BusStationManager();
+    final BusStationManager manager = new BusStationManager(path);
     final File root = new File(path).getCanonicalFile();
     if(!root.exists()) throw new IllegalArgumentException(root + " does not exist.");
 
@@ -41,7 +41,7 @@ public final class BusData {
     for(String[] stop; (stop = stops.readNext()) != null;) {
       double abstractX, abstractY;
       if(stop[4].equals("UNKNOWN")) {
-        abstractX = abstractY = Double.MIN_VALUE;
+        abstractX = abstractY = Double.NaN;
       } else {
         abstractX = parseDouble(stop[4]);
         abstractY = parseDouble(stop[5]);

@@ -1,13 +1,13 @@
 package infovis.embed;
 
 import infovis.ctrl.BusVisualization;
-import infovis.ctrl.ControlPanel;
 import infovis.ctrl.Controller;
 import infovis.data.BusData;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.gui.Canvas;
+import infovis.gui.ControlPanel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

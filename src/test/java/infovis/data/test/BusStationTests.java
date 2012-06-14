@@ -26,7 +26,7 @@ public class BusStationTests {
   /**
    * The example bus stations.
    */
-  private static BusStationManager manager = new BusStationManager();
+  private static BusStationManager manager = new BusStationManager(null);
 
   static {
     final BusLine line = new BusLine("1", Color.RED);
@@ -263,7 +263,7 @@ public class BusStationTests {
    */
   @Test
   public void continuous() {
-    final BusStationManager man = new BusStationManager();
+    final BusStationManager man = new BusStationManager(null);
     final BusLine s1 = new BusLine("B1", Color.RED), s2 = new BusLine("B2",
         Color.BLUE), s3 = new BusLine("B3", Color.YELLOW);
     final BusStation a = man.createStation("A", 0, 0, 0, 0, 0), b = man.createStation(

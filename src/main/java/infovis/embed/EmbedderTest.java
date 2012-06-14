@@ -105,6 +105,11 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
+  public void drawLabel(final Graphics2D g, final SpringNode n) {
+    // no label
+  }
+
+  @Override
   public void drawEdges(final Graphics2D g, final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
