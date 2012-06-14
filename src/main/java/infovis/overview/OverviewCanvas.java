@@ -6,6 +6,8 @@ import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.gui.Canvas;
 
+import java.awt.Color;
+
 /**
  * The canvas for the overview.
  * 
@@ -33,6 +35,7 @@ public class OverviewCanvas extends Canvas implements BusVisualization {
   public OverviewCanvas(final Overview view, final int width, final int height) {
     super(view, width, height);
     this.view = view;
+    setBackground(Color.WHITE);
   }
 
   @Override

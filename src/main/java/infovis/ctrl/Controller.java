@@ -182,6 +182,8 @@ public class Controller {
    * @param v The visualization.
    */
   public void addBusVisualization(final BusVisualization v) {
+    if(v == null) throw new NullPointerException("v");
+    if(vis.contains(v)) throw new IllegalStateException("visualization already added");
     vis.add(v);
     v.setChangeTime(curChangeTime);
     v.setStartTime(curStartTime);
