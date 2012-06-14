@@ -6,6 +6,7 @@ import infovis.gui.Refreshable;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -243,6 +244,11 @@ public abstract class AbstractEmbedder extends PainterAdapter {
    */
   public boolean isDisposed() {
     return disposed;
+  }
+
+  @Override
+  public Rectangle2D getBoundingBox() {
+    return drawer.getBoundingBox();
   }
 
 }

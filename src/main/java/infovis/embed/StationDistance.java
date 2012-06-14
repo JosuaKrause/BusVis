@@ -16,6 +16,7 @@ import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -490,20 +491,31 @@ public final class StationDistance implements Weighter, NodeDrawer {
   /**
    * Getter.
    * 
-   * @return The predicted next bus station.
-   */
-  public BusStation getPredict() {
-    return predict;
-  }
-
-  /**
-   * Getter.
-   * 
    * @param station The station.
    * @return The corresponding node.
    */
   public SpringNode getNode(final BusStation station) {
     return station == null ? null : rev.get(station);
+  }
+
+  @Override
+  public Rectangle2D getBoundingBox() {
+    Rectangle2D bbox = null;
+    final BusStation s = predict;
+    if(s != null) {
+      final Point2D pos = getNode(s).getPos();
+      bbox = getCircle(StationDistance.MAX_INTERVAL, pos).getBounds2D();
+    } else {
+      for(final SpringNode n : nodes()) {
+        final Rectangle2D b = nodeClickArea(n, false).getBounds2D();
+        if(bbox == null) {
+          bbox = b;
+        } else {
+          bbox.add(b);
+        }
+      }
+    }
+    return bbox;
   }
 
 }

@@ -2,6 +2,7 @@ package infovis.gui;
 
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Provides meaningful default implementations for a {@link Painter}.
@@ -65,6 +66,11 @@ public class PainterAdapter implements Painter {
   @Override
   public void moveMouse(final Point2D cur) {
     // nothing to do
+  }
+
+  @Override
+  public Rectangle2D getBoundingBox() {
+    return null;
   }
 
 }
