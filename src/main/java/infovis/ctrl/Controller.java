@@ -59,6 +59,15 @@ public class Controller {
   }
 
   /**
+   * Getter.
+   * 
+   * @return The resource path.
+   */
+  public String getResourcePath() {
+    return manager.getPath();
+  }
+
+  /**
    * Sets the window title.
    * 
    * @param title The title or <code>null</code>.

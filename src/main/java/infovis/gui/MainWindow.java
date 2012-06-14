@@ -4,7 +4,6 @@ import infovis.ctrl.Controller;
 import infovis.data.BusStationManager;
 import infovis.embed.BusCanvas;
 import infovis.overview.Overview;
-import infovis.overview.OverviewCanvas;
 
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
@@ -40,15 +39,13 @@ public class MainWindow extends JFrame {
     final Controller ctrl = new Controller(m, this);
     final JPanel left = new JPanel();
     left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-    final OverviewCanvas over = new OverviewCanvas(new Overview(ctrl), 200, 200);
-    ctrl.addBusVisualization(over);
+    final Overview over = new Overview(ctrl, 200, 200);
     left.add(over);
     left.add(new ControlPanel(ctrl));
     final BusCanvas mainCanvas = BusCanvas.createBusCanvas(ctrl, 800, 600);
     final JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, mainCanvas);
     add(pane);
     pack();
-    over.reset();
     mainCanvas.reset();
     mainCanvas.addAction(KeyEvent.VK_F, new AbstractAction() {
 
