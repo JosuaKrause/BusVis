@@ -4,12 +4,15 @@ import static org.junit.Assert.*;
 import infovis.data.BusEdge;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
+import infovis.data.BusStation.Route;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 
 import java.awt.Color;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -273,6 +276,13 @@ public class BusStationTests {
 
     b.addEdge(s3, c, new BusTime(0, 3), new BusTime(0, 4));
 
-    assertEquals(new BusTime(0, 3), a.routeTo(c, new BusTime(0, 0), 5).getLast().getEnd());
+    final Map<BusStation, BusTime> times = new HashMap<BusStation, BusTime>();
+    times.put(a, null);
+    times.put(b, new BusTime(0, 1));
+    times.put(c, new BusTime(0, 3));
+    for(final Route r : a.routes(new BusTime(0, 0), 5)) {
+      final BusStation s = r.getStation();
+      assertEquals(times.get(s), r.hasFrom() ? r.getFrom().getEnd() : null);
+    }
   }
 }
