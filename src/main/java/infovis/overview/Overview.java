@@ -42,6 +42,10 @@ public class Overview extends JSVGCanvas implements BusVisualization {
     this.ctrl = ctrl;
     setURI(new File(ctrl.getResourcePath() + "abstractKN.svg").toURI().toString());
     setPreferredSize(new Dimension(width, height));
+    final OverviewMouse mouse = new OverviewMouse(this);
+    addMouseListener(mouse);
+    addMouseWheelListener(mouse);
+    addMouseMotionListener(mouse);
     this.ctrl.addBusVisualization(this);
   }
 
