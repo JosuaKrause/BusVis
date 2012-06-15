@@ -1,5 +1,9 @@
 package infovis.overview;
 
+import infovis.ctrl.Controller;
+import infovis.data.BusStation;
+
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -21,12 +25,19 @@ public class OverviewMouse extends MouseAdapter {
   private final Overview over;
 
   /**
+   * Controller.
+   */
+  private final Controller ctrl;
+
+  /**
    * Constructor.
    * 
    * @param over The overview visualization.
+   * @param ctrl Controller.
    */
-  public OverviewMouse(final Overview over) {
+  public OverviewMouse(final Overview over, final Controller ctrl) {
     this.over = over;
+    this.ctrl = ctrl;
   }
 
   /**
@@ -87,14 +98,45 @@ public class OverviewMouse extends MouseAdapter {
   }
 
   /**
+   * The radius in which, if clicked, the station is selected.
+   */
+  public static final int STATION_RADIUS = 10;
+
+  /**
    * Returns weather or not the user has clicked on a bus station.
    * 
    * @param c Click Point.
    * @return Weather a station has been clicked on.
    */
   private boolean click(final Point2D c) {
-    // TODO Auto-generated method stub
+    double minDist = Double.MAX_VALUE;
+    BusStation closestStation = null;
+    for(final BusStation station : ctrl.getStations()) {
+      final double curDist = distanceToStation(c, station);
+      if(curDist < minDist) {
+        minDist = curDist;
+        closestStation = station;
+      }
+    }
+
+    if(minDist < STATION_RADIUS) {
+      ctrl.selectStation(closestStation);
+      return true;
+    }
     return false;
+  }
+
+  /**
+   * Returns the distance of a point to an abstract station position.
+   * 
+   * @param p The point.
+   * @param station The station.
+   * @return Distance between the point and the station.
+   */
+  private static double distanceToStation(final Point2D p, final BusStation station) {
+    final double dx = p.getX() - station.getAbstractX();
+    final double dy = p.getY() - station.getAbstractY();
+    return Math.sqrt(dx * dx + dy * dy);
   }
 
   @Override
@@ -107,9 +149,7 @@ public class OverviewMouse extends MouseAdapter {
   @Override
   public void mouseReleased(final MouseEvent e) {
     if(drag) {
-
       move(e.getX(), e.getY());
-
       drag = false;
     }
   }
@@ -149,6 +189,17 @@ public class OverviewMouse extends MouseAdapter {
     at.translate(offX, offY);
     at.scale(zoom, zoom);
     over.setRenderingTransform(at, true);
+  }
+
+  /**
+   * Transforms a input graphics context with the current translation and
+   * scaling.
+   * 
+   * @param g The inpute graphics context.
+   */
+  public void transformGraphics(final Graphics2D g) {
+    g.translate(offX, offY);
+    g.scale(zoom, zoom);
   }
 
   /**
