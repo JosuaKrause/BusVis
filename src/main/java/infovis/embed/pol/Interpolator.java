@@ -16,13 +16,23 @@ public interface Interpolator {
   double interpolate(double t);
 
   /**
-   * The standard interpolator.
+   * Smooth interpolation.
    */
-  Interpolator INTERPOLATOR = new SinInterpolator();
+  Interpolator SMOOTH = new SinInterpolator();
+
+  /**
+   * Linear interpolation.
+   */
+  Interpolator LINEAR = new LinearInterpolator();
 
   /**
    * The standard animation duration.
    */
-  int DURATION = 1000;
+  int NORMAL = 1000;
+
+  /**
+   * Fast animation duration.
+   */
+  int FAST = 100;
 
 }

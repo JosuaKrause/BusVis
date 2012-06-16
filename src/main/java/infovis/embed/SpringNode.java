@@ -196,8 +196,8 @@ public class SpringNode {
   private Point2D end;
 
   /**
-   * The animation interpolator or <code>null</code> if no animation is
-   * currently active.
+   * The interpolation method or <code>null</code> if no animation is currently
+   * active.
    */
   private Interpolator pol;
 
@@ -215,7 +215,7 @@ public class SpringNode {
    * Starts an animation to the given point.
    * 
    * @param pos The end point.
-   * @param pol The interpolator.
+   * @param pol The interpolation method.
    * @param duration The duration.
    */
   public void startAnimationTo(final Point2D pos, final Interpolator pol,
@@ -245,6 +245,15 @@ public class SpringNode {
     final double f = pol.interpolate(t);
     setPosition(start.getX() * (1 - f) + end.getX() * f,
         start.getY() * (1 - f) + end.getY() * f);
+  }
+
+  /**
+   * Aborts the current animation and keeps the current position.
+   */
+  public void clearAnimation() {
+    pol = null;
+    start = null;
+    end = null;
   }
 
 }

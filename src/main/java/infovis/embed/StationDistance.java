@@ -142,13 +142,15 @@ public final class StationDistance implements Weighter, NodeDrawer {
           if(from != StationDistance.this.from) {
             fadeOut = StationDistance.this.from;
             fadingStart = System.currentTimeMillis();
-            fadingEnd = fadingStart + Interpolator.DURATION;
+            fadingEnd = fadingStart + Interpolator.NORMAL;
             fade = true;
           }
+          changes = (StationDistance.this.time != time
+              || StationDistance.this.changeTime != changeTime) ? FAST_ANIMATION_CHANGE
+              : NORMAL_CHANGE;
           StationDistance.this.from = from;
           StationDistance.this.time = time;
           StationDistance.this.changeTime = changeTime;
-          changed = true;
         }
       }
 
@@ -161,12 +163,12 @@ public final class StationDistance implements Weighter, NodeDrawer {
   /**
    * Whether the weights have changed.
    */
-  protected volatile boolean changed;
+  protected volatile int changes;
 
   @Override
-  public boolean hasChanged() {
-    final boolean res = changed;
-    changed = false;
+  public int changes() {
+    final int res = changes;
+    changes = NO_CHANGE;
     return res;
   }
 
@@ -402,7 +404,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     if(fade) {
       final long time = System.currentTimeMillis();
       final double t = ((double) time - fadingStart) / ((double) fadingEnd - fadingStart);
-      final double f = Interpolator.INTERPOLATOR.interpolate(t);
+      final double f = Interpolator.SMOOTH.interpolate(t);
       final SpringNode n = f > 0.5 ? ref : rev.get(fadeOut);
       center = n != null ? n.getPos() : null;
       final double split = f > 0.5 ? (f - 0.5) * 2 : 1 - f * 2;

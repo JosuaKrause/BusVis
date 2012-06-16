@@ -208,8 +208,8 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public boolean hasChanged() {
-    return false;
+  public int changes() {
+    return Weighter.NO_CHANGE;
   }
 
   @Override
