@@ -48,4 +48,14 @@ public class BusLine {
   public String toString() {
     return String.format("%s[%s, %08X]", getClass().getSimpleName(), name, color.getRGB());
   }
+
+  @Override
+  public boolean equals(final Object obj) {
+    return obj instanceof BusLine && name.equals(((BusLine) obj).name);
+  }
+
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
 }

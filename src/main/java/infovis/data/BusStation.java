@@ -30,7 +30,7 @@ public final class BusStation {
   private final String name;
 
   /**
-   * The unique id of the bus station.
+   * The (non-negative) unique id of the bus station.
    */
   private final int id;
 
@@ -50,7 +50,7 @@ public final class BusStation {
    * 
    * @param manager The manager.
    * @param name The name.
-   * @param id The id.
+   * @param id The id, has to be non-negative.
    * @param x The x position.
    * @param y The y position.
    * @param abstractX The x position on the abstract map.
@@ -86,16 +86,36 @@ public final class BusStation {
   }
 
   /**
-   * Adds an edge to this bus station.
+   * Adds an edge to this bus station. This method is deprecated,
+   * {@link #addEdge(BusLine, int, BusStation, BusTime, BusTime)} should be used
+   * instead.
    * 
    * @param line bus line
    * @param dest The destination.
    * @param start The start time.
    * @param end The end time.
    */
+  @Deprecated
   public void addEdge(final BusLine line, final BusStation dest, final BusTime start,
       final BusTime end) {
-    edges.add(new BusEdge(line, this, dest, start, end));
+    addEdge(line, -1, dest, start, end);
+  }
+
+  /**
+   * Adds an edge to this bus station.
+   * 
+   * @param line bus line
+   * @param tourNr tour number, unique per line
+   * @param dest The destination.
+   * @param start The start time.
+   * @param end The end time.
+   * @return added edge
+   */
+  public BusEdge addEdge(final BusLine line, final int tourNr, final BusStation dest,
+      final BusTime start, final BusTime end) {
+    final BusEdge edge = new BusEdge(line, tourNr, this, dest, start, end);
+    edges.add(edge);
+    return edge;
   }
 
   /**
@@ -457,34 +477,37 @@ public final class BusStation {
    * @return Whether there exists an route to the destination.
    */
   private boolean findRoutes(final Map<Integer, Route> routes, final BusStation dest,
-      final BusTime start,
-      final int changeTime) {
+      final BusTime start, final int changeTime) {
     final Queue<BusEdge> edges = new PriorityQueue<BusEdge>(20,
         BusEdge.createRelativeComparator(start));
     routes.get(getId()).setStart();
     addAllEdges(edges, this, start, changeTime, null, start);
-    while(!edges.isEmpty()) {
-      final BusEdge e = edges.poll();
-      final int startTime = start.minutesTo(e.getStart());
-      final int endTime = start.minutesTo(e.getEnd());
-      if(startTime > endTime) { // edge starts before start
+    for(BusEdge e; (e = edges.poll()) != null;) {
+      // sanity check
+      if(start.minutesTo(e.getStart()) > start.minutesTo(e.getEnd())) {
+        // edge starts before start
         continue;
       }
+
       final BusStation to = e.getTo();
       if(to.equals(this)) { // edge is back to the start
         continue;
       }
+
       final Route next = routes.get(to.getId());
       if(next.hasFrom()) { // destination already visited
         continue;
       }
+
       next.setFrom(e, routes.get(e.getFrom().getId()));
       if(to.equals(dest)) { // we are done
         break;
       }
+
       final BusTime curEnd = e.getEnd();
       addAllEdges(edges, to, curEnd, changeTime, e.getLine(), start);
     }
+
     return dest == null || routes.get(dest.getId()).hasFrom();
   }
 
@@ -501,7 +524,7 @@ public final class BusStation {
    */
   private void addAllEdges(final Queue<BusEdge> edges, final BusStation station,
       final BusTime time, final int changeTime, final BusLine line, final BusTime max) {
-    final int maxTime = manager.getMaxTimeHours() * 60;
+    final int maxTime = getManager().getMaxTimeHours() * 60;
     if(line == null) {
       for(final BusEdge edge : station.getEdges(time)) {
         if(!validEdge(edge, time, maxTime, max)) {
@@ -554,7 +577,7 @@ public final class BusStation {
    * @param start The start time.
    */
   private void iniRoutes(final Map<Integer, Route> routes, final BusTime start) {
-    for(final BusStation station : manager.getStations()) {
+    for(final BusStation station : getManager().getStations()) {
       routes.put(station.getId(), new Route(station, start));
     }
   }
@@ -615,9 +638,18 @@ public final class BusStation {
     return abstractY;
   }
 
+  /**
+   * Getter.
+   * 
+   * @return this station's {@link BusStationManager}
+   */
+  public BusStationManager getManager() {
+    return manager;
+  }
+
   @Override
   public boolean equals(final Object obj) {
-    return obj == null ? false : id == ((BusStation) obj).id;
+    return obj instanceof BusStation && id == ((BusStation) obj).id;
   }
 
   @Override
@@ -629,5 +661,4 @@ public final class BusStation {
   public String toString() {
     return String.format("%s[%s, %d]", getClass().getSimpleName(), name, id);
   }
-
 }

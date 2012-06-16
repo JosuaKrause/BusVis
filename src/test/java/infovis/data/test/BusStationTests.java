@@ -130,7 +130,7 @@ public class BusStationTests {
   public void emptyEdges() {
     assertFalse(
         "must be empty",
-        manager.createStation("r", -1, 0, 0, 0, 0).
+        manager.createStation("r", 12345, 0, 0, 0, 0).
         getEdges(new BusTime(12, 15)).iterator().hasNext());
   }
 

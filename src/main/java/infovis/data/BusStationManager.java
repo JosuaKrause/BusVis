@@ -48,6 +48,8 @@ public final class BusStationManager {
    */
   public BusStation createStation(final String name, final int id, final double x,
       final double y, final double abstractX, final double abstractY) {
+    if(id < 0) throw new IllegalArgumentException("id '" + id
+        + "' has to be non-negative");
     if(stations.containsKey(id)) throw new IllegalArgumentException("id: " + id
         + " already in use");
     final BusStation bus = new BusStation(this, name, id, x, y, abstractX, abstractY);

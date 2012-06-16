@@ -64,7 +64,8 @@ public final class BusData {
           : colors.get(name.replaceAll("\\D.*", "")));
 
       final CSVReader lineReader = readerFor(line);
-      for(String[] tour; (tour = lineReader.readNext()) != null;) {
+      int tourNr = 0;
+      for(String[] tour; (tour = lineReader.readNext()) != null; tourNr++) {
         BusStation before = null;
         BusTime depart = null;
         for(int i = 0; i < tour.length; i++) {
@@ -72,7 +73,7 @@ public final class BusData {
           final BusTime arrive = parse(tour[i++]);
 
           if(before != null) {
-            before.addEdge(busLine, current, depart, arrive);
+            before.addEdge(busLine, tourNr, current, depart, arrive);
           }
 
           if("-1".equals(tour[i])) {
