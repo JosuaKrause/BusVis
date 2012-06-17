@@ -113,7 +113,7 @@ public class BusEdge implements Comparable<BusEdge> {
   /**
    * Duration of this edge in minutes.
    * 
-   * @return time needed from start to ed
+   * @return time needed from start to end
    */
   public int travelMinutes() {
     return start.minutesTo(end);

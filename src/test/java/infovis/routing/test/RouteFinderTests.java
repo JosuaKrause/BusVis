@@ -88,7 +88,7 @@ public class RouteFinderTests {
     times.put(a, null);
     times.put(b, new BusTime(0, 1));
     times.put(c, new BusTime(0, 3));
-    final Map<BusStation, List<BusEdge>> map = RouteFinder.findRoutes(a, new BitSet(),
+    final Map<BusStation, List<BusEdge>> map = RouteFinder.findRoutes(a, null,
         new BusTime(0, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
     for(final Entry<BusStation, List<BusEdge>> r : map.entrySet()) {
       final BusStation s = r.getKey();
