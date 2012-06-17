@@ -7,6 +7,7 @@ import infovis.data.BusTime;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -20,7 +21,7 @@ import java.util.PriorityQueue;
  * 
  * @author Leo Woerteler
  */
-public final class RouteFinder {
+public final class RouteFinder implements RoutingAlgorithm {
   /** Comparator for comparing {@link Route}s by travel time. */
   private static final Comparator<Route> COMP = new Comparator<Route>() {
     @Override
@@ -29,8 +30,22 @@ public final class RouteFinder {
     }
   };
 
-  /** Hidden default constructor. */
-  private RouteFinder() { /* unused */}
+  @Override
+  public Collection<RoutingResult> findRoutes(final BusStation station,
+      final BitSet dests,
+      final BusTime start, final int wait, final int maxDuration)
+          throws InterruptedException {
+    final Map<BusStation, List<BusEdge>> map = findRoutesFrom(station, dests, start,
+        wait, maxDuration);
+    final List<RoutingResult> res = new ArrayList<RoutingResult>(map.size());
+    for(final Entry<BusStation, List<BusEdge>> e : map.entrySet()) {
+      final List<BusEdge> list = e.getValue();
+      final BusStation to = e.getKey();
+      res.add(new RoutingResult(station, to, list.isEmpty() ? -1
+          : start.minutesTo(list.get(list.size() - 1).getEnd()), list.isEmpty()));
+    }
+    return res;
+  }
 
   /**
    * Finds shortest routes to all reachable stations from the given start
@@ -47,7 +62,7 @@ public final class RouteFinder {
    * @throws InterruptedException if the current thread was interrupted during
    *           the computation
    */
-  public static Map<BusStation, List<BusEdge>> findRoutes(final BusStation station,
+  public static Map<BusStation, List<BusEdge>> findRoutesFrom(final BusStation station,
       final BitSet dests, final BusTime start, final int wait, final int maxDuration)
           throws InterruptedException {
     // set of stations yet to be found
@@ -124,7 +139,12 @@ public final class RouteFinder {
           throws InterruptedException {
     final BitSet set = new BitSet();
     set.set(dest.getId());
-    return findRoutes(station, set, start, wait, maxDuration).get(dest);
+    return findRoutesFrom(station, set, start, wait, maxDuration).get(dest);
+  }
+
+  @Override
+  public String toString() {
+    return "Exact route finder";
   }
 
   /**
@@ -220,5 +240,7 @@ public final class RouteFinder {
     public String toString() {
       return last.toString();
     }
+
   }
+
 }

@@ -1,12 +1,10 @@
 package infovis.routing;
 
-import infovis.data.BusEdge;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 
 import java.util.BitSet;
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
 import java.util.concurrent.Callable;
 
 /**
@@ -43,15 +41,16 @@ public final class RoutingManager {
    * @param start start time
    * @param wait minimum waiting time when changing bus lines
    * @param maxDuration maximum time in minutes that a route may take
+   * @param algo The routing algorithm.
    * @param call callback for results
    */
   public void findRoutes(final BusStation station, final BitSet dests,
       final BusTime start, final int wait, final int maxDuration,
-      final CallBack<Map<BusStation, List<BusEdge>>> call) {
-    registerTask(new Callable<Map<BusStation, List<BusEdge>>>() {
+      final RoutingAlgorithm algo, final CallBack<Collection<RoutingResult>> call) {
+    registerTask(new Callable<Collection<RoutingResult>>() {
       @Override
-      public Map<BusStation, List<BusEdge>> call() throws InterruptedException {
-        return RouteFinder.findRoutes(station, dests, start, wait, maxDuration);
+      public Collection<RoutingResult> call() throws InterruptedException {
+        return algo.findRoutes(station, dests, start, wait, maxDuration);
       }
     }, call);
   }

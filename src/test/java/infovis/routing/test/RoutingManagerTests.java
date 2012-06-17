@@ -2,15 +2,14 @@ package infovis.routing.test;
 
 import static org.junit.Assert.*;
 import infovis.data.BusData;
-import infovis.data.BusEdge;
-import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.routing.RouteFinder;
 import infovis.routing.RoutingManager;
 import infovis.routing.RoutingManager.CallBack;
+import infovis.routing.RoutingResult;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
@@ -86,13 +85,13 @@ public class RoutingManagerTests {
     final BusStationManager man = BusData.load("src/main/resources/");
     final RoutingManager rm = RoutingManager.newInstance();
     final Semaphore sem = new Semaphore(0);
-    final AtomicReference<Map<BusStation, List<BusEdge>>> ref =
-        new AtomicReference<Map<BusStation, List<BusEdge>>>();
+    final AtomicReference<Collection<RoutingResult>> ref =
+        new AtomicReference<Collection<RoutingResult>>();
 
     rm.findRoutes(man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60,
-        new CallBack<Map<BusStation, List<BusEdge>>>() {
+        new RouteFinder(), new CallBack<Collection<RoutingResult>>() {
       @Override
-      public void callBack(final Map<BusStation, List<BusEdge>> result) {
+      public void callBack(final Collection<RoutingResult> result) {
         ref.set(result);
         sem.release();
       }

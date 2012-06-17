@@ -3,6 +3,9 @@ package infovis.ctrl;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.routing.FastRouteFinder;
+import infovis.routing.RouteFinder;
+import infovis.routing.RoutingAlgorithm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,6 +92,50 @@ public class Controller {
       sb.append(")");
     }
     frame.setTitle(sb.toString());
+  }
+
+  /**
+   * All routing algorithms.
+   */
+  private static final RoutingAlgorithm[] ALGOS = new RoutingAlgorithm[] {
+    new FastRouteFinder(),
+
+    new RouteFinder(),
+  };
+
+  /**
+   * Getter.
+   * 
+   * @return Returns all routing algorithms.
+   */
+  public RoutingAlgorithm[] getRoutingAlgorithms() {
+    return ALGOS;
+  }
+
+  /**
+   * The currently selected routing algorithm.
+   */
+  private RoutingAlgorithm algo = ALGOS[0];
+
+  /**
+   * Setter.
+   * 
+   * @param algo Sets the current routing algorithm.
+   */
+  public void setRoutingAlgorithm(final RoutingAlgorithm algo) {
+    this.algo = algo;
+    for(final BusVisualization v : vis) {
+      v.undefinedChange(this);
+    }
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The current routing algorithm.
+   */
+  public RoutingAlgorithm getRoutingAlgorithm() {
+    return algo;
   }
 
   /**

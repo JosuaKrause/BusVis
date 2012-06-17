@@ -7,33 +7,27 @@ import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
-import infovis.routing.RouteFinder;
+import infovis.routing.FastRouteFinder;
 
 import java.awt.Color;
 import java.util.Arrays;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Deque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
 /**
- * Tests for the {@link RouteFinder} class.
+ * Tests for the {@link FastRouteFinder} class.
  * 
- * @author Leo Woerteler
+ * @author Joschi <josua.krause@googlemail.com>
  */
-public class RouteFinderTests {
+public class FastRouteFinderTests {
 
   /**
    * Checks if the line is changed when advantageous.
-   * 
-   * @throws InterruptedException exception
    */
   @Test
-  public void shouldChange() throws InterruptedException {
+  public void shouldChange() {
     final BusStationManager man = new BusStationManager(null);
     final BusLine s1 = new BusLine("B1", Color.RED), s2 = new BusLine("B2",
         Color.BLUE);
@@ -44,65 +38,17 @@ public class RouteFinderTests {
     b.addEdge(s1, 1, c, new BusTime(0, 1), new BusTime(0, 5));
     final BusEdge bc = b.addEdge(s2, 1, c, new BusTime(0, 3), new BusTime(0, 4));
 
-    final List<BusEdge> route = RouteFinder.findRoute(a, c, new BusTime(0, 0), 2,
+    final Deque<BusEdge> route = FastRouteFinder.routeTo(a, c, new BusTime(0, 0), 2,
         man.getMaxTimeHours() * 60);
 
     assertEquals(Arrays.asList(ab, bc), route);
   }
 
   /**
-   * Tests if routes without changes are taken if suitable.
-   * 
-   * <pre>
-   *    , 00:00 ---1--- 00:01.
-   *   /                     \
-   * (A) 00:01 ---2---> 00:02 (B) 00:02 ---2---> 00:03 (C)
-   *                            \                      /
-   *                             ` 00:03 ---3--- 00:04´
-   * </pre>
-   * 
-   * @throws InterruptedException exception
-   */
-  @Test
-  public void continuous() throws InterruptedException {
-    final BusStationManager man = new BusStationManager(null);
-    final BusLine s1 = new BusLine("B1", Color.RED), s2 = new BusLine("B2",
-        Color.BLUE), s3 = new BusLine("B3", Color.YELLOW);
-    final BusStation a = man.createStation("A", 0, 0, 0, 0, 0), b =
-        man.createStation(
-            "B", 1, 0, 0, 0, 0), c = man.createStation("C", 2, 0, 0, 0, 0);
-
-    a.addEdge(s1, 1, b, new BusTime(0, 0), new BusTime(0, 1));
-
-    final BusEdge ab = a.addEdge(s2, 1, b, new BusTime(0, 1), new BusTime(0, 2));
-    final BusEdge bc = b.addEdge(s2, 1, c, new BusTime(0, 2), new BusTime(0, 3));
-
-    b.addEdge(s3, 1, c, new BusTime(0, 3), new BusTime(0, 4));
-
-    final List<BusEdge> route = RouteFinder.findRoute(a, c, new BusTime(0, 0),
-        5, man.getMaxTimeHours() * 60);
-
-    assertEquals(Arrays.asList(ab, bc), route);
-
-    final Map<BusStation, BusTime> times = new HashMap<BusStation, BusTime>();
-    times.put(a, null);
-    times.put(b, new BusTime(0, 1));
-    times.put(c, new BusTime(0, 3));
-    final Map<BusStation, List<BusEdge>> map = RouteFinder.findRoutesFrom(a, null,
-        new BusTime(0, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
-    for(final Entry<BusStation, List<BusEdge>> r : map.entrySet()) {
-      final BusStation s = r.getKey();
-      assertEquals(times.get(s), getLastEnd(r.getValue()));
-    }
-  }
-
-  /**
    * Tests the routing.
-   * 
-   * @throws InterruptedException exception.
    */
   @Test
-  public void generalTest() throws InterruptedException {
+  public void generalTest() {
     final BusStationManager manager = new BusStationManager(null);
     final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
     final BusLine line = new BusLine("1", Color.RED);
@@ -121,25 +67,22 @@ public class RouteFinderTests {
     d.addEdge(line, 6, b, new BusTime(0, 2), new BusTime(0, 3));
     d.addEdge(line, 7, c, new BusTime(0, 3), new BusTime(0, 4));
     d.addEdge(line, 8, e, new BusTime(0, 4), new BusTime(0, 5));
-    final List<BusEdge> routeTo = RouteFinder.findRoute(c, e, new BusTime(2, 0), 0,
+    final Deque<BusEdge> routeTo = FastRouteFinder.routeTo(c, e, new BusTime(2, 0), 0,
         mth);
     final int[] ids = { 2, 0, 3, 4};
     int i = 0;
-    assertEquals(ids[i++], routeTo.get(0).getFrom().getId());
+    assertEquals(ids[i++], routeTo.getFirst().getFrom().getId());
     for(final BusEdge edge : routeTo) {
       assertEquals(ids[i++], edge.getTo().getId());
     }
-    assertNull(RouteFinder.findRoute(e, c, new BusTime(2, 0), 0,
-        mth));
+    assertNull(FastRouteFinder.routeTo(e, c, new BusTime(2, 0), 0, mth));
   }
 
   /**
    * Tests with line changes and different max time.
-   * 
-   * @throws InterruptedException exception.
    */
   @Test
-  public void lineChanging() throws InterruptedException {
+  public void lineChanging() {
     final BusStationManager manager = new BusStationManager(null);
     final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
     final BusLine line = new BusLine("1", Color.RED);
@@ -162,13 +105,13 @@ public class RouteFinderTests {
     g.addEdge(line, 6, h, new BusTime(0, 4), new BusTime(0, 7));
     g.addEdge(line, 8, h, new BusTime(0, 1), new BusTime(0, 2));
     assertEquals(4,
-        getLastEndMinute(RouteFinder.findRoute(e, h, new BusTime(0, 0), 0, mth)));
+        getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 0, mth)));
     assertEquals(5,
-        getLastEndMinute(RouteFinder.findRoute(e, h, new BusTime(0, 0), 1, mth)));
-    assertNull(RouteFinder.findRoute(e, h, new BusTime(0, 0), 0, 0));
-    assertEquals(4, getLastEndMinute(RouteFinder.findRoute(e, h, new BusTime(0, 0), 0,
+        getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 1, mth)));
+    assertNull(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 0, 0));
+    assertEquals(4, getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 0,
         BusTime.MINUTES_PER_HOUR)));
-    assertEquals(5, getLastEndMinute(RouteFinder.findRoute(e, h, new BusTime(0, 0), 1,
+    assertEquals(5, getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 1,
         BusTime.HOURS_PER_DAY * BusTime.MINUTES_PER_HOUR)));
   }
 
@@ -178,8 +121,8 @@ public class RouteFinderTests {
    * @param route The route.
    * @return The end point.
    */
-  private static BusTime getLastEnd(final List<BusEdge> route) {
-    return !route.isEmpty() ? route.get(route.size() - 1).getEnd() : null;
+  private static BusTime getLastEnd(final Deque<BusEdge> route) {
+    return !route.isEmpty() ? route.getLast().getEnd() : null;
   }
 
   /**
@@ -188,7 +131,7 @@ public class RouteFinderTests {
    * @param route The route.
    * @return The minute of the end point.
    */
-  private static int getLastEndMinute(final List<BusEdge> route) {
+  private static int getLastEndMinute(final Deque<BusEdge> route) {
     return getLastEnd(route).getMinute();
   }
 
@@ -202,10 +145,9 @@ public class RouteFinderTests {
   public void at12Am() throws Exception {
     final BusStationManager man = BusData.load("src/main/resources");
     final AtomicBoolean fail = new AtomicBoolean(false);
-    final BitSet set = new BitSet();
     int num = 0;
-    for(final BusStation a : man.getStations()) {
-      set.set(a.getId());
+    for(@SuppressWarnings("unused")
+    final BusStation a : man.getStations()) {
       ++num;
     }
     final int count = num;
@@ -233,7 +175,7 @@ public class RouteFinderTests {
       }
       System.out.println(a
           + ", "
-          + RouteFinder.findRoutesFrom(a, set, new BusTime(12, 0), 5,
+          + FastRouteFinder.routes(a, new BusTime(12, 0), 5,
               man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR).size());
     }
 
