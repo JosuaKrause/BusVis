@@ -17,7 +17,7 @@ import java.util.concurrent.Callable;
 public final class RoutingManager {
 
   /** Currently executed thread, may be {@code null}. */
-  volatile Thread current;
+  protected volatile Thread current;
 
   /** Hidden default constructor. */
   private RoutingManager() {

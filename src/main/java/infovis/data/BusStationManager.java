@@ -16,6 +16,29 @@ public final class BusStationManager {
   private final Map<Integer, BusStation> stations = new HashMap<Integer, BusStation>();
 
   /**
+   * The resource path.
+   */
+  private final String path;
+
+  /**
+   * Creates a bus station manager.
+   * 
+   * @param path The resource path.
+   */
+  public BusStationManager(final String path) {
+    this.path = path;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The resource path.
+   */
+  public String getPath() {
+    return path;
+  }
+
+  /**
    * Getter.
    * 
    * @param id The id of a bus station.

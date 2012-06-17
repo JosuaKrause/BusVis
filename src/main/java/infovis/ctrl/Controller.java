@@ -59,6 +59,15 @@ public class Controller {
   }
 
   /**
+   * Getter.
+   * 
+   * @return The resource path.
+   */
+  public String getResourcePath() {
+    return manager.getPath();
+  }
+
+  /**
    * Sets the window title.
    * 
    * @param title The title or <code>null</code>.
@@ -182,6 +191,8 @@ public class Controller {
    * @param v The visualization.
    */
   public void addBusVisualization(final BusVisualization v) {
+    if(v == null) throw new NullPointerException("v");
+    if(vis.contains(v)) throw new IllegalStateException("visualization already added");
     vis.add(v);
     v.setChangeTime(curChangeTime);
     v.setStartTime(curStartTime);

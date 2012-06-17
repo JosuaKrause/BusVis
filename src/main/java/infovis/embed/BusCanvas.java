@@ -1,13 +1,13 @@
 package infovis.embed;
 
 import infovis.ctrl.BusVisualization;
-import infovis.ctrl.ControlPanel;
 import infovis.ctrl.Controller;
 import infovis.data.BusData;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.gui.Canvas;
+import infovis.gui.ControlPanel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -16,8 +16,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 
 import javax.swing.AbstractAction;
@@ -177,40 +175,12 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
   @Override
   public void reset() {
-    reset(dist.getFrom());
-  }
-
-  /**
-   * Resets the viewport such that the given station is centered or that all
-   * nodes are visible when <code>null</code> is passed as argument.
-   * 
-   * @param station The station or <code>null</code>.
-   */
-  public void reset(final BusStation station) {
     SwingUtilities.invokeLater(new Runnable() {
 
       @SuppressWarnings("synthetic-access")
       @Override
       public void run() {
-        Rectangle2D bbox = null;
-        if(station != null) {
-          final Point2D pos = dist.getNode(station).getPos();
-          bbox = dist.getCircle(StationDistance.MAX_INTERVAL, pos).getBounds2D();
-        } else {
-          for(final SpringNode n : dist.nodes()) {
-            final Rectangle2D b = dist.nodeClickArea(n, false).getBounds2D();
-            if(bbox == null) {
-              bbox = b;
-            } else {
-              bbox.add(b);
-            }
-          }
-        }
-        if(bbox == null) {
-          BusCanvas.super.reset();
-        } else {
-          BusCanvas.this.reset(bbox);
-        }
+        BusCanvas.super.reset();
       }
 
     });
@@ -233,7 +203,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
   @Override
   public void focusStation() {
-    reset(dist.getPredict());
+    reset();
   }
 
   @Override

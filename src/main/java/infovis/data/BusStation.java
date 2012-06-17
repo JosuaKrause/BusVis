@@ -425,6 +425,7 @@ public final class BusStation {
    * @return The shortest route to the destination or <code>null</code> if there
    *         exists no route to the given destination.
    */
+  @Deprecated
   public Deque<BusEdge> routeTo(final BusStation dest, final BusTime start,
       final int changeTime) {
     final Map<Integer, Route> routes = new HashMap<Integer, Route>();
@@ -440,6 +441,7 @@ public final class BusStation {
    * @param changeTime The time to change lines.
    * @return The reachability of all bus stations.
    */
+  @Deprecated
   public Collection<Route> routes(final BusTime start, final int changeTime) {
     final Map<Integer, Route> routes = new HashMap<Integer, Route>();
     iniRoutes(routes, start);
@@ -616,9 +618,18 @@ public final class BusStation {
   private final double abstractX;
 
   /**
-   * The y coordinate for this bus station on the abstact map.
+   * The y coordinate for this bus station on the abstract map.
    */
   private final double abstractY;
+
+  /**
+   * Getter.
+   * 
+   * @return Whether this bus station has an abstract position.
+   */
+  public boolean hasAbstractPosition() {
+    return !Double.isNaN(getAbstractX());
+  }
 
   /**
    * Getter.

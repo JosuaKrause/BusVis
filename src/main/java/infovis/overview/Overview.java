@@ -1,107 +1,91 @@
 package infovis.overview;
 
-import infovis.data.BusData;
-import infovis.data.BusEdge;
+import infovis.ctrl.BusVisualization;
+import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
-import infovis.gui.Canvas;
-import infovis.gui.PainterAdapter;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.geom.Line2D;
-import java.io.IOException;
+import java.awt.Dimension;
+import java.io.File;
 
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+import org.apache.batik.swing.JSVGCanvas;
+
 /**
- * Visualization of the schematic overview of the Konstanz bus network.
+ * Abstract overview over the bus system in Konstanz.
  * 
  * @author Marc Spicker
  */
-public class Overview extends PainterAdapter {
+public class Overview extends JSVGCanvas implements BusVisualization {
 
   /**
-   * Data Manager.
+   * Serial ID.
    */
-  private BusStationManager mgr;
+  private static final long serialVersionUID = -792509063281208L;
 
   /**
-   * Radius of a bus station on the map.
+   * The controller.
    */
-  private static final int STATION_RADIUS = 6;
+  private final Controller ctrl;
+
+  /**
+   * Constructor.
+   * 
+   * @param ctrl The controller.
+   * @param width The width.
+   * @param height The height.
+   */
+  public Overview(final Controller ctrl, final int width, final int height) {
+    this.ctrl = ctrl;
+    setURI(new File(ctrl.getResourcePath() + "abstractKN.svg").toURI().toString());
+    setPreferredSize(new Dimension(width, height));
+    this.ctrl.addBusVisualization(this);
+  }
 
   /**
    * Test.
    * 
-   * @param args Unused.
+   * @param args Ignored.
    */
   public static void main(final String[] args) {
-    final JFrame frame = new JFrame("Bus test");
-    final Canvas c = new Canvas(new Overview(), 800, 600);
-    frame.add(c);
+    final JFrame frame = new JFrame("SVG Test");
+    final Overview o = new Overview(new Controller(new BusStationManager(
+        "src/main/resources/"), frame), 800, 600);
+    frame.add(o);
     frame.pack();
-    c.reset();
     frame.setLocationRelativeTo(null);
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setVisible(true);
   }
 
-  /**
-   * Constructor.
-   */
-  public Overview() {
-    try {
-      mgr = BusData.load("src/main/resources/");
-      mgr.setMaxTimeHours(3);
-    } catch(final IOException e) {
-      e.printStackTrace();
-      return;
-    }
+  @Override
+  public void focusStation() {
+    // TODO Auto-generated method stub
+
   }
 
   @Override
-  public void draw(final Graphics2D gfx) {
-    gfx.setColor(Color.ORANGE);
-    gfx.setStroke(new BasicStroke(2.0f));
-    for(final BusStation station : mgr.getStations()) {
-      if(station.getAbstractX() == Double.MIN_VALUE) {
-        continue;
-      }
-      final Iterable<BusEdge> edges = station.getEdges(new BusTime(0, 0));
-      // Draw Bus edges
-      for(final BusEdge edge : edges) {
-        gfx.setColor(edge.getLine().getColor());
-        final BusStation from = edge.getFrom();
-        final BusStation to = edge.getTo();
-        if(from.getAbstractX() == Double.MIN_VALUE
-            || to.getAbstractX() == Double.MIN_VALUE) {
-          continue;
-        }
-        gfx.draw(new Line2D.Double(from.getAbstractX(), from.getAbstractY(),
-            to.getAbstractX(), to.getAbstractY()));
-      }
-    }
-    // Draw Bus stations
-    gfx.setStroke(new BasicStroke());
-    for(final BusStation station : mgr.getStations()) {
-      if(station.getAbstractX() == Double.MIN_VALUE) {
-        continue;
-      }
-      final int x = (int) station.getAbstractX();
-      final int y = (int) station.getAbstractY();
-      gfx.setColor(Color.ORANGE);
-      gfx.fillOval(x - STATION_RADIUS, y - STATION_RADIUS, STATION_RADIUS * 2,
-          STATION_RADIUS * 2);
-      gfx.setColor(Color.BLACK);
-      gfx.drawOval(x - STATION_RADIUS, y - STATION_RADIUS, STATION_RADIUS
-          * 2,
-          STATION_RADIUS * 2);
-      gfx.drawString(station.getName(), x + 2 * STATION_RADIUS, y + STATION_RADIUS);
-    }
+  public void selectBusStation(final BusStation station) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void setChangeTime(final int minutes) {
+    // no-op
+  }
+
+  @Override
+  public void setStartTime(final BusTime time) {
+    // no-op
+  }
+
+  @Override
+  public void undefinedChange(final Controller ctrl) {
+    // no-op
   }
 
 }

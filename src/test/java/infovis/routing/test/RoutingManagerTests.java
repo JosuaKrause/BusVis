@@ -53,7 +53,7 @@ public class RoutingManagerTests {
     }, new RoutingManager.CallBack<Integer>() {
       @Override
       public void callBack(final Integer result) {
-        // never executed
+        throw new IllegalStateException("should never be executed");
       }
     });
 

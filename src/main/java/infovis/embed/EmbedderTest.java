@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,6 +103,11 @@ public class EmbedderTest implements NodeDrawer, Weighter {
     final double y = n.getY();
     g.setColor(Color.RED);
     g.fill(new Ellipse2D.Double(x - 2, y - 2, 4, 4));
+  }
+
+  @Override
+  public void drawLabel(final Graphics2D g, final SpringNode n) {
+    // no label
   }
 
   @Override
@@ -202,8 +208,13 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public boolean hasChanged() {
-    return false;
+  public int changes() {
+    return Weighter.NO_CHANGE;
+  }
+
+  @Override
+  public Rectangle2D getBoundingBox() {
+    return null;
   }
 
 }

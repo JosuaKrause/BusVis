@@ -58,11 +58,27 @@ public interface Weighter {
   SpringNode getReferenceNode();
 
   /**
-   * This method returns whether the weights have changed. The change status is
+   * This method returns how the weights have changed. The change status is
    * cleared after this call.
    * 
-   * @return Whether the weights have changed.
+   * @return How the weights have changed. The result is a combination of change
+   *         types.
    */
-  boolean hasChanged();
+  int changes();
+
+  /**
+   * Signals no change.
+   */
+  int NO_CHANGE = 0;
+
+  /**
+   * Signals a normal change.
+   */
+  int NORMAL_CHANGE = 1;
+
+  /**
+   * Signals that a fast animation should be used.
+   */
+  int FAST_ANIMATION_CHANGE = 2;
 
 }

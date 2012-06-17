@@ -71,7 +71,7 @@ public final class RouteFinder {
     }
 
     for(Route current; !notFound.isEmpty() && (current = queue.poll()) != null;) {
-      if(Thread.interrupted()) throw new InterruptedException();
+      checkInterrupt();
       final BusEdge last = current.last;
       final BusStation dest = last.getTo();
 
@@ -97,6 +97,15 @@ public final class RouteFinder {
       res.put(e.getKey(), e.getValue().asList());
     }
     return res;
+  }
+
+  /**
+   * Checks the interrupt status of the current thread.
+   * 
+   * @throws InterruptedException If the interrupt status was set.
+   */
+  private static void checkInterrupt() throws InterruptedException {
+    if(Thread.interrupted()) throw new InterruptedException();
   }
 
   /**
@@ -163,10 +172,7 @@ public final class RouteFinder {
      */
     public Route extendedBy(final BusEdge next) {
       for(Route r = this; r != null; r = r.before) {
-        if(r.last.equals(next)) {
-          System.out.println();
-          throw new IllegalArgumentException("loop");
-        }
+        if(r.last.equals(next)) throw new IllegalArgumentException("loop");
       }
       return new Route(this, next);
     }
