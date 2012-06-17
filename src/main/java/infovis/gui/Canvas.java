@@ -292,12 +292,20 @@ public class Canvas extends JComponent implements Refreshable {
 
   /**
    * Resets the viewport to a scaling of <code>1.0</code> and
-   * <code>(0, 0)</code> being in the center of the component.
+   * <code>(0, 0)</code> being in the center of the component when
+   * {@link Painter#getBoundingBox()} returns <code>null</code> and zooms to fit
+   * the bounding box if {@link Painter#getBoundingBox()} returns a proper
+   * bounding box.
    */
   public void reset() {
-    final Rectangle2D rect = getVisibleRect();
-    zoom = 1;
-    setOffset(rect.getCenterX(), rect.getCenterY());
+    final Rectangle2D bbox = painter.getBoundingBox();
+    if(bbox == null) {
+      final Rectangle2D rect = getVisibleRect();
+      zoom = 1;
+      setOffset(rect.getCenterX(), rect.getCenterY());
+    } else {
+      reset(bbox);
+    }
   }
 
   /**

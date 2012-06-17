@@ -31,7 +31,8 @@ public class CircularEmbedder extends AbstractEmbedder {
   @Override
   protected void step() {
     final SpringNode ref = weighter.getReferenceNode();
-    if(weighter.hasChanged()) {
+    final int changes = weighter.changes();
+    if(changes != Weighter.NO_CHANGE) {
       Point2D diff;
       Point2D refP;
       if(ref != null) {
@@ -58,7 +59,11 @@ public class CircularEmbedder extends AbstractEmbedder {
             dest = addVec(setLength(subVec(addVec(pos, diff), refP), w), refP);
           }
         }
-        n.startAnimationTo(dest, Interpolator.INTERPOLATOR, Interpolator.DURATION);
+        if((changes & Weighter.FAST_ANIMATION_CHANGE) != 0) {
+          n.startAnimationTo(dest, Interpolator.LINEAR, Interpolator.FAST);
+        } else {
+          n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.NORMAL);
+        }
       }
     }
     for(final SpringNode n : weighter.nodes()) {

@@ -3,6 +3,7 @@ package infovis.embed;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Draws spring nodes and interacts with them.
@@ -93,5 +94,13 @@ public interface NodeDrawer {
    * @param cur The current mouse position.
    */
   void moveMouse(Point2D cur);
+
+  /**
+   * Calculates the bounding box of the paint area. This method may return
+   * <code>null</code> to indicate that the bounding box is not important.
+   * 
+   * @return The bounding box or <code>null</code>.
+   */
+  Rectangle2D getBoundingBox();
 
 }
