@@ -180,7 +180,7 @@ public class FastRouteFinderTests {
     }
 
     t.interrupt();
-    assertFalse(fail.get());
+    assertFalse("Test took longer than " + (count * 0.1) + "s", fail.get());
   }
 
 }

@@ -1,6 +1,6 @@
 package infovis.data;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -135,7 +135,7 @@ public final class BusStation {
       }
     }
     if(start == null) // empty set
-      return new ArrayList<BusEdge>(0);
+      return Collections.EMPTY_LIST;
     final BusEdge s = start;
     final SortedSet<BusEdge> e = edges;
     return new Iterable<BusEdge>() {
