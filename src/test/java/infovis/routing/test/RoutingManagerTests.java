@@ -100,4 +100,52 @@ public class RoutingManagerTests {
     sem.acquire();
     assertEquals(122, ref.get().size());
   }
+
+  /**
+   * Tests if a new task cancels routing.
+   * 
+   * @throws Exception exception
+   */
+  @Test
+  public void terminateRouting() throws Exception {
+    final BusStationManager man = BusData.load("src/main/resources/");
+    final CountDownLatch cd = new CountDownLatch(2);
+    final AtomicBoolean ref = new AtomicBoolean(false);
+    final RoutingManager rm = RoutingManager.newInstance();
+    rm.registerTask(new Callable<Collection<RoutingResult>>() {
+      @Override
+      public Collection<RoutingResult> call() throws InterruptedException {
+        cd.countDown();
+        final Collection<RoutingResult> routes = new RouteFinder().findRoutes(
+            man.getForId(1), null, new BusTime(12, 00),
+            1, 24 * 60);
+        ref.getAndSet(true); // should not exit normally
+        return routes;
+      }
+    }, new CallBack<Collection<RoutingResult>>() {
+      @Override
+      public void callBack(final Collection<RoutingResult> result) {
+        throw new IllegalStateException("should not come here");
+      }
+    });
+
+    Thread.sleep(50);
+
+    rm.registerTask(new Callable<Integer>() {
+      @Override
+      public Integer call() throws Exception {
+        return 0;
+      }
+
+    }, new RoutingManager.CallBack<Integer>() {
+      @Override
+      public void callBack(final Integer result) {
+        cd.countDown();
+      }
+    });
+
+    cd.await();
+    assertFalse(ref.get());
+  }
+
 }
