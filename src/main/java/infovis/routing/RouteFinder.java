@@ -102,11 +102,14 @@ public final class RouteFinder implements RoutingAlgorithm {
 
       final BusTime arrival = last.getEnd();
       for(final BusEdge e : dest.getEdges(arrival)) {
-        if((last.sameTour(e) || best && arrival.minutesTo(e.getStart()) >= wait)
-            && current.timePlus(e) <= maxDuration && !current.contains(e.getTo())) {
-          final Route r = current.extendedBy(e);
-          queue.add(r);
+        if(!(last.sameTour(e) || best && arrival.minutesTo(e.getStart()) >= wait)) {
+          continue;
         }
+        if(!(current.timePlus(e) <= maxDuration && !current.contains(e.getTo()))) {
+          continue;
+        }
+        final Route r = current.extendedBy(e);
+        queue.add(r);
       }
     }
 
@@ -218,7 +221,7 @@ public final class RouteFinder implements RoutingAlgorithm {
     }
 
     /**
-     * Calculates the overall travel time if this route as extended by the given
+     * Calculates the overall travel time of this route as extended by the given
      * edge.
      * 
      * @param next next edge
