@@ -23,7 +23,7 @@ import java.util.PriorityQueue;
  */
 public final class RouteFinder implements RoutingAlgorithm {
   /** Comparator for comparing {@link Route}s by travel time. */
-  private static final Comparator<Route> COMP = new Comparator<Route>() {
+  private static final Comparator<Route> CMP = new Comparator<Route>() {
     @Override
     public int compare(final Route o1, final Route o2) {
       return o1.travelTime - o2.travelTime;
@@ -42,7 +42,7 @@ public final class RouteFinder implements RoutingAlgorithm {
       final List<BusEdge> list = e.getValue();
       final BusStation to = e.getKey();
       if(list.isEmpty()) {
-        res.add(new RoutingResult(station, to));
+        res.add(new RoutingResult(station));
       } else {
         res.add(new RoutingResult(station, to,
             start.minutesTo(list.get(list.size() - 1).getEnd()), list));
@@ -81,7 +81,7 @@ public final class RouteFinder implements RoutingAlgorithm {
     notFound.set(station.getId(), false);
 
     final Map<BusStation, Route> bestRoutes = new HashMap<BusStation, Route>();
-    final PriorityQueue<Route> queue = new PriorityQueue<Route>(16, COMP);
+    final PriorityQueue<Route> queue = new PriorityQueue<Route>(16, CMP);
     for(final BusEdge e : station.getEdges(start)) {
       final Route route = new Route(start, e);
       if(route.travelTime <= maxDuration) {
@@ -105,7 +105,10 @@ public final class RouteFinder implements RoutingAlgorithm {
         if(!(last.sameTour(e) || best && arrival.minutesTo(e.getStart()) >= wait)) {
           continue;
         }
-        if(!(current.timePlus(e) <= maxDuration && !current.contains(e.getTo()))) {
+        if(current.timePlus(e) > maxDuration) {
+          continue;
+        }
+        if(current.contains(e.getTo())) {
           continue;
         }
         final Route r = current.extendedBy(e);

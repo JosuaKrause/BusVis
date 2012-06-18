@@ -63,9 +63,18 @@ public class RoutingResult {
   public RoutingResult(final BusStation from, final BusStation to) {
     this.from = from;
     this.to = to;
-    minutes = -1;
+    minutes = from != to ? -1 : 0;
     edges = null;
-    inr = true;
+    inr = from != to;
+  }
+
+  /**
+   * Creates the start node.
+   * 
+   * @param start The start station.
+   */
+  public RoutingResult(final BusStation start) {
+    this(start, start);
   }
 
   /**
@@ -103,6 +112,15 @@ public class RoutingResult {
    */
   public boolean isNotReachable() {
     return inr;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Whether this route is just the start station.
+   */
+  public boolean isStartNode() {
+    return from == to;
   }
 
   /**
