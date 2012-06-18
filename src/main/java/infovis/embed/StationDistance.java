@@ -147,7 +147,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
           }
           changes = (StationDistance.this.time != time
               || StationDistance.this.changeTime != changeTime) ? FAST_ANIMATION_CHANGE
-              : NORMAL_CHANGE;
+                  : NORMAL_CHANGE;
           StationDistance.this.from = from;
           StationDistance.this.time = time;
           StationDistance.this.changeTime = changeTime;
@@ -431,6 +431,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
       b = !b;
       g.fill(circ);
     }
+  }
+
+  @Override
+  public boolean inAnimation() {
+    return fade;
   }
 
   /**

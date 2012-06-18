@@ -30,7 +30,7 @@ public class SpringEmbedder extends AbstractEmbedder {
   private boolean reset;
 
   @Override
-  protected void step() {
+  protected boolean step() {
     if(weighter.getReferenceNode() == null) {
       if(!reset) {
         for(final SpringNode n : weighter.nodes()) {
@@ -58,6 +58,7 @@ public class SpringEmbedder extends AbstractEmbedder {
       }
       n.step();
     }
+    return true;
   }
 
   /**

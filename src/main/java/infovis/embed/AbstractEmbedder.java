@@ -64,9 +64,10 @@ public abstract class AbstractEmbedder extends PainterAdapter {
                 continue;
               }
             }
-            step();
-            for(final Refreshable r : receivers) {
-              r.refresh();
+            if(step()) {
+              for(final Refreshable r : receivers) {
+                r.refresh();
+              }
             }
           }
         } finally {
@@ -82,8 +83,10 @@ public abstract class AbstractEmbedder extends PainterAdapter {
 
   /**
    * Simulates one step.
+   * 
+   * @return Whether a redraw is necessary.
    */
-  protected abstract void step();
+  protected abstract boolean step();
 
   /**
    * Adds a refreshable that is refreshed each step.

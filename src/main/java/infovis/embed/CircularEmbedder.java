@@ -29,7 +29,7 @@ public class CircularEmbedder extends AbstractEmbedder {
   }
 
   @Override
-  protected void step() {
+  protected boolean step() {
     final SpringNode ref = weighter.getReferenceNode();
     final int changes = weighter.changes();
     if(changes != Weighter.NO_CHANGE) {
@@ -66,9 +66,12 @@ public class CircularEmbedder extends AbstractEmbedder {
         }
       }
     }
+    boolean needsRedraw = weighter.inAnimation();
     for(final SpringNode n : weighter.nodes()) {
       n.animate();
+      needsRedraw = needsRedraw || n.inAnimation();
     }
+    return needsRedraw;
   }
 
   @Override
