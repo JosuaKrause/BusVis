@@ -129,8 +129,7 @@ public class RouteFinderTests {
     for(final BusEdge edge : routeTo) {
       assertEquals(ids[i++], edge.getTo().getId());
     }
-    assertNull(RouteFinder.findRoute(e, c, new BusTime(2, 0), 0,
-        mth));
+    assertNull(RouteFinder.findRoute(e, c, new BusTime(2, 0), 0, mth));
   }
 
   /**
