@@ -39,7 +39,7 @@ public class FastRouteFinderTests {
     final BusEdge bc = b.addEdge(s2, 1, c, new BusTime(0, 3), new BusTime(0, 4));
 
     final Deque<BusEdge> route = FastRouteFinder.routeTo(a, c, new BusTime(0, 0), 2,
-        man.getMaxTimeHours() * 60);
+        man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
 
     assertEquals(Arrays.asList(ab, bc), route);
   }

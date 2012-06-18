@@ -41,8 +41,12 @@ public final class RouteFinder implements RoutingAlgorithm {
     for(final Entry<BusStation, List<BusEdge>> e : map.entrySet()) {
       final List<BusEdge> list = e.getValue();
       final BusStation to = e.getKey();
-      res.add(new RoutingResult(station, to, list.isEmpty() ? -1
-          : start.minutesTo(list.get(list.size() - 1).getEnd()), list.isEmpty()));
+      if(list.isEmpty()) {
+        res.add(new RoutingResult(station, to));
+      } else {
+        res.add(new RoutingResult(station, to,
+            start.minutesTo(list.get(list.size() - 1).getEnd()), list));
+      }
     }
     return res;
   }

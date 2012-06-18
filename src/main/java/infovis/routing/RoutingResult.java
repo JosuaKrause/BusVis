@@ -1,6 +1,9 @@
 package infovis.routing;
 
+import infovis.data.BusEdge;
 import infovis.data.BusStation;
+
+import java.util.Collection;
 
 /**
  * Encapsulates the result of a routing.
@@ -30,19 +33,39 @@ public class RoutingResult {
   private final boolean inr;
 
   /**
-   * Creates a routing result.
+   * The edges used by this route.
+   */
+  private final Collection<BusEdge> edges;
+
+  /**
+   * Creates a routing result for a reachable station.
    * 
    * @param from The start station.
    * @param to The end station.
    * @param minutes The travel time.
-   * @param inr Whether the destination is not reachable.
+   * @param edges The edges used by this route.
    */
   public RoutingResult(final BusStation from, final BusStation to, final int minutes,
-      final boolean inr) {
+      final Collection<BusEdge> edges) {
     this.from = from;
     this.to = to;
     this.minutes = minutes;
-    this.inr = inr;
+    this.edges = edges;
+    inr = false;
+  }
+
+  /**
+   * Creates a routing result for a not reachable station.
+   * 
+   * @param from The start station.
+   * @param to The end station that is not reachable.
+   */
+  public RoutingResult(final BusStation from, final BusStation to) {
+    this.from = from;
+    this.to = to;
+    minutes = -1;
+    edges = null;
+    inr = true;
   }
 
   /**
@@ -80,6 +103,15 @@ public class RoutingResult {
    */
   public boolean isNotReachable() {
     return inr;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The edges used by this route.
+   */
+  public Iterable<BusEdge> getEdges() {
+    return edges;
   }
 
 }

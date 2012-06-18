@@ -156,7 +156,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
           if(from.equals(s)) {
             continue;
           }
-          route.put(s, new RoutingResult(from, s, -1, true));
+          route.put(s, new RoutingResult(from, s));
         }
         route.remove(from);
         putSettings(route, from, time, changeTime);

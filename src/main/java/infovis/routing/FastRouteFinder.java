@@ -40,7 +40,7 @@ public final class FastRouteFinder implements RoutingAlgorithm {
     final Map<Integer, Route> routes = new HashMap<Integer, Route>();
     iniRoutes(from, routes, start);
     if(!findRoutes(from, routes, dest, start, changeTime, maxTime)) return null;
-    return convertRoutes(routes, from, dest);
+    return convertRoutes(routes.get(dest.getId()));
   }
 
   /**
@@ -72,8 +72,11 @@ public final class FastRouteFinder implements RoutingAlgorithm {
       final Collection<Route> routes) {
     final List<RoutingResult> res = new ArrayList<RoutingResult>(routes.size());
     for(final Route r : routes) {
-      res.add(new RoutingResult(from, r.getStation(), r.isNotReachable() ? -1
-          : r.minutes(), r.isNotReachable()));
+      if(r.isNotReachable()) {
+        res.add(new RoutingResult(from, r.getStation()));
+      } else {
+        res.add(new RoutingResult(from, r.getStation(), r.minutes(), convertRoutes(r)));
+      }
     }
     return res;
   }
@@ -82,20 +85,22 @@ public final class FastRouteFinder implements RoutingAlgorithm {
    * Converts the route objects back into a meaningful path by going from the
    * destination to the start.
    * 
-   * @param routes The route map.
-   * @param from The start.
-   * @param dest The destination.
+   * @param r The route.
    * @return The path.
    */
-  private static Deque<BusEdge> convertRoutes(final Map<Integer, Route> routes,
-      final BusStation from, final BusStation dest) {
-    Route cur = routes.get(dest.getId());
+  private static Deque<BusEdge> convertRoutes(final Route r) {
+    Route cur = r;
     final Deque<BusEdge> res = new LinkedList<BusEdge>();
     do {
       final BusEdge edge = cur.getFrom();
+      // if(res.contains(edge)) {
+      // res.addFirst(edge);
+      // System.out.println(res);
+      // throw new IllegalArgumentException("loop");
+      // }
       res.addFirst(edge);
-      cur = routes.get(edge.getFrom().getId());
-    } while(!cur.getStation().equals(from));
+      cur = cur.getParent();
+    } while(cur != null && cur.hasFrom());
     return res;
   }
 
