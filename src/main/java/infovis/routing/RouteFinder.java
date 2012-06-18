@@ -45,7 +45,7 @@ public final class RouteFinder implements RoutingAlgorithm {
         res.add(new RoutingResult(station));
       } else {
         res.add(new RoutingResult(station, to,
-            start.minutesTo(list.get(list.size() - 1).getEnd()), list));
+            start.minutesTo(list.get(list.size() - 1).getEnd()), list, start));
       }
     }
     return res;

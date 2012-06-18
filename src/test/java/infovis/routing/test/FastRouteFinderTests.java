@@ -8,10 +8,16 @@ import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.routing.FastRouteFinder;
+import infovis.routing.RouteFinder;
+import infovis.routing.RoutingResult;
 
 import java.awt.Color;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
@@ -133,6 +139,53 @@ public class FastRouteFinderTests {
    */
   private static int getLastEndMinute(final Deque<BusEdge> route) {
     return getLastEnd(route).getMinute();
+  }
+
+  /**
+   * Tests if routes without changes are taken if suitable.
+   * 
+   * <pre>
+   *    , 00:00 ---1--- 00:01.
+   *   /                     \
+   * (A) 00:01 ---2---> 00:02 (B) 00:02 ---2---> 00:03 (C)
+   *                            \                      /
+   *                             ` 00:03 ---3--- 00:04´
+   * </pre>
+   * 
+   * @throws InterruptedException exception
+   */
+  @Test
+  public void continuous() throws InterruptedException {
+    final BusStationManager man = new BusStationManager(null);
+    final BusLine s1 = new BusLine("B1", Color.RED), s2 = new BusLine("B2",
+        Color.BLUE), s3 = new BusLine("B3", Color.YELLOW);
+    final BusStation a = man.createStation("A", 0, 0, 0, 0, 0), b =
+        man.createStation(
+            "B", 1, 0, 0, 0, 0), c = man.createStation("C", 2, 0, 0, 0, 0);
+
+    a.addEdge(s1, 1, b, new BusTime(0, 0), new BusTime(0, 1));
+
+    final BusEdge ab = a.addEdge(s2, 1, b, new BusTime(0, 1), new BusTime(0, 2));
+    final BusEdge bc = b.addEdge(s2, 1, c, new BusTime(0, 2), new BusTime(0, 3));
+
+    b.addEdge(s3, 1, c, new BusTime(0, 3), new BusTime(0, 4));
+
+    final List<BusEdge> route = RouteFinder.findRoute(a, c, new BusTime(0, 0),
+        5, man.getMaxTimeHours() * 60);
+
+    assertEquals(Arrays.asList(ab, bc), route);
+
+    final Map<BusStation, BusTime> times = new HashMap<BusStation, BusTime>();
+    times.put(a, null);
+    times.put(b, new BusTime(0, 1));
+    times.put(c, new BusTime(0, 3));
+    final Collection<RoutingResult> res = FastRouteFinder.routes(a, new BusTime(0, 0), 5,
+        man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
+    for(final RoutingResult r : res) {
+      final BusStation s = r.getEnd();
+      assertEquals(times.get(s),
+          r.isStartNode() || r.isNotReachable() ? null : r.getEndTime());
+    }
   }
 
   /**

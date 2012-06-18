@@ -58,24 +58,27 @@ public final class FastRouteFinder implements RoutingAlgorithm {
     final Map<Integer, Route> routes = new HashMap<Integer, Route>();
     iniRoutes(from, routes, start);
     findRoutes(from, routes, null, start, changeTime, maxTime);
-    return convert(from, routes.values());
+    return convert(start, from, routes.values());
   }
 
   /**
    * Converts routes into routing results.
    * 
+   * @param startTime The start time.
    * @param from The start bus station.
    * @param routes The routes.
    * @return The routing results.
    */
-  private static Collection<RoutingResult> convert(final BusStation from,
+  private static Collection<RoutingResult> convert(final BusTime startTime,
+      final BusStation from,
       final Collection<Route> routes) {
     final List<RoutingResult> res = new ArrayList<RoutingResult>(routes.size());
     for(final Route r : routes) {
       if(r.isNotReachable()) {
         res.add(new RoutingResult(from, r.getStation()));
       } else {
-        res.add(new RoutingResult(from, r.getStation(), r.minutes(), convertRoutes(r)));
+        res.add(new RoutingResult(from, r.getStation(), r.minutes(), convertRoutes(r),
+            startTime));
       }
     }
     return res;

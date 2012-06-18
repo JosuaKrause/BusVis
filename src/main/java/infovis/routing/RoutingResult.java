@@ -2,6 +2,7 @@ package infovis.routing;
 
 import infovis.data.BusEdge;
 import infovis.data.BusStation;
+import infovis.data.BusTime;
 
 import java.util.Collection;
 
@@ -38,19 +39,26 @@ public class RoutingResult {
   private final Collection<BusEdge> edges;
 
   /**
+   * The start time.
+   */
+  private final BusTime startTime;
+
+  /**
    * Creates a routing result for a reachable station.
    * 
    * @param from The start station.
    * @param to The end station.
    * @param minutes The travel time.
    * @param edges The edges used by this route.
+   * @param startTime The start time.
    */
   public RoutingResult(final BusStation from, final BusStation to, final int minutes,
-      final Collection<BusEdge> edges) {
+      final Collection<BusEdge> edges, final BusTime startTime) {
     this.from = from;
     this.to = to;
     this.minutes = minutes;
     this.edges = edges;
+    this.startTime = startTime;
     inr = false;
   }
 
@@ -66,6 +74,7 @@ public class RoutingResult {
     minutes = from != to ? -1 : 0;
     edges = null;
     inr = from != to;
+    startTime = null;
   }
 
   /**
@@ -130,6 +139,24 @@ public class RoutingResult {
    */
   public Iterable<BusEdge> getEdges() {
     return edges;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The start time.
+   */
+  public BusTime getStartTime() {
+    return startTime;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The end time.
+   */
+  public BusTime getEndTime() {
+    return startTime.later(minutes());
   }
 
 }
