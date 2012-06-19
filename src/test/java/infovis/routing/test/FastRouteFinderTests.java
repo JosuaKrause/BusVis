@@ -1,7 +1,7 @@
 package infovis.routing.test;
 
 import static org.junit.Assert.*;
-import infovis.data.BusData;
+import infovis.data.BusDataBuilder;
 import infovis.data.BusEdge;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
@@ -34,15 +34,17 @@ public class FastRouteFinderTests {
    */
   @Test
   public void shouldChange() {
-    final BusStationManager man = new BusStationManager(null);
+    final BusDataBuilder builder = new BusDataBuilder(null);
     final BusLine s1 = new BusLine("B1", Color.RED), s2 = new BusLine("B2",
         Color.BLUE);
-    final BusStation a = man.createStation("A", 0, 0, 0, 0, 0), b =
-        man.createStation("B", 1, 0, 0, 0, 0), c = man.createStation("C", 2, 0, 0, 0, 0);
+    final BusStation a = builder.createStation("A", 0, 0, 0, 0, 0), b = builder.createStation(
+        "B", 1, 0, 0, 0, 0), c = builder.createStation("C", 2, 0, 0, 0, 0);
 
-    final BusEdge ab = a.addEdge(s1, 1, b, new BusTime(0, 0), new BusTime(0, 1));
-    b.addEdge(s1, 1, c, new BusTime(0, 1), new BusTime(0, 5));
-    final BusEdge bc = b.addEdge(s2, 1, c, new BusTime(0, 3), new BusTime(0, 4));
+    final BusEdge ab = builder.addEdge(a, s1, 1, b, new BusTime(0, 0), new BusTime(0, 1));
+    builder.addEdge(b, s1, 1, c, new BusTime(0, 1), new BusTime(0, 5));
+    final BusEdge bc = builder.addEdge(b, s2, 1, c, new BusTime(0, 3), new BusTime(0, 4));
+
+    final BusStationManager man = builder.finish();
 
     final Deque<BusEdge> route = FastRouteFinder.routeTo(a, c, new BusTime(0, 0), 2,
         man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
@@ -55,24 +57,27 @@ public class FastRouteFinderTests {
    */
   @Test
   public void generalTest() {
-    final BusStationManager manager = new BusStationManager(null);
-    final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
+    final BusDataBuilder builder = new BusDataBuilder(null);
     final BusLine line = new BusLine("1", Color.RED);
-    final BusStation a = manager.createStation("a", 0, 0, 0, 0, 0);
-    final BusStation b = manager.createStation("b", 1, 0, 0, 0, 0);
-    final BusStation c = manager.createStation("c", 2, 0, 0, 0, 0);
-    final BusStation d = manager.createStation("d", 3, 0, 0, 0, 0);
-    final BusStation e = manager.createStation("e", 4, 0, 0, 0, 0);
-    a.addEdge(line, 0, c, new BusTime(3, 10), new BusTime(3, 13));
-    a.addEdge(line, 1, b, new BusTime(3, 10), new BusTime(3, 12));
-    a.addEdge(line, 2, d, new BusTime(3, 10), new BusTime(3, 11));
-    b.addEdge(line, 0, a, new BusTime(3, 10), new BusTime(3, 20));
-    b.addEdge(line, 2, c, new BusTime(3, 9), new BusTime(3, 10));
-    c.addEdge(line, 0, a, new BusTime(2, 0), new BusTime(2, 1));
-    d.addEdge(line, 5, a, new BusTime(0, 1), new BusTime(0, 2));
-    d.addEdge(line, 6, b, new BusTime(0, 2), new BusTime(0, 3));
-    d.addEdge(line, 7, c, new BusTime(0, 3), new BusTime(0, 4));
-    d.addEdge(line, 8, e, new BusTime(0, 4), new BusTime(0, 5));
+    final BusStation a = builder.createStation("a", 0, 0, 0, 0, 0);
+    final BusStation b = builder.createStation("b", 1, 0, 0, 0, 0);
+    final BusStation c = builder.createStation("c", 2, 0, 0, 0, 0);
+    final BusStation d = builder.createStation("d", 3, 0, 0, 0, 0);
+    final BusStation e = builder.createStation("e", 4, 0, 0, 0, 0);
+    builder.addEdge(a, line, 0, c, new BusTime(3, 10), new BusTime(3, 13));
+    builder.addEdge(a, line, 1, b, new BusTime(3, 10), new BusTime(3, 12));
+    builder.addEdge(a, line, 2, d, new BusTime(3, 10), new BusTime(3, 11));
+    builder.addEdge(b, line, 0, a, new BusTime(3, 10), new BusTime(3, 20));
+    builder.addEdge(b, line, 2, c, new BusTime(3, 9), new BusTime(3, 10));
+    builder.addEdge(c, line, 0, a, new BusTime(2, 0), new BusTime(2, 1));
+    builder.addEdge(d, line, 5, a, new BusTime(0, 1), new BusTime(0, 2));
+    builder.addEdge(d, line, 6, b, new BusTime(0, 2), new BusTime(0, 3));
+    builder.addEdge(d, line, 7, c, new BusTime(0, 3), new BusTime(0, 4));
+    builder.addEdge(d, line, 8, e, new BusTime(0, 4), new BusTime(0, 5));
+
+    final BusStationManager manager = builder.finish();
+
+    final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
     final Deque<BusEdge> routeTo = FastRouteFinder.routeTo(c, e, new BusTime(2, 0), 0,
         mth);
     final int[] ids = { 2, 0, 3, 4};
@@ -89,27 +94,30 @@ public class FastRouteFinderTests {
    */
   @Test
   public void lineChanging() {
-    final BusStationManager manager = new BusStationManager(null);
-    final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
+    final BusDataBuilder builder = new BusDataBuilder(null);
     final BusLine line = new BusLine("1", Color.RED);
     final BusLine other = new BusLine("2", Color.BLUE);
-    final BusStation e = manager.createStation("e", 4, 0, 0, 0, 0);
-    final BusStation f = manager.createStation("f", 5, 0, 0, 0, 0);
-    final BusStation g = manager.createStation("g", 6, 0, 0, 0, 0);
-    final BusStation h = manager.createStation("h", 7, 0, 0, 0, 0);
-    e.addEdge(line, 0, h, new BusTime(23, 59), new BusTime(0, 1));
-    e.addEdge(line, 1, h, new BusTime(0, 7), new BusTime(0, 0));
-    e.addEdge(line, 2, h, new BusTime(0, 0), new BusTime(0, 6));
-    e.addEdge(line, 3, h, new BusTime(0, 6), new BusTime(0, 8));
-    e.addEdge(line, 4, h, new BusTime(0, 50), new BusTime(1, 0));
-    e.addEdge(line, 5, f, new BusTime(0, 0), new BusTime(0, 2));
-    e.addEdge(other, 0, f, new BusTime(0, 0), new BusTime(0, 1));
-    e.addEdge(line, 6, g, new BusTime(0, 1), new BusTime(0, 3));
-    f.addEdge(line, 7, h, new BusTime(1, 2), new BusTime(1, 3));
-    f.addEdge(line, 5, h, new BusTime(0, 2), new BusTime(0, 5));
-    g.addEdge(other, 0, h, new BusTime(0, 3), new BusTime(0, 4));
-    g.addEdge(line, 6, h, new BusTime(0, 4), new BusTime(0, 7));
-    g.addEdge(line, 8, h, new BusTime(0, 1), new BusTime(0, 2));
+    final BusStation e = builder.createStation("e", 4, 0, 0, 0, 0);
+    final BusStation f = builder.createStation("f", 5, 0, 0, 0, 0);
+    final BusStation g = builder.createStation("g", 6, 0, 0, 0, 0);
+    final BusStation h = builder.createStation("h", 7, 0, 0, 0, 0);
+    builder.addEdge(e, line, 0, h, new BusTime(23, 59), new BusTime(0, 1));
+    builder.addEdge(e, line, 1, h, new BusTime(0, 7), new BusTime(0, 0));
+    builder.addEdge(e, line, 2, h, new BusTime(0, 0), new BusTime(0, 6));
+    builder.addEdge(e, line, 3, h, new BusTime(0, 6), new BusTime(0, 8));
+    builder.addEdge(e, line, 4, h, new BusTime(0, 50), new BusTime(1, 0));
+    builder.addEdge(e, line, 5, f, new BusTime(0, 0), new BusTime(0, 2));
+    builder.addEdge(e, other, 0, f, new BusTime(0, 0), new BusTime(0, 1));
+    builder.addEdge(e, line, 6, g, new BusTime(0, 1), new BusTime(0, 3));
+    builder.addEdge(f, line, 7, h, new BusTime(1, 2), new BusTime(1, 3));
+    builder.addEdge(f, line, 5, h, new BusTime(0, 2), new BusTime(0, 5));
+    builder.addEdge(g, other, 0, h, new BusTime(0, 3), new BusTime(0, 4));
+    builder.addEdge(g, line, 6, h, new BusTime(0, 4), new BusTime(0, 7));
+    builder.addEdge(g, line, 8, h, new BusTime(0, 1), new BusTime(0, 2));
+
+    final BusStationManager manager = builder.finish();
+
+    final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
     assertEquals(4,
         getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 0, mth)));
     assertEquals(5,
@@ -156,22 +164,23 @@ public class FastRouteFinderTests {
    */
   @Test
   public void continuous() throws InterruptedException {
-    final BusStationManager man = new BusStationManager(null);
+    final BusDataBuilder builder = new BusDataBuilder(null);
     final BusLine s1 = new BusLine("B1", Color.RED), s2 = new BusLine("B2",
         Color.BLUE), s3 = new BusLine("B3", Color.YELLOW);
-    final BusStation a = man.createStation("A", 0, 0, 0, 0, 0), b =
-        man.createStation(
-            "B", 1, 0, 0, 0, 0), c = man.createStation("C", 2, 0, 0, 0, 0);
+    final BusStation a = builder.createStation("A", 0, 0, 0, 0, 0), b =
+        builder.createStation("B", 1, 0, 0, 0, 0), c = builder.createStation("C", 2, 0, 0, 0, 0);
 
-    a.addEdge(s1, 1, b, new BusTime(0, 0), new BusTime(0, 1));
+    builder.addEdge(a, s1, 1, b, new BusTime(0, 0), new BusTime(0, 1));
 
-    final BusEdge ab = a.addEdge(s2, 1, b, new BusTime(0, 1), new BusTime(0, 2));
-    final BusEdge bc = b.addEdge(s2, 1, c, new BusTime(0, 2), new BusTime(0, 3));
+    final BusEdge ab = builder.addEdge(a, s2, 1, b, new BusTime(0, 1), new BusTime(0, 2));
+    final BusEdge bc = builder.addEdge(b, s2, 1, c, new BusTime(0, 2), new BusTime(0, 3));
 
-    b.addEdge(s3, 1, c, new BusTime(0, 3), new BusTime(0, 4));
+    builder.addEdge(b, s3, 1, c, new BusTime(0, 3), new BusTime(0, 4));
+
+    final BusStationManager manager = builder.finish();
 
     final List<BusEdge> route = RouteFinder.findRoute(a, c, new BusTime(0, 0),
-        5, man.getMaxTimeHours() * 60);
+        5, manager.getMaxTimeHours() * 60);
 
     assertEquals(Arrays.asList(ab, bc), route);
 
@@ -180,7 +189,7 @@ public class FastRouteFinderTests {
     times.put(b, new BusTime(0, 1));
     times.put(c, new BusTime(0, 3));
     final Collection<RoutingResult> res = FastRouteFinder.routes(a, new BusTime(0, 0), 5,
-        man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
+        manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
     for(final RoutingResult r : res) {
       final BusStation s = r.getEnd();
       assertEquals(times.get(s),
@@ -196,7 +205,7 @@ public class FastRouteFinderTests {
    */
   @Test
   public void at12Am() throws Exception {
-    final BusStationManager man = BusData.load("src/main/resources");
+    final BusStationManager man = BusDataBuilder.load("src/main/resources");
     final AtomicBoolean fail = new AtomicBoolean(false);
     int num = 0;
     for(@SuppressWarnings("unused")

@@ -1,7 +1,7 @@
 package infovis.routing.test;
 
 import static org.junit.Assert.*;
-import infovis.data.BusData;
+import infovis.data.BusDataBuilder;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.routing.RouteFinder;
@@ -82,7 +82,7 @@ public class RoutingManagerTests {
    */
   @Test
   public void findRoutes() throws Exception {
-    final BusStationManager man = BusData.load("src/main/resources/");
+    final BusStationManager man = BusDataBuilder.load("src/main/resources/");
     final RoutingManager rm = RoutingManager.newInstance();
     final Semaphore sem = new Semaphore(0);
     final AtomicReference<Collection<RoutingResult>> ref =
@@ -108,7 +108,7 @@ public class RoutingManagerTests {
    */
   @Test
   public void terminateRouting() throws Exception {
-    final BusStationManager man = BusData.load("src/main/resources/");
+    final BusStationManager man = BusDataBuilder.load("src/main/resources/");
     final CountDownLatch cd = new CountDownLatch(2);
     final AtomicBoolean ref = new AtomicBoolean(false);
     final RoutingManager rm = RoutingManager.newInstance();

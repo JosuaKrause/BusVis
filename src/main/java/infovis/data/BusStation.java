@@ -1,15 +1,12 @@
 package infovis.data;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * A {@link BusStation} contains informations about bus stations in the traffic
@@ -19,25 +16,16 @@ import java.util.TreeSet;
  */
 public final class BusStation {
 
-  /**
-   * The name of the bus station.
-   */
+  /** The name of the bus station. */
   private final String name;
 
-  /**
-   * The (non-negative) unique id of the bus station.
-   */
+  /** The (non-negative) unique id of the bus station. */
   private final int id;
 
-  /**
-   * A sorted set of all bus edges starting with the earliest edge (0 hours 0
-   * minutes).
-   */
-  private final SortedSet<BusEdge> edges = new TreeSet<BusEdge>();
+  /** A sorted list of all bus edges starting with the earliest edge (00:00). */
+  private final List<BusEdge> edges;
 
-  /**
-   * The bus manager.
-   */
+  /** The bus manager. */
   private final BusStationManager manager;
 
   /**
@@ -50,9 +38,11 @@ public final class BusStation {
    * @param y The y position.
    * @param abstractX The x position on the abstract map.
    * @param abstractY The y position on the abstract map.
+   * @param edges sorted list of edges
    */
   BusStation(final BusStationManager manager, final String name, final int id,
-      final double x, final double y, final double abstractX, final double abstractY) {
+      final double x, final double y, final double abstractX, final double abstractY,
+      final List<BusEdge> edges) {
     this.manager = manager;
     this.name = name;
     this.id = id;
@@ -60,6 +50,7 @@ public final class BusStation {
     this.y = y;
     this.abstractX = abstractX;
     this.abstractY = abstractY;
+    this.edges = edges;
   }
 
   /**
@@ -81,39 +72,6 @@ public final class BusStation {
   }
 
   /**
-   * Adds an edge to this bus station. This method is deprecated,
-   * {@link #addEdge(BusLine, int, BusStation, BusTime, BusTime)} should be used
-   * instead.
-   * 
-   * @param line bus line
-   * @param dest The destination.
-   * @param start The start time.
-   * @param end The end time.
-   */
-  @Deprecated
-  public void addEdge(final BusLine line, final BusStation dest, final BusTime start,
-      final BusTime end) {
-    addEdge(line, -1, dest, start, end);
-  }
-
-  /**
-   * Adds an edge to this bus station.
-   * 
-   * @param line bus line
-   * @param tourNr tour number, unique per line
-   * @param dest The destination.
-   * @param start The start time.
-   * @param end The end time.
-   * @return added edge
-   */
-  public BusEdge addEdge(final BusLine line, final int tourNr, final BusStation dest,
-      final BusTime start, final BusTime end) {
-    final BusEdge edge = new BusEdge(line, tourNr, this, dest, start, end);
-    edges.add(edge);
-    return edge;
-  }
-
-  /**
    * Returns all edges associated with this bus station, starting with the edge
    * earliest after the given time. The last edge is the edge before the given
    * time.
@@ -122,85 +80,67 @@ public final class BusStation {
    * @return An iterable going through the set of edges.
    */
   public Iterable<BusEdge> getEdges(final BusTime from) {
-    final Comparator<BusTime> cmp = from.createRelativeComparator();
-    BusEdge start = null;
-    for(final BusEdge e : edges) {
-      if(start == null) {
-        start = e;
-        continue;
-      }
-      if(cmp.compare(e.getStart(), start.getStart()) < 0) {
-        // must be smaller to get the first one of a row of simultaneous edges
-        start = e;
-      }
-    }
-    if(start == null) // empty set
-      return Collections.EMPTY_LIST;
-    final BusEdge s = start;
-    final SortedSet<BusEdge> e = edges;
+    final int first = binarySearch(from);
+    final List<BusEdge> edges = this.edges;
     return new Iterable<BusEdge>() {
-
+      int curr = first;
       @Override
       public Iterator<BusEdge> iterator() {
         return new Iterator<BusEdge>() {
 
-          private boolean pushedBack;
-
-          private BusEdge cur;
-
-          private Iterator<BusEdge> it;
-
-          {
-            it = e.tailSet(s).iterator();
-            cur = it.next();
-            pushedBack = true;
-          }
-
-          private BusEdge pollNext() {
-            if(it.hasNext()) {
-              final BusEdge e = it.next();
-              if(e == s) {
-                it = null;
-              }
-              return it != null ? e : null;
-            }
-            it = e.iterator(); // can not be empty
-            final BusEdge e = it.next();
-            if(e == s) {
-              it = null;
-            }
-            return it != null ? e : null;
-          }
-
           @Override
           public boolean hasNext() {
-            if(cur == null) return false;
-            if(pushedBack) return true;
-            cur = pollNext();
-            pushedBack = true;
-            return cur != null;
+            return curr != -1;
           }
 
           @Override
           public BusEdge next() {
-            if(cur == null) return null;
-            if(pushedBack) {
-              pushedBack = false;
-              return cur;
+            if(curr == -1) return null;
+            final BusEdge next = edges.get(curr);
+            curr = (curr + 1) % edges.size();
+            if(curr == first) {
+              curr = -1;
             }
-            cur = pollNext();
-            return cur;
+            return next;
           }
 
           @Override
           public void remove() {
             throw new UnsupportedOperationException();
           }
-
         };
       }
-
     };
+  }
+
+  /**
+   * Finds the first {@link BusEdge} not starting before <code>start</code>.
+   * 
+   * @param start start time
+   * @return position if such an edge exists, <code>-1</code> otherwise
+   */
+  private int binarySearch(final BusTime start) {
+    final int size = edges.size();
+    if(size == 0) return -1;
+
+    if(size < 8) {
+      for(int i = 0; i < size; i++) {
+        if(edges.get(i).getStart().compareTo(start) >= 0) return i;
+      }
+      return 0;
+    }
+
+    int low = 0, high = edges.size() - 1;
+    while(low <= high) {
+      final int mid = (low + high) >>> 1;
+    final BusEdge midVal = edges.get(mid);
+    if(midVal.getStart().compareTo(start) < 0) {
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+    }
+    return low % edges.size();
   }
 
   /**

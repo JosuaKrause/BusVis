@@ -102,17 +102,10 @@ public final class RouteFinder implements RoutingAlgorithm {
 
       final BusTime arrival = last.getEnd();
       for(final BusEdge e : dest.getEdges(arrival)) {
-        if(!(last.sameTour(e) || best && arrival.minutesTo(e.getStart()) >= wait)) {
-          continue;
+        if((last.sameTour(e) || best && arrival.minutesTo(e.getStart()) >= wait)
+            && current.timePlus(e) <= maxDuration && !current.contains(e.getTo())) {
+          queue.add(current.extendedBy(e));
         }
-        if(current.timePlus(e) > maxDuration) {
-          continue;
-        }
-        if(current.contains(e.getTo())) {
-          continue;
-        }
-        final Route r = current.extendedBy(e);
-        queue.add(r);
       }
     }
 
@@ -253,4 +246,18 @@ public final class RouteFinder implements RoutingAlgorithm {
 
   }
 
+  // public static void main(final String[] args) throws Exception {
+  // final BusStationManager man = BusDataBuilder.load("src/main/resources");
+  // final BitSet set = new BitSet();
+  // for(final BusStation a : man.getStations()) {
+  // set.set(a.getId());
+  // }
+  //
+  // for(final BusStation a : man.getStations()) {
+  // System.out.println(a
+  // + ", "
+  // + RouteFinder.findRoutes(a, set, new BusTime(12, 0), 5,
+  // man.getMaxTimeHours() * 60).size());
+  // }
+  // }
 }
