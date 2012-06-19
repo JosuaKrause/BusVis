@@ -79,7 +79,6 @@ public final class RouteFinder implements RoutingAlgorithm {
   public static Map<BusStation, List<BusEdge>> findRoutesFrom(final BusStation station,
       final BitSet dests, final BusTime start, final int wait, final int maxDuration)
           throws InterruptedException {
-    final Thread ownThread = Thread.currentThread();
     // set of stations yet to be found
     final BitSet notFound = dests == null ? new BitSet() : (BitSet) dests.clone();
     if(dests == null) {
@@ -99,22 +98,36 @@ public final class RouteFinder implements RoutingAlgorithm {
     }
 
     for(Route current; !notFound.isEmpty() && (current = queue.poll()) != null;) {
-      checkInterrupt(ownThread);
+      if(Thread.interrupted()) throw new InterruptedException();
       final BusEdge last = current.last;
       final BusStation dest = last.getTo();
 
-      final boolean best = !bestRoutes.containsKey(dest);
-      if(best) {
+      final Route best = bestRoutes.get(dest);
+      if(best == null) {
         bestRoutes.put(dest, current);
         notFound.set(dest.getId(), false);
       }
 
       final BusTime arrival = last.getEnd();
       for(final BusEdge e : dest.getEdges(arrival)) {
-        if((last.sameTour(e) || best && arrival.minutesTo(e.getStart()) >= wait)
-            && current.timePlus(e) <= maxDuration && !current.contains(e.getTo())) {
-          queue.add(current.extendedBy(e));
+        if(current.timePlus(e) > maxDuration || current.contains(e.getTo())) {
+          // violates general invariants
+          continue;
         }
+
+        final boolean sameTour = last.sameTour(e);
+        if(!sameTour && arrival.minutesTo(e.getStart()) < wait) {
+          // bus is missed
+          continue;
+        }
+
+        if(best != null
+            && !(sameTour && best.last.getEnd().minutesTo(last.getEnd()) < wait)) {
+          // one could just change the bus from the optimal previous route
+          continue;
+        }
+
+        queue.add(current.extendedBy(e));
       }
     }
 
@@ -124,16 +137,6 @@ public final class RouteFinder implements RoutingAlgorithm {
       res.put(e.getKey(), e.getValue().asList());
     }
     return res;
-  }
-
-  /**
-   * Checks the interrupt status of the current thread.
-   * 
-   * @param own The own thread.
-   * @throws InterruptedException If the interrupt status was set.
-   */
-  private static void checkInterrupt(final Thread own) throws InterruptedException {
-    if(own.isInterrupted()) throw new InterruptedException();
   }
 
   /**
@@ -271,7 +274,7 @@ public final class RouteFinder implements RoutingAlgorithm {
       set.set(a.getId());
     }
 
-    final boolean performance = false, store = false;
+    final boolean performance = true, store = false;
 
     if(performance) {
       final int numTests = 5;
