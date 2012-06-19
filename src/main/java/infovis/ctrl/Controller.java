@@ -15,7 +15,7 @@ import javax.swing.JFrame;
  * @author Joschi <josua.krause@googlemail.com>
  *
  */
-public class Controller {
+public final class Controller {
 
   /**
    * The list of active visualizations.
@@ -40,7 +40,7 @@ public class Controller {
   /**
    * The current start time.
    */
-  private BusTime curStartTime = new BusTime(12, 0);
+  protected volatile BusTime curStartTime = BusTime.now();
 
   /**
    * The current change time.
@@ -77,8 +77,12 @@ public class Controller {
     if(curSelection != null) {
       sb.append(" - ");
       sb.append(curSelection.getName());
-      sb.append(" at ");
-      sb.append(curStartTime.pretty());
+      if(isStartTimeNow()) {
+        sb.append(" now");
+      } else {
+        sb.append(" at ");
+        sb.append(curStartTime.pretty());
+      }
       sb.append(" with ");
       sb.append(BusTime.minutesToString(curChangeTime));
       sb.append(" change");
@@ -148,10 +152,78 @@ public class Controller {
    */
   public void setTime(final BusTime start) {
     curStartTime = start;
+    refreshNowNoter();
     for(final BusVisualization v : vis) {
       v.setStartTime(start);
     }
     setTitle(null);
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Whether now is selected as start time.
+   */
+  public boolean isStartTimeNow() {
+    return getTime() == null;
+  }
+
+  /**
+   * Selects the start time as now.
+   */
+  public void setNow() {
+    setTime(null);
+  }
+
+  /**
+   * When the start time is selected as now this thread refreshes the plan every
+   * minute.
+   */
+  private final Thread nowNoter = new Thread() {
+
+    {
+      setDaemon(true);
+      start();
+    }
+
+    private BusTime last;
+
+    @Override
+    public void run() {
+      while(!isInterrupted()) {
+        try {
+          synchronized(this) {
+            if(isStartTimeNow()) {
+              wait(1000); // maybe set to 100 to be more responsive
+            } else {
+              wait();
+            }
+          }
+        } catch(final InterruptedException e) {
+          interrupt();
+          continue;
+        }
+        final BusTime cur = BusTime.now();
+        if(isStartTimeNow() && last != cur) {
+          // we may loose an user update here
+          // but very rare (only if the user clicks _very_ fast)
+          setTime(curStartTime);
+          last = cur;
+        }
+      }
+    }
+
+  };
+
+  /**
+   * Signals that the start time may be selected as now.
+   */
+  private void refreshNowNoter() {
+    if(isStartTimeNow()) {
+      synchronized(nowNoter) {
+        nowNoter.notifyAll();
+      }
+    }
   }
 
   /**

@@ -17,6 +17,7 @@ import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -50,6 +51,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * The bus time label.
    */
   private final JLabel btLabel;
+
+  /**
+   * The check box to select now as start time.
+   */
+  protected final JCheckBox now;
 
   /**
    * The change time slider.
@@ -178,7 +184,25 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     });
     btLabel = new JLabel();
-    addHor(new JLabel("Start Time:"), bt, btLabel, space);
+    now = new JCheckBox("now");
+    now.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(final ChangeEvent e) {
+        final boolean b = ctrl.isStartTimeNow();
+        if(now.isSelected()) {
+          if(!b) {
+            ctrl.setNow();
+          }
+        } else {
+          if(b) {
+            ctrl.setTime(MIDNIGHT.later(bt.getValue()));
+          }
+        }
+      }
+
+    });
+    addHor(new JLabel("Start Time:"), bt, btLabel, now, space);
     // change time
     ct = new JSlider(-10, 60);
     ct.addChangeListener(new ChangeListener() {
@@ -223,7 +247,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     final JPanel hor = new JPanel();
     hor.setLayout(new BoxLayout(hor, BoxLayout.X_AXIS));
     for(final Component c : comps) {
-        hor.add(Box.createRigidArea(new Dimension(5, 5)));
+      hor.add(Box.createRigidArea(new Dimension(5, 5)));
       if(c != null) {
         hor.add(c);
       }
@@ -239,6 +263,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   @Override
   public void setStartTime(final BusTime time) {
+    if(time == null) {
+      bt.setEnabled(false);
+      now.setSelected(true);
+      return;
+    }
+    bt.setEnabled(true);
+    now.setSelected(false);
     bt.setValue(MIDNIGHT.minutesTo(time));
     btLabel.setText(time.pretty());
   }

@@ -129,9 +129,10 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
       @Override
       public void run() {
+        final BusTime t = time == null ? BusTime.now() : time;
         final Map<BusStation, Route> route = new HashMap<BusStation, Route>();
         if(from != null) {
-          final Collection<Route> routes = from.routes(time, changeTime);
+          final Collection<Route> routes = from.routes(t, changeTime);
           for(final Route r : routes) {
             route.put(r.getStation(), r);
           }
@@ -145,9 +146,9 @@ public final class StationDistance implements Weighter, NodeDrawer {
             fadingEnd = fadingStart + Interpolator.NORMAL;
             fade = true;
           }
-          changes = (StationDistance.this.time != time
-              || StationDistance.this.changeTime != changeTime) ? FAST_ANIMATION_CHANGE
-              : NORMAL_CHANGE;
+          changes = ((time != null && StationDistance.this.time != null) &&
+              (StationDistance.this.time != time || StationDistance.this.changeTime != changeTime))
+              ? FAST_ANIMATION_CHANGE : NORMAL_CHANGE;
           StationDistance.this.from = from;
           StationDistance.this.time = time;
           StationDistance.this.changeTime = changeTime;

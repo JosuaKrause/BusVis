@@ -20,7 +20,8 @@ public interface BusVisualization {
   /**
    * Sets the routing start time.
    * 
-   * @param time The routing time.
+   * @param time The routing time or <code>null</code> if the time should be
+   *          now.
    */
   void setStartTime(BusTime time);
 

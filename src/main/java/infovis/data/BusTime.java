@@ -1,5 +1,6 @@
 package infovis.data;
 
+import java.util.Calendar;
 import java.util.Comparator;
 
 
@@ -183,6 +184,16 @@ public final class BusTime implements Comparable<BusTime> {
     final int m = min % MINUTES_PER_HOUR;
     return (minutes < 0 ? "-" : "") + (h > 0 ? h + " h" : "")
         + (m > 0 ? (h > 0 ? " " : "") + m + " min" : (h > 0 ? "" : "0 min"));
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The current time.
+   */
+  public static BusTime now() {
+    final Calendar calendar = Calendar.getInstance();
+    return new BusTime(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
   }
 
 }
