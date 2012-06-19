@@ -15,7 +15,7 @@ import java.util.List;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public abstract class AbstractEmbedder extends PainterAdapter {
+public abstract class AbstractEmbedder extends PainterAdapter implements Animator {
 
   /**
    * The frame rate of the spring embedder.
@@ -31,6 +31,11 @@ public abstract class AbstractEmbedder extends PainterAdapter {
    * A list of refreshables that are refreshed, when a step has occured.
    */
   private final List<Refreshable> receivers;
+
+  /**
+   * The animator thread.
+   */
+  private final Thread animator;
 
   /**
    * Whether this object is already disposed or can still be used.
@@ -50,7 +55,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
   public AbstractEmbedder(final NodeDrawer drawer) {
     this.drawer = drawer;
     final List<Refreshable> receivers = new LinkedList<Refreshable>();
-    final Thread t = new Thread() {
+    animator = new Thread() {
 
       @Override
       public void run() {
@@ -76,9 +81,10 @@ public abstract class AbstractEmbedder extends PainterAdapter {
       }
 
     };
-    t.setDaemon(true);
-    t.start();
+    animator.setDaemon(true);
+    animator.start();
     this.receivers = receivers;
+    drawer.setAnimator(this);
   }
 
   /**
@@ -238,6 +244,14 @@ public abstract class AbstractEmbedder extends PainterAdapter {
   public void dispose() {
     disposed = true;
     receivers.clear();
+    animator.interrupt();
+  }
+
+  @Override
+  public void forceNextFrame() {
+    synchronized(animator) {
+      animator.notifyAll();
+    }
   }
 
   /**

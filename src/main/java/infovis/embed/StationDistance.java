@@ -117,6 +117,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
   protected boolean fade;
 
   /**
+   * The animator to be notified when something has changed.
+   */
+  protected Animator animator;
+
+  /**
    * Sets the values for the distance.
    * 
    * @param from The reference station.
@@ -151,6 +156,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
           StationDistance.this.from = from;
           StationDistance.this.time = time;
           StationDistance.this.changeTime = changeTime;
+          animator.forceNextFrame();
         }
       }
 
@@ -158,6 +164,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
     t.setDaemon(true);
     currentCalculator = t;
     t.start();
+  }
+
+  @Override
+  public void setAnimator(final Animator animator) {
+    this.animator = animator;
   }
 
   /**

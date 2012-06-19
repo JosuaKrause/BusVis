@@ -112,9 +112,6 @@ public class Overview extends JSVGCanvas implements BusVisualization {
   public void selectBusStation(final BusStation station) {
     selectedStation = station;
     repaint();
-    if(station != null) {
-      System.out.println("Closest Station: " + station.getName());
-    }
   }
 
   @Override
