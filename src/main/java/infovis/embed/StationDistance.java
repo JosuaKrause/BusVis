@@ -128,6 +128,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
   private final RoutingManager rm = RoutingManager.newInstance();
 
   /**
+   * The animator to be notified when something has changed.
+   */
+  private Animator animator;
+
+  /**
    * Sets the values for the distance.
    * 
    * @param from The reference station.
@@ -186,6 +191,12 @@ public final class StationDistance implements Weighter, NodeDrawer {
     StationDistance.this.from = from;
     StationDistance.this.time = time;
     StationDistance.this.changeTime = changeTime;
+    animator.forceNextFrame();
+  }
+
+  @Override
+  public void setAnimator(final Animator animator) {
+    this.animator = animator;
   }
 
   /**
@@ -455,6 +466,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
       b = !b;
       g.fill(circ);
     }
+  }
+
+  @Override
+  public boolean inAnimation() {
+    return fade;
   }
 
   /**

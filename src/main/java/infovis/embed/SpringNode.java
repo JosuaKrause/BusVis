@@ -232,7 +232,7 @@ public class SpringNode {
    * Animates the position.
    */
   public void animate() {
-    if(pol == null) return;
+    if(!inAnimation()) return;
     final long millis = System.currentTimeMillis();
     if(millis >= endTime) {
       setPosition(end);
@@ -245,6 +245,15 @@ public class SpringNode {
     final double f = pol.interpolate(t);
     setPosition(start.getX() * (1 - f) + end.getX() * f,
         start.getY() * (1 - f) + end.getY() * f);
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Whether this node is in animation.
+   */
+  public boolean inAnimation() {
+    return pol != null;
   }
 
   /**
