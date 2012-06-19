@@ -20,7 +20,7 @@ public class BusLine {
    * @param name bus line name
    * @param color bus line color
    */
-  public BusLine(final String name, final Color color) {
+  BusLine(final String name, final Color color) {
     if(name == null || color == null) throw new NullPointerException();
     this.name = name;
     this.color = color;

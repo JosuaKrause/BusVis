@@ -56,7 +56,7 @@ public final class BusDataBuilder {
     for(String[] stop; (stop = stops.readNext()) != null;) {
       double abstractX, abstractY;
       if(stop[4].equals("UNKNOWN")) {
-        abstractX = abstractY = Double.MIN_VALUE;
+        abstractX = abstractY = Double.NaN;
       } else {
         abstractX = parseDouble(stop[4]);
         abstractY = parseDouble(stop[5]);
@@ -75,7 +75,7 @@ public final class BusDataBuilder {
     for(final File line : new File(root, "lines").listFiles()) {
       final String name = line.getName().replace('_', '/').replace(".csv", "");
       final Color color = colors.get(name);
-      final BusLine busLine = new BusLine(name, color != null ? color
+      final BusLine busLine = createLine(name, color != null ? color
           : colors.get(name.replaceAll("\\D.*", "")));
 
       final CSVReader lineReader = readerFor(line);
@@ -149,6 +149,17 @@ public final class BusDataBuilder {
         edgeList);
     stations.put(id, bus);
     return bus;
+  }
+
+  /**
+   * Creates a new bus line.
+   * 
+   * @param line The name.
+   * @param color The color.
+   * @return The bus line.
+   */
+  public static BusLine createLine(final String line, final Color color) {
+    return new BusLine(line, color);
   }
 
   /**

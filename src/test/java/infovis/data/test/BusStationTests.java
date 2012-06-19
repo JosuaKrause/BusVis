@@ -25,8 +25,8 @@ public class BusStationTests {
 
   static {
     final BusDataBuilder builder = new BusDataBuilder(null);
-    final BusLine line = new BusLine("1", Color.RED);
-    final BusLine other = new BusLine("2", Color.BLUE);
+    final BusLine line = BusDataBuilder.createLine("1", Color.RED);
+    final BusLine other = BusDataBuilder.createLine("2", Color.BLUE);
 
     final BusStation a = builder.createStation("a", 0, 0, 0, 0, 0);
     final BusStation b = builder.createStation("b", 1, 0, 0, 0, 0);

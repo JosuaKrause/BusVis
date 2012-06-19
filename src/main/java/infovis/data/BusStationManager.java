@@ -21,7 +21,7 @@ public final class BusStationManager {
    * @param stations bus station map
    * @param path path of the CSV data, possibly <code>null</code>
    */
-  public BusStationManager(final Map<Integer, BusStation> stations, final String path) {
+  BusStationManager(final Map<Integer, BusStation> stations, final String path) {
     this.stations = stations;
     this.path = path;
   }

@@ -133,11 +133,11 @@ public final class BusStation {
     int low = 0, high = edges.size() - 1;
     while(low <= high) {
       final int mid = (low + high) >>> 1;
-    final BusEdge midVal = edges.get(mid);
-    if(midVal.getStart().compareTo(start) < 0) {
-      low = mid + 1;
-    } else {
-      high = mid - 1;
+      final BusEdge midVal = edges.get(mid);
+      if(midVal.getStart().compareTo(start) < 0) {
+        low = mid + 1;
+      } else {
+        high = mid - 1;
     }
     }
     return low % edges.size();

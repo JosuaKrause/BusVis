@@ -38,7 +38,7 @@ public class BusEdge implements Comparable<BusEdge> {
    * @param start The departure time.
    * @param end The arrival time.
    */
-  public BusEdge(final BusLine line, final int tourNr, final BusStation from,
+  BusEdge(final BusLine line, final int tourNr, final BusStation from,
       final BusStation to,
       final BusTime start,
       final BusTime end) {
