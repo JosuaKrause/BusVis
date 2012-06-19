@@ -74,6 +74,7 @@ public final class RouteFinder implements RoutingAlgorithm {
   public static Map<BusStation, List<BusEdge>> findRoutesFrom(final BusStation station,
       final BitSet dests, final BusTime start, final int wait, final int maxDuration)
           throws InterruptedException {
+    final Thread ownThread = Thread.currentThread();
     // set of stations yet to be found
     final BitSet notFound = new BitSet();
     if(dests == null) {
@@ -95,7 +96,7 @@ public final class RouteFinder implements RoutingAlgorithm {
     }
 
     for(Route current; !notFound.isEmpty() && (current = queue.poll()) != null;) {
-      checkInterrupt();
+      checkInterrupt(ownThread);
       final BusEdge last = current.last;
       final BusStation dest = last.getTo();
 
@@ -125,10 +126,11 @@ public final class RouteFinder implements RoutingAlgorithm {
   /**
    * Checks the interrupt status of the current thread.
    * 
+   * @param own The own thread.
    * @throws InterruptedException If the interrupt status was set.
    */
-  private static void checkInterrupt() throws InterruptedException {
-    if(Thread.interrupted()) throw new InterruptedException();
+  private static void checkInterrupt(final Thread own) throws InterruptedException {
+    if(own.isInterrupted()) throw new InterruptedException();
   }
 
   /**
@@ -264,23 +266,31 @@ public final class RouteFinder implements RoutingAlgorithm {
       set.set(a.getId());
     }
 
-    int count = 0;
-    final long time = System.currentTimeMillis();
-    for(final BusStation a : man.getStations()) {
-      // System.out.println(a
-      // + ", "
-      // + RouteFinder.findRoutesFrom(a, set, new BusTime(12, 0), 5,
-      // man.getMaxTimeHours() * 60).size());
-      RouteFinder.findRoutesFrom(a, set, new BusTime(12, 0), 5, man.getMaxTimeHours()
-          * BusTime.MINUTES_PER_HOUR);
-      ++count;
+    final int numTests = 5;
+    double avgFullTime = 0;
+    double c = 0;
+    for(int i = 0; i < numTests; ++i) {
+      int count = 0;
+      final long time = System.currentTimeMillis();
+      for(final BusStation a : man.getStations()) {
+        // System.out.println(a
+        // + ", "
+        // + RouteFinder.findRoutesFrom(a, set, new BusTime(12, 0), 5,
+        // man.getMaxTimeHours() * 60).size());
+        RouteFinder.findRoutesFrom(a, set, new BusTime(12, 0), 5, man.getMaxTimeHours()
+            * BusTime.MINUTES_PER_HOUR);
+        ++count;
+      }
+      final double fullTime = System.currentTimeMillis() - time;
+      avgFullTime += fullTime;
+      c = count;
     }
-    final double fullTime = System.currentTimeMillis() - time;
+    final double fullTime = avgFullTime / numTests;
     final PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(
         new File("performance.txt"), true), "UTF-8"));
-    out.println(fullTime / 1000 + "s " + fullTime / count + "ms per line");
+    out.println(fullTime / 1000 + "s " + fullTime / c + "ms per line");
     out.close();
     System.out.println(fullTime / 1000 + "s");
-    System.out.println(fullTime / count + "ms per line");
+    System.out.println(fullTime / c + "ms per line");
   }
 }
