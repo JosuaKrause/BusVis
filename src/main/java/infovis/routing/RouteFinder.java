@@ -76,13 +76,11 @@ public final class RouteFinder implements RoutingAlgorithm {
           throws InterruptedException {
     final Thread ownThread = Thread.currentThread();
     // set of stations yet to be found
-    final BitSet notFound = new BitSet();
+    final BitSet notFound = dests == null ? new BitSet() : (BitSet) dests.clone();
     if(dests == null) {
       for(final BusStation s : station.getManager().getStations()) {
         notFound.set(s.getId());
       }
-    } else {
-      notFound.or(dests);
     }
     notFound.set(station.getId(), false);
 
@@ -169,6 +167,8 @@ public final class RouteFinder implements RoutingAlgorithm {
     final BusEdge last;
     /** Overall travel time in minutes. */
     final int travelTime;
+    /** Stations in this route. */
+    private final BitSet stations;
 
     /**
      * Creates a new route with given waiting time and first edge.
@@ -180,6 +180,9 @@ public final class RouteFinder implements RoutingAlgorithm {
       before = null;
       last = first;
       travelTime = start.minutesTo(first.getStart()) + first.travelMinutes();
+      stations = new BitSet();
+      stations.set(first.getFrom().getId());
+      stations.set(first.getTo().getId());
     }
 
     /**
@@ -192,6 +195,8 @@ public final class RouteFinder implements RoutingAlgorithm {
       this.before = before;
       this.last = last;
       travelTime = before.timePlus(last);
+      stations = (BitSet) before.stations.clone();
+      stations.set(last.getTo().getId());
     }
 
     /**
@@ -201,9 +206,9 @@ public final class RouteFinder implements RoutingAlgorithm {
      * @return new route
      */
     public Route extendedBy(final BusEdge next) {
-      for(Route r = this; r != null; r = r.before) {
-        if(r.last.equals(next)) throw new IllegalArgumentException("loop");
-      }
+      // for(Route r = this; r != null; r = r.before) {
+      // if(r.last.equals(next)) throw new IllegalArgumentException("loop");
+      // }
       return new Route(this, next);
     }
 
@@ -215,12 +220,7 @@ public final class RouteFinder implements RoutingAlgorithm {
      *         otherwise
      */
     public boolean contains(final BusStation s) {
-      if(last.getTo().equals(s)) return true;
-      Route r = this;
-      do {
-        if(r.last.getFrom().equals(s)) return true;
-      } while((r = r.before) != null);
-      return false;
+      return stations.get(s.getId());
     }
 
     /**
