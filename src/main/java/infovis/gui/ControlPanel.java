@@ -5,6 +5,7 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.routing.RoutingAlgorithm;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -77,6 +78,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   private final Map<BusStation, Integer> indexMap = new HashMap<BusStation, Integer>();
 
   /**
+   * The algorithm box.
+   */
+  protected final JComboBox algoBox;
+
+  /**
    * A thin wrapper for the bus station name. Also allows the <code>null</code>
    * bus station, representing no selection.
    * 
@@ -143,6 +149,22 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   public ControlPanel(final Controller ctrl) {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     final Component space = Box.createRigidArea(new Dimension(5, 5));
+    // routing selection
+    final RoutingAlgorithm[] algos = ctrl.getRoutingAlgorithms();
+    algoBox = new JComboBox(algos);
+    algoBox.addActionListener(new ActionListener() {
+
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        final RoutingAlgorithm routing = (RoutingAlgorithm) algoBox.getSelectedItem();
+        if(routing != ctrl.getRoutingAlgorithm()) {
+          ctrl.setRoutingAlgorithm(routing);
+        }
+      }
+
+    });
+    algoBox.setMaximumSize(algoBox.getPreferredSize());
+    addHor(new JLabel("Routing:"), algoBox);
     // station selection
     final BusStationName[] stations = getStations(ctrl);
     for(int i = 0; i < stations.length; ++i) {
@@ -223,7 +245,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     final JPanel hor = new JPanel();
     hor.setLayout(new BoxLayout(hor, BoxLayout.X_AXIS));
     for(final Component c : comps) {
-        hor.add(Box.createRigidArea(new Dimension(5, 5)));
+      hor.add(Box.createRigidArea(new Dimension(5, 5)));
       if(c != null) {
         hor.add(c);
       }
@@ -259,6 +281,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     final int mth = ctrl.getMaxTimeHours();
     tw.setValue(mth);
     twLabel.setText(BusTime.minutesToString(mth * BusTime.MINUTES_PER_HOUR));
+    algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
   }
 
 }
