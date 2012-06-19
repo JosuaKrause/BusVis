@@ -1,10 +1,15 @@
 package infovis.routing;
 
+import infovis.data.BusDataBuilder;
 import infovis.data.BusEdge;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -246,18 +251,36 @@ public final class RouteFinder implements RoutingAlgorithm {
 
   }
 
-  // public static void main(final String[] args) throws Exception {
-  // final BusStationManager man = BusDataBuilder.load("src/main/resources");
-  // final BitSet set = new BitSet();
-  // for(final BusStation a : man.getStations()) {
-  // set.set(a.getId());
-  // }
-  //
-  // for(final BusStation a : man.getStations()) {
-  // System.out.println(a
-  // + ", "
-  // + RouteFinder.findRoutes(a, set, new BusTime(12, 0), 5,
-  // man.getMaxTimeHours() * 60).size());
-  // }
-  // }
+  /**
+   * A little performance test.
+   * 
+   * @param args No-args
+   * @throws Exception No-exceptions
+   */
+  public static void main(final String[] args) throws Exception {
+    final BusStationManager man = BusDataBuilder.load("src/main/resources");
+    final BitSet set = new BitSet();
+    for(final BusStation a : man.getStations()) {
+      set.set(a.getId());
+    }
+
+    int count = 0;
+    final long time = System.currentTimeMillis();
+    for(final BusStation a : man.getStations()) {
+      // System.out.println(a
+      // + ", "
+      // + RouteFinder.findRoutesFrom(a, set, new BusTime(12, 0), 5,
+      // man.getMaxTimeHours() * 60).size());
+      RouteFinder.findRoutesFrom(a, set, new BusTime(12, 0), 5, man.getMaxTimeHours()
+          * BusTime.MINUTES_PER_HOUR);
+      ++count;
+    }
+    final double fullTime = System.currentTimeMillis() - time;
+    final PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(
+        new File("performance.txt"), true), "UTF-8"));
+    out.println(fullTime / 1000 + "s " + fullTime / count + "ms per line");
+    out.close();
+    System.out.println(fullTime / 1000 + "s");
+    System.out.println(fullTime / count + "ms per line");
+  }
 }
