@@ -14,7 +14,7 @@ import java.util.Set;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class BusStation {
+public final class BusStation implements Comparable<BusStation> {
 
   /** The name of the bus station. */
   private final String name;
@@ -133,11 +133,11 @@ public final class BusStation {
     int low = 0, high = edges.size() - 1;
     while(low <= high) {
       final int mid = (low + high) >>> 1;
-      final BusEdge midVal = edges.get(mid);
-      if(midVal.getStart().compareTo(start) < 0) {
-        low = mid + 1;
-      } else {
-        high = mid - 1;
+    final BusEdge midVal = edges.get(mid);
+    if(midVal.getStart().compareTo(start) < 0) {
+      low = mid + 1;
+    } else {
+      high = mid - 1;
     }
     }
     return low % edges.size();
@@ -305,5 +305,10 @@ public final class BusStation {
   @Override
   public String toString() {
     return String.format("%s[%s, %d]", getClass().getSimpleName(), name, id);
+  }
+
+  @Override
+  public int compareTo(final BusStation o) {
+    return id - o.id;
   }
 }

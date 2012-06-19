@@ -1,5 +1,7 @@
 package infovis.data;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -50,8 +52,8 @@ public final class BusStationManager {
    * 
    * @return All registered {@link BusStation}s.
    */
-  public Iterable<BusStation> getStations() {
-    return stations.values();
+  public Collection<BusStation> getStations() {
+    return Collections.unmodifiableCollection(stations.values());
   }
 
   /**
