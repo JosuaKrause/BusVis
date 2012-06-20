@@ -2,7 +2,7 @@ package infovis.overview;
 
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
-import infovis.data.BusData;
+import infovis.data.BusDataBuilder;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
@@ -67,7 +67,7 @@ public class Overview extends JSVGCanvas implements BusVisualization {
     final JFrame frame = new JFrame("SVG Test");
     final BusStationManager mgr;
     try {
-      mgr = BusData.load("src/main/resources/");
+      mgr = BusDataBuilder.load("src/main/resources/");
     } catch(final IOException e) {
       e.printStackTrace();
       return;
