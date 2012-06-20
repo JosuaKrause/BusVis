@@ -17,8 +17,9 @@ public interface NodeDrawer {
    * 
    * @param g The device.
    * @param n The node.
+   * @param hovered If the node is currently hovered.
    */
-  void drawNode(Graphics2D g, SpringNode n);
+  void drawNode(Graphics2D g, SpringNode n, boolean hovered);
 
   /**
    * Draws the edges of the given node. The graphics device must be translated

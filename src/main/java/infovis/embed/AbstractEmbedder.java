@@ -7,8 +7,10 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * An abstract embedding visualization.
@@ -65,9 +67,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
               }
             }
             step();
-            for(final Refreshable r : receivers) {
-              r.refresh();
-            }
+            refreshAll();
           }
         } finally {
           dispose();
@@ -84,6 +84,15 @@ public abstract class AbstractEmbedder extends PainterAdapter {
    * Simulates one step.
    */
   protected abstract void step();
+
+  /**
+   * Refreshes all refreshables.
+   */
+  protected void refreshAll() {
+    for(final Refreshable r : receivers) {
+      r.refresh();
+    }
+  }
 
   /**
    * Adds a refreshable that is refreshed each step.
@@ -107,7 +116,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
     }
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawNode(g, n);
+      drawer.drawNode(g, n, hovered.contains(n));
       g.dispose();
     }
     for(final SpringNode n : drawer.nodes()) {
@@ -117,9 +126,22 @@ public abstract class AbstractEmbedder extends PainterAdapter {
     }
   }
 
+  /**
+   * A list of all currently hovered nodes.
+   */
+  private final Set<SpringNode> hovered = new HashSet<SpringNode>();
+
   @Override
   public void moveMouse(final Point2D cur) {
     drawer.moveMouse(cur);
+    hovered.clear();
+    for(final SpringNode n : drawer.nodes()) {
+      final Shape s = drawer.nodeClickArea(n, true);
+      if(s.contains(cur)) {
+        hovered.add(n);
+      }
+    }
+    refreshAll();
   }
 
   /**

@@ -98,10 +98,10 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void drawNode(final Graphics2D g, final SpringNode n) {
+  public void drawNode(final Graphics2D g, final SpringNode n, final boolean hovered) {
     final double x = n.getX();
     final double y = n.getY();
-    g.setColor(Color.RED);
+    g.setColor(hovered ? Color.RED : Color.BLUE);
     g.fill(new Ellipse2D.Double(x - 2, y - 2, 4, 4));
   }
 

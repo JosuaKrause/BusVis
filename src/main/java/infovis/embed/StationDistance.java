@@ -342,12 +342,13 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   @Override
-  public void drawNode(final Graphics2D g, final SpringNode n) {
+  public void drawNode(final Graphics2D g, final SpringNode n, final boolean hovered) {
     final BusStation station = map.get(n);
     final Route route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
     final Graphics2D g2 = (Graphics2D) g.create();
-    g2.setColor(!station.equals(from) ? Color.WHITE : Color.RED);
+    g2.setColor(!station.equals(from) ?
+        (hovered && from != null ? Color.BLUE : Color.WHITE) : Color.RED);
     final Shape shape = nodeClickArea(n, true);
     g2.fill(shape);
     g2.setStroke(new BasicStroke(.5f));
