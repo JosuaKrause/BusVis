@@ -28,13 +28,16 @@ public class MainWindow extends JFrame {
    */
   private static final long serialVersionUID = 1471398627061096012L;
 
+  /** Controller. */
+  final Controller ctrl;
+
   /**
    * Creates the main window.
    * 
    * @param m The bus station manager.
    */
   public MainWindow(final BusStationManager m) {
-    final Controller ctrl = new Controller(m, this);
+    ctrl = new Controller(m, this);
     final Overview over = new Overview(ctrl, 350, 350);
     final JSplitPane left = new JSplitPane(JSplitPane.VERTICAL_SPLIT, over,
         new ControlPanel(ctrl));
@@ -73,4 +76,9 @@ public class MainWindow extends JFrame {
     });
   }
 
+  @Override
+  public void dispose() {
+    ctrl.quit(true);
+    super.dispose();
+  }
 }
