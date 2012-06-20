@@ -290,7 +290,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       bt.setEnabled(false);
       now.setSelected(true);
       final Calendar cal = Calendar.getInstance();
-      btLabel.setText(BusTime.fromCalendar(cal).pretty(cal.get(Calendar.SECOND) % 2 != 0));
+      btLabel.setText(BusTime.fromCalendar(cal).pretty(isBlinkSecond(cal)));
       return;
     }
     bt.setEnabled(true);

@@ -71,7 +71,6 @@ public final class Controller {
    * exact at the beginning of a minute.
    */
   protected void startTimer() {
-    if(Thread.currentThread().isInterrupted()) return;
     final Timer timer = new Timer(true);
     final Calendar calendar = Calendar.getInstance();
     calendar.set(Calendar.MILLISECOND, 0);
@@ -82,24 +81,16 @@ public final class Controller {
 
       @Override
       public void run() {
-        try {
-          if(isStartTimeNow()) {
-            final Calendar now = Calendar.getInstance();
-            final int min = now.get(Calendar.MINUTE);
-            final int sec = now.get(Calendar.SECOND);
-            overwriteDisplayedTime(BusTime.fromCalendar(now), sec % 2 != 0);
-            if(min != minute) {
-              // we may loose an user update here
-              // but very rare (only if the user clicks _very_ fast)
-              setTime(curStartTime);
-              minute = min;
-            }
+        if(isStartTimeNow()) {
+          final Calendar now = Calendar.getInstance();
+          final int min = now.get(Calendar.MINUTE);
+          overwriteDisplayedTime(BusTime.fromCalendar(now), BusTime.isBlinkSecond(now));
+          if(min != minute) {
+            // we may loose an user update here
+            // but very rare (only if the user clicks _very_ fast)
+            setTime(curStartTime);
+            minute = min;
           }
-        } catch(final Exception e) {
-          // restart on exception
-          // unless the thread was interrupted
-          startTimer();
-          throw new RuntimeException(e);
         }
       }
 

@@ -217,6 +217,17 @@ public final class BusTime implements Comparable<BusTime> {
   }
 
   /**
+   * Whether the given time represents a blink second, ie a second when the
+   * colon is not printed.
+   * 
+   * @param calendar The time.
+   * @return Whether it is a blink second.
+   */
+  public static boolean isBlinkSecond(final Calendar calendar) {
+    return calendar.get(Calendar.SECOND) % 2 != 0;
+  }
+
+  /**
    * Getter.
    * 
    * @return The current time.
