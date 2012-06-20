@@ -81,4 +81,11 @@ public interface Weighter {
    */
   int FAST_ANIMATION_CHANGE = 2;
 
+  /**
+   * Getter.
+   * 
+   * @return Whether this weighter is in animation.
+   */
+  boolean inAnimation();
+
 }

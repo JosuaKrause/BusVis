@@ -1,6 +1,6 @@
 package infovis;
 
-import infovis.data.BusData;
+import infovis.data.BusDataBuilder;
 import infovis.data.BusStationManager;
 import infovis.gui.MainWindow;
 
@@ -32,7 +32,7 @@ public final class Main {
   public static void main(final String[] args) {
     final BusStationManager m;
     try {
-      m = BusData.load(args.length > 0 ? args[0] : "src/main/resources/");
+      m = BusDataBuilder.load(args.length > 0 ? args[0] : "src/main/resources/");
     } catch(final IOException e) {
       e.printStackTrace();
       return;
