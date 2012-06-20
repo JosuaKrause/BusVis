@@ -53,6 +53,9 @@ public final class Controller {
    */
   private int curChangeTime = 1;
 
+  /** Timer for real-time view. */
+  private final Timer timer = new Timer(true);
+
   /**
    * Creates a new controller.
    * 
@@ -71,7 +74,6 @@ public final class Controller {
    * exact at the beginning of a minute.
    */
   protected void startTimer() {
-    final Timer timer = new Timer(true);
     final Calendar calendar = Calendar.getInstance();
     calendar.set(Calendar.MILLISECOND, 0);
     calendar.set(Calendar.SECOND, 0);
@@ -86,7 +88,7 @@ public final class Controller {
           final int min = now.get(Calendar.MINUTE);
           overwriteDisplayedTime(BusTime.fromCalendar(now), BusTime.isBlinkSecond(now));
           if(min != minute) {
-            // we may loose an user update here
+            // we may lose a user update here
             // but very rare (only if the user clicks _very_ fast)
             setTime(curStartTime);
             minute = min;
@@ -181,9 +183,14 @@ public final class Controller {
 
   /**
    * Quits the application.
+   * 
+   * @param disposed if the thread was already disposed
    */
-  public void quit() {
-    frame.dispose();
+  public void quit(final boolean disposed) {
+    if(!disposed) {
+      frame.dispose();
+    }
+    timer.cancel();
   }
 
   /**
