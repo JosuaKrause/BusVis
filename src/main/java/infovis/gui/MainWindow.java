@@ -12,9 +12,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 
 import javax.swing.AbstractAction;
-import javax.swing.BoxLayout;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
@@ -37,12 +35,12 @@ public class MainWindow extends JFrame {
    */
   public MainWindow(final BusStationManager m) {
     final Controller ctrl = new Controller(m, this);
-    final JPanel left = new JPanel();
-    left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-    final Overview over = new Overview(ctrl, 200, 200);
-    left.add(over);
-    left.add(new ControlPanel(ctrl));
-    final BusCanvas mainCanvas = BusCanvas.createBusCanvas(ctrl, 800, 600);
+    final Overview over = new Overview(ctrl, 350, 350);
+    final JSplitPane left = new JSplitPane(JSplitPane.VERTICAL_SPLIT, over,
+        new ControlPanel(ctrl));
+    left.setDividerLocation(350);
+    left.setOneTouchExpandable(true);
+    final BusCanvas mainCanvas = BusCanvas.createBusCanvas(ctrl, 800, 800);
     final JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, mainCanvas);
     add(pane);
     pack();

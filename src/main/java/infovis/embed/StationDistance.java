@@ -164,8 +164,8 @@ public final class StationDistance implements Weighter, NodeDrawer {
       }
 
     };
-    rm.findRoutes(from, null, time, changeTime, ctrl.getMaxTimeHours()
-        * BusTime.MINUTES_PER_HOUR, ctrl.getRoutingAlgorithm(), cb);
+    rm.findRoutes(from, null, time != null ? time : BusTime.now(), changeTime,
+        ctrl.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, ctrl.getRoutingAlgorithm(), cb);
   }
 
   /**
@@ -185,8 +185,8 @@ public final class StationDistance implements Weighter, NodeDrawer {
       fadingEnd = fadingStart + Interpolator.NORMAL;
       fade = true;
     }
-    changes = (StationDistance.this.time != time
-        || StationDistance.this.changeTime != changeTime)
+    changes = ((time != null && StationDistance.this.time != null) &&
+        (StationDistance.this.time != time || StationDistance.this.changeTime != changeTime))
         ? FAST_ANIMATION_CHANGE : NORMAL_CHANGE;
     StationDistance.this.from = from;
     StationDistance.this.time = time;
