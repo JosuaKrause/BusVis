@@ -2,7 +2,7 @@ package infovis.embed;
 
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
-import infovis.data.BusData;
+import infovis.data.BusDataBuilder;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
@@ -38,7 +38,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   public static void main(final String[] args) {
     final BusStationManager m;
     try {
-      m = BusData.load("src/main/resources/");
+      m = BusDataBuilder.load("src/main/resources/");
     } catch(final IOException e) {
       e.printStackTrace();
       return;

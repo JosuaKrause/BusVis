@@ -5,9 +5,11 @@ import infovis.ctrl.Controller;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusStation.Neighbor;
-import infovis.data.BusStation.Route;
 import infovis.data.BusTime;
 import infovis.embed.pol.Interpolator;
+import infovis.routing.RoutingManager;
+import infovis.routing.RoutingManager.CallBack;
+import infovis.routing.RoutingResult;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -17,9 +19,13 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Weights the station network after the distance from one start station.
@@ -39,9 +45,9 @@ public final class StationDistance implements Weighter, NodeDrawer {
   private final Map<BusStation, SpringNode> rev;
 
   /**
-   * The distances from the bus station.
+   * The routes from the bus station.
    */
-  protected volatile Map<BusStation, Route> routes;
+  protected volatile Map<BusStation, RoutingResult> routes;
 
   /**
    * The current reference time.
@@ -66,7 +72,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   /**
    * The controller.
    */
-  private final Controller ctrl;
+  protected final Controller ctrl;
 
   /**
    * Creates a station distance without a reference station.
@@ -75,7 +81,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
    */
   public StationDistance(final Controller ctrl) {
     this.ctrl = ctrl;
-    routes = new HashMap<BusStation, Route>();
+    routes = Collections.EMPTY_MAP;
     map = new HashMap<SpringNode, BusStation>();
     rev = new HashMap<BusStation, SpringNode>();
     for(final BusStation s : ctrl.getStations()) {
@@ -117,6 +123,16 @@ public final class StationDistance implements Weighter, NodeDrawer {
   protected boolean fade;
 
   /**
+   * The routing manager.
+   */
+  private final RoutingManager rm = RoutingManager.newInstance();
+
+  /**
+   * The animator to be notified when something has changed.
+   */
+  private Animator animator;
+
+  /**
    * Sets the values for the distance.
    * 
    * @param from The reference station.
@@ -125,40 +141,62 @@ public final class StationDistance implements Weighter, NodeDrawer {
    */
   public void set(final BusStation from, final BusTime time, final int changeTime) {
     predict = from;
-    final Thread t = new Thread() {
+    if(from == null) {
+      putSettings(Collections.EMPTY_MAP, from, time, changeTime);
+      return;
+    }
+    final CallBack<Collection<RoutingResult>> cb = new CallBack<Collection<RoutingResult>>() {
 
       @Override
-      public void run() {
-        final BusTime t = time == null ? BusTime.now() : time;
-        final Map<BusStation, Route> route = new HashMap<BusStation, Route>();
-        if(from != null) {
-          final Collection<Route> routes = from.routes(t, changeTime);
-          for(final Route r : routes) {
-            route.put(r.getStation(), r);
-          }
+      public void callBack(final Collection<RoutingResult> result) {
+        final Set<BusStation> all = new HashSet<BusStation>(
+            Arrays.asList(ctrl.getAllStations()));
+        final Map<BusStation, RoutingResult> route = new HashMap<BusStation, RoutingResult>();
+        for(final RoutingResult r : result) {
+          final BusStation end = r.getEnd();
+          route.put(end, r);
+          all.remove(end);
         }
-        synchronized(StationDistance.this) {
-          if(currentCalculator != this) return;
-          routes = route;
-          if(from != StationDistance.this.from) {
-            fadeOut = StationDistance.this.from;
-            fadingStart = System.currentTimeMillis();
-            fadingEnd = fadingStart + Interpolator.NORMAL;
-            fade = true;
-          }
-          changes = ((time != null && StationDistance.this.time != null) &&
-              (StationDistance.this.time != time || StationDistance.this.changeTime != changeTime))
-              ? FAST_ANIMATION_CHANGE : NORMAL_CHANGE;
-          StationDistance.this.from = from;
-          StationDistance.this.time = time;
-          StationDistance.this.changeTime = changeTime;
+        for(final BusStation s : all) {
+          route.put(s, new RoutingResult(from, s));
         }
+        putSettings(route, from, time, changeTime);
       }
 
     };
-    t.setDaemon(true);
-    currentCalculator = t;
-    t.start();
+    rm.findRoutes(from, null, time != null ? time : BusTime.now(), changeTime,
+        ctrl.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, ctrl.getRoutingAlgorithm(), cb);
+  }
+
+  /**
+   * Puts the new settings.
+   * 
+   * @param route The routes.
+   * @param from The start station.
+   * @param time The start time.
+   * @param changeTime The change time.
+   */
+  protected synchronized void putSettings(final Map<BusStation, RoutingResult> route,
+      final BusStation from, final BusTime time, final int changeTime) {
+    routes = route;
+    if(from != StationDistance.this.from) {
+      fadeOut = StationDistance.this.from;
+      fadingStart = System.currentTimeMillis();
+      fadingEnd = fadingStart + Interpolator.NORMAL;
+      fade = true;
+    }
+    changes = ((time != null && StationDistance.this.time != null) &&
+        (StationDistance.this.time != time || StationDistance.this.changeTime != changeTime))
+        ? FAST_ANIMATION_CHANGE : NORMAL_CHANGE;
+    StationDistance.this.from = from;
+    StationDistance.this.time = time;
+    StationDistance.this.changeTime = changeTime;
+    animator.forceNextFrame();
+  }
+
+  @Override
+  public void setAnimator(final Animator animator) {
+    this.animator = animator;
   }
 
   /**
@@ -281,11 +319,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation fr = map.get(f);
     if(fr.equals(from)) return 0;
     final BusStation to = map.get(t);
-    if(to.equals(from)) {
-      final Integer d = routes.get(fr).minutes();
-      if(d == null) return 0;
-      return factor * d;
-    }
+    if(to.equals(from)) return factor * routes.get(fr).minutes();
     return -minDist;
   }
 
@@ -312,7 +346,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   @Override
   public void drawEdges(final Graphics2D g, final SpringNode n) {
     final BusStation station = map.get(n);
-    final Route route = routes.get(station);
+    final RoutingResult route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
     //
     // if(from != null) {
@@ -324,7 +358,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     for(final Neighbor edge : station.getNeighbors()) {
       final BusStation neighbor = edge.station;
       final SpringNode node = rev.get(neighbor);
-      final Route otherRoute = routes.get(neighbor);
+      final RoutingResult otherRoute = routes.get(neighbor);
       if(otherRoute != null && otherRoute.isNotReachable()) {
         continue;
       }
@@ -344,7 +378,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   @Override
   public void drawNode(final Graphics2D g, final SpringNode n, final boolean hovered) {
     final BusStation station = map.get(n);
-    final Route route = routes.get(station);
+    final RoutingResult route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
     final Graphics2D g2 = (Graphics2D) g.create();
     g2.setColor(!station.equals(from) ?
@@ -435,6 +469,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
     }
   }
 
+  @Override
+  public boolean inAnimation() {
+    return fade;
+  }
+
   /**
    * The highest drawn circle interval.
    */
@@ -470,7 +509,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation station = map.get(node);
     String dist;
     if(from != null && from != station) {
-      final Route route = routes.get(station);
+      final RoutingResult route = routes.get(station);
       if(!route.isNotReachable()) {
         dist = " (" + BusTime.minutesToString(route.minutes()) + ")";
       } else {

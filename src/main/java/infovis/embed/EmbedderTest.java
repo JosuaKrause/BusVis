@@ -217,4 +217,14 @@ public class EmbedderTest implements NodeDrawer, Weighter {
     return null;
   }
 
+  @Override
+  public boolean inAnimation() {
+    return false;
+  }
+
+  @Override
+  public void setAnimator(final Animator animator) {
+    // no need to remember the animator
+  }
+
 }
