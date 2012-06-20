@@ -27,9 +27,14 @@ public final class BusTime implements Comparable<BusTime> {
   public static final int MINUTES_PER_HOUR = 60;
 
   /**
-   * The number of milliseconds in one minute.
+   * The number of seconds in one minute.
    */
-  public static final long MILLISECONDS_PER_MINUTE = 60 * 1000;
+  public static final long SECONDS_PER_MINUTE = 60;
+
+  /**
+   * The number of milliseconds in one second.
+   */
+  public static final long MILLISECONDS_PER_SECOND = 1000;
 
   /**
    * The hour of the time.
@@ -173,8 +178,18 @@ public final class BusTime implements Comparable<BusTime> {
    * @return A pretty representation.
    */
   public String pretty() {
+    return pretty(false);
+  }
+
+  /**
+   * Getter.
+   * 
+   * @param blink Whether the colon should not be printed
+   * @return A pretty representation.
+   */
+  public String pretty(final boolean blink) {
     final String min = "0" + minute;
-    return hour + ":" + min.substring(min.length() - 2) + "h";
+    return hour + (blink ? " " : ":") + min.substring(min.length() - 2) + "h";
   }
 
   /**
@@ -192,13 +207,22 @@ public final class BusTime implements Comparable<BusTime> {
   }
 
   /**
+   * Calculates the bus time for the given calendar object.
+   * 
+   * @param calendar The time to convert.
+   * @return The converted time.
+   */
+  public static BusTime fromCalendar(final Calendar calendar) {
+    return new BusTime(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
+  }
+
+  /**
    * Getter.
    * 
    * @return The current time.
    */
   public static BusTime now() {
-    final Calendar calendar = Calendar.getInstance();
-    return new BusTime(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
+    return fromCalendar(Calendar.getInstance());
   }
 
 }

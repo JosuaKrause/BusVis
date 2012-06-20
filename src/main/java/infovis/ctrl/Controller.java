@@ -78,13 +78,22 @@ public final class Controller {
     calendar.set(Calendar.SECOND, 0);
     final TimerTask task = new TimerTask() {
 
+      private int minute = calendar.get(Calendar.MINUTE);
+
       @Override
       public void run() {
         try {
           if(isStartTimeNow()) {
-            // we may loose an user update here
-            // but very rare (only if the user clicks _very_ fast)
-            setTime(curStartTime);
+            final Calendar now = Calendar.getInstance();
+            final int min = now.get(Calendar.MINUTE);
+            final int sec = now.get(Calendar.SECOND);
+            overwriteDisplayedTime(BusTime.fromCalendar(now), sec % 2 != 0);
+            if(min != minute) {
+              // we may loose an user update here
+              // but very rare (only if the user clicks _very_ fast)
+              setTime(curStartTime);
+              minute = min;
+            }
           }
         } catch(final Exception e) {
           // restart on exception
@@ -95,7 +104,7 @@ public final class Controller {
       }
 
     };
-    timer.scheduleAtFixedRate(task, calendar.getTime(), BusTime.MILLISECONDS_PER_MINUTE);
+    timer.scheduleAtFixedRate(task, calendar.getTime(), BusTime.MILLISECONDS_PER_SECOND);
   }
 
   /**
@@ -240,6 +249,19 @@ public final class Controller {
       v.setStartTime(start);
     }
     setTitle(null);
+  }
+
+  /**
+   * Overwrites the displayed time with the given value. The time must not
+   * affect the actual start time.
+   * 
+   * @param time The new value.
+   * @param blink Whether the colon should be displayed.
+   */
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    for(final BusVisualization v : vis) {
+      v.overwriteDisplayedTime(time, blink);
+    }
   }
 
   /**

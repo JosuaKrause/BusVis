@@ -211,4 +211,9 @@ public final class BusCanvas extends Canvas implements BusVisualization {
     dist.changeUndefined();
   }
 
+  @Override
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    // no-op
+  }
+
 }

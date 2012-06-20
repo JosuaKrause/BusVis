@@ -129,4 +129,9 @@ public class Overview extends JSVGCanvas implements BusVisualization {
     // no-op
   }
 
+  @Override
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    // no-op
+  }
+
 }

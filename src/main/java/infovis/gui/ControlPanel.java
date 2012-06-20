@@ -11,6 +11,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -288,12 +289,19 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     if(time == null) {
       bt.setEnabled(false);
       now.setSelected(true);
+      final Calendar cal = Calendar.getInstance();
+      btLabel.setText(BusTime.fromCalendar(cal).pretty(cal.get(Calendar.SECOND) % 2 != 0));
       return;
     }
     bt.setEnabled(true);
     now.setSelected(false);
     bt.setValue(MIDNIGHT.minutesTo(time));
     btLabel.setText(time.pretty());
+  }
+
+  @Override
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    btLabel.setText(time.pretty(blink));
   }
 
   @Override
