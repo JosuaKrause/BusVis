@@ -67,7 +67,9 @@ public class MainWindow extends JFrame {
 
           @Override
           public void run() {
-            mainCanvas.reset();
+            if(ctrl.getSelectedStation() == null) {
+              mainCanvas.reset();
+            }
           }
 
         });
