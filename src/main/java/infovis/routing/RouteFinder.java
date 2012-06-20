@@ -214,10 +214,23 @@ public final class RouteFinder implements RoutingAlgorithm {
      * @return new route
      */
     public Route extendedBy(final BusEdge next) {
-      // for(Route r = this; r != null; r = r.before) {
-      // if(r.last.equals(next)) throw new IllegalArgumentException("loop");
-      // }
+      assert loopFree(next); // loop detection
       return new Route(this, next);
+    }
+
+    /**
+     * Tests whether a route with the given next edge would have no loops. This
+     * is a general invariant and the method should only be called for debugging
+     * purposes.
+     * 
+     * @param next The possible next route.
+     * @return Whether the resulting route has no loops.
+     */
+    private boolean loopFree(final BusEdge next) {
+      for(Route r = this; r != null; r = r.before) {
+        if(r.last.equals(next)) return false;
+      }
+      return true;
     }
 
     /**
