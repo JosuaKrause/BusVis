@@ -8,7 +8,10 @@ import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.JFrame;
 
@@ -59,6 +62,40 @@ public final class Controller {
   public Controller(final BusStationManager manager, final JFrame frame) {
     this.manager = manager;
     this.frame = frame;
+    startTimer();
+  }
+
+  /**
+   * Starts a timer that periodically refreshes the time when
+   * {@link #isStartTimeNow()} returns <code>true</code>. The refresh happens
+   * exact at the beginning of a minute.
+   */
+  protected void startTimer() {
+    if(Thread.currentThread().isInterrupted()) return;
+    final Timer timer = new Timer(true);
+    final Calendar calendar = Calendar.getInstance();
+    calendar.set(Calendar.MILLISECOND, 0);
+    calendar.set(Calendar.SECOND, 0);
+    final TimerTask task = new TimerTask() {
+
+      @Override
+      public void run() {
+        try {
+          if(isStartTimeNow()) {
+            // we may loose an user update here
+            // but very rare (only if the user clicks _very_ fast)
+            setTime(curStartTime);
+          }
+        } catch(final Exception e) {
+          // restart on exception
+          // unless the thread was interrupted
+          startTimer();
+          throw new RuntimeException(e);
+        }
+      }
+
+    };
+    timer.scheduleAtFixedRate(task, calendar.getTime(), BusTime.MILLISECONDS_PER_MINUTE);
   }
 
   /**
@@ -199,7 +236,6 @@ public final class Controller {
    */
   public void setTime(final BusTime start) {
     curStartTime = start;
-    refreshNowNoter();
     for(final BusVisualization v : vis) {
       v.setStartTime(start);
     }
@@ -220,57 +256,6 @@ public final class Controller {
    */
   public void setNow() {
     setTime(null);
-  }
-
-  /**
-   * When the start time is selected as now this thread refreshes the plan every
-   * minute.
-   */
-  private final Thread nowNoter = new Thread() {
-
-    {
-      setDaemon(true);
-      start();
-    }
-
-    private BusTime last;
-
-    @Override
-    public void run() {
-      while(!isInterrupted()) {
-        try {
-          synchronized(this) {
-            if(isStartTimeNow()) {
-              wait(1000); // maybe set to 100 to be more responsive
-            } else {
-              wait();
-            }
-          }
-        } catch(final InterruptedException e) {
-          interrupt();
-          continue;
-        }
-        final BusTime cur = BusTime.now();
-        if(isStartTimeNow() && last != cur) {
-          // we may loose an user update here
-          // but very rare (only if the user clicks _very_ fast)
-          setTime(curStartTime);
-          last = cur;
-        }
-      }
-    }
-
-  };
-
-  /**
-   * Signals that the start time may be selected as now.
-   */
-  private void refreshNowNoter() {
-    if(isStartTimeNow()) {
-      synchronized(nowNoter) {
-        nowNoter.notifyAll();
-      }
-    }
   }
 
   /**
