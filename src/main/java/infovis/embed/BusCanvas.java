@@ -167,7 +167,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
       @Override
       public void actionPerformed(final ActionEvent e) {
-        ctrl.quit();
+        ctrl.quit(false);
       }
 
     });
