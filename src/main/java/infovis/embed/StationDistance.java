@@ -11,6 +11,7 @@ import infovis.routing.RoutingManager;
 import infovis.routing.RoutingManager.CallBack;
 import infovis.routing.RoutingResult;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -348,11 +349,6 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation station = map.get(n);
     final RoutingResult route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
-    //
-    // if(from != null) {
-    // routes.get(station).getFrom();
-    // }
-    //
     final double x1 = n.getX();
     final double y1 = n.getY();
     for(final Neighbor edge : station.getNeighbors()) {
@@ -435,36 +431,40 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final SpringNode ref = getReferenceNode();
     if(ref == null && !fade) return;
     Point2D center;
-    Color col;
+    double alpha;
     if(fade) {
       final long time = System.currentTimeMillis();
       final double t = ((double) time - fadingStart) / ((double) fadingEnd - fadingStart);
       final double f = Interpolator.SMOOTH.interpolate(t);
       final SpringNode n = f > 0.5 ? ref : rev.get(fadeOut);
       center = n != null ? n.getPos() : null;
-      final double split = f > 0.5 ? (f - 0.5) * 2 : 1 - f * 2;
-      final int alpha = Math.max(0, Math.min((int) (split * 255), 255));
-      col = new Color(alpha << 24
-          | (Color.LIGHT_GRAY.getRGB() & 0x00ffffff), true);
       if(t >= 1.0) {
+        alpha = 1;
         fadeOut = null;
         fade = false;
+      } else {
+        alpha = f > 0.5 ? (f - 0.5) * 2 : 1 - f * 2;
       }
     } else {
       center = ref.getPos();
-      col = Color.LIGHT_GRAY;
+      alpha = 1;
     }
     if(center == null) return;
     boolean b = true;
+    g.setColor(Color.WHITE);
     for(int i = MAX_INTERVAL; i > 0; --i) {
       final Shape circ = getCircle(i, center);
-      final double d = (MAX_INTERVAL - i + 2.0) / (MAX_INTERVAL + 2);
-      final int oldAlpha = col.getAlpha();
-      final int newAlpha = (int) Math.round(oldAlpha * d);
-      final Color c = new Color(newAlpha << 24 | (col.getRGB() & 0x00ffffff), true);
-      g.setColor(b ? c : Color.WHITE);
+      final Graphics2D g2 = (Graphics2D) g.create();
+      if(b) {
+        final double d = (MAX_INTERVAL - i + 2.0) / (MAX_INTERVAL + 2);
+        final double curAlpha = alpha * d;
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+            (float) curAlpha));
+        g2.setColor(Color.LIGHT_GRAY);
+      }
       b = !b;
-      g.fill(circ);
+      g2.fill(circ);
+      g2.dispose();
     }
   }
 
