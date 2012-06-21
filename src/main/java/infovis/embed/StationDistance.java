@@ -2,6 +2,7 @@ package infovis.embed;
 
 import static infovis.VecUtil.*;
 import infovis.ctrl.Controller;
+import infovis.data.BusEdge;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusStation.Neighbor;
@@ -11,6 +12,7 @@ import infovis.routing.RoutingManager;
 import infovis.routing.RoutingManager.CallBack;
 import infovis.routing.RoutingResult;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -345,18 +347,36 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
   @Override
   public void drawEdges(final Graphics2D g, final SpringNode n) {
+    final Graphics2D g2 = (Graphics2D) g.create();
     final BusStation station = map.get(n);
     final RoutingResult route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
-    //
-    // if(from != null) {
-    // routes.get(station).getFrom();
-    // }
-    //
     final double x1 = n.getX();
     final double y1 = n.getY();
-    for(final Neighbor edge : station.getNeighbors()) {
-      final BusStation neighbor = edge.station;
+
+    // drawing highlighted edges from routes
+    if(from != null && route.getEdges() != null) {
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+      for(final BusEdge edge : route.getEdges()) {
+        final SpringNode start = rev.get(edge.getFrom());
+        final SpringNode end = rev.get(edge.getTo());
+        g2.setColor(Color.BLACK);
+        g2.setStroke(new BasicStroke(10,
+            BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_BEVEL));
+        g2.draw(new Line2D.Double(start.getX(), start.getY(), end.getX(), end.getY()));
+        g2.setColor(edge.getLine().getColor());
+        g2.setStroke(new BasicStroke(8,
+            BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_BEVEL));
+        g2.draw(new Line2D.Double(start.getX(), start.getY(), end.getX(), end.getY()));
+        g2.dispose();
+      }
+    }
+    System.out.println();
+    // drawing edges
+    for(final Neighbor neighbour : station.getNeighbors()) {
+      final BusStation neighbor = neighbour.station;
       final SpringNode node = rev.get(neighbor);
       final RoutingResult otherRoute = routes.get(neighbor);
       if(otherRoute != null && otherRoute.isNotReachable()) {
@@ -365,8 +385,9 @@ public final class StationDistance implements Weighter, NodeDrawer {
       final double x2 = node.getX();
       final double y2 = node.getY();
       int counter = 0;
-      for(final BusLine line : edge.lines) {
-        g.setStroke(new BasicStroke(edge.lines.length - counter, BasicStroke.CAP_ROUND,
+      for(final BusLine line : neighbour.lines) {
+        g.setStroke(new BasicStroke(neighbour.lines.length - counter,
+            BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_BEVEL));
         g.setColor(line.getColor());
         g.draw(new Line2D.Double(x1, y1, x2, y2));
