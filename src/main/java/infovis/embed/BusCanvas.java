@@ -1,13 +1,13 @@
 package infovis.embed;
 
 import infovis.ctrl.BusVisualization;
-import infovis.ctrl.ControlPanel;
 import infovis.ctrl.Controller;
-import infovis.data.BusData;
+import infovis.data.BusDataBuilder;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.gui.Canvas;
+import infovis.gui.ControlPanel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -16,8 +16,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 
 import javax.swing.AbstractAction;
@@ -40,7 +38,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   public static void main(final String[] args) {
     final BusStationManager m;
     try {
-      m = BusData.load("src/main/resources/");
+      m = BusDataBuilder.load("src/main/resources/");
     } catch(final IOException e) {
       e.printStackTrace();
       return;
@@ -98,7 +96,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   /**
    * The distance measure.
    */
-  private final StationDistance dist;
+  protected final StationDistance dist;
 
   /**
    * Whether to use a pring embedder.
@@ -149,6 +147,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
       @Override
       public void actionPerformed(final ActionEvent e) {
         ctrl.selectStation(null);
+        ctrl.focusStation();
       }
 
     });
@@ -168,7 +167,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
       @Override
       public void actionPerformed(final ActionEvent e) {
-        ctrl.quit();
+        ctrl.quit(false);
       }
 
     });
@@ -176,35 +175,15 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
   @Override
   public void reset() {
-    reset(dist.getFrom());
-  }
+    SwingUtilities.invokeLater(new Runnable() {
 
-  /**
-   * Resets the viewport such that the given station is centered or that all
-   * nodes are visible when <code>null</code> is passed as argument.
-   * 
-   * @param station The station or <code>null</code>.
-   */
-  public void reset(final BusStation station) {
-    Rectangle2D bbox = null;
-    if(station != null) {
-      final Point2D pos = dist.getNode(station).getPos();
-      bbox = dist.getCircle(StationDistance.MAX_INTERVAL, pos).getBounds2D();
-    } else {
-      for(final SpringNode n : dist.nodes()) {
-        final Rectangle2D b = dist.nodeClickArea(n).getBounds2D();
-        if(bbox == null) {
-          bbox = b;
-        } else {
-          bbox.add(b);
-        }
+      @SuppressWarnings("synthetic-access")
+      @Override
+      public void run() {
+        BusCanvas.super.reset();
       }
-    }
-    if(bbox == null) {
-      super.reset();
-    } else {
-      reset(bbox);
-    }
+
+    });
   }
 
   @Override
@@ -224,12 +203,17 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
   @Override
   public void focusStation() {
-    reset(dist.getPredict());
+    reset();
   }
 
   @Override
   public void undefinedChange(final Controller ctrl) {
     dist.changeUndefined();
+  }
+
+  @Override
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    // no-op
   }
 
 }

@@ -6,6 +6,7 @@ import infovis.gui.Refreshable;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public abstract class AbstractEmbedder extends PainterAdapter {
+public abstract class AbstractEmbedder extends PainterAdapter implements Animator {
 
   /**
    * The frame rate of the spring embedder.
@@ -30,6 +31,11 @@ public abstract class AbstractEmbedder extends PainterAdapter {
    * A list of refreshables that are refreshed, when a step has occured.
    */
   private final List<Refreshable> receivers;
+
+  /**
+   * The animator thread.
+   */
+  private final Thread animator;
 
   /**
    * Whether this object is already disposed or can still be used.
@@ -49,7 +55,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
   public AbstractEmbedder(final NodeDrawer drawer) {
     this.drawer = drawer;
     final List<Refreshable> receivers = new LinkedList<Refreshable>();
-    final Thread t = new Thread() {
+    animator = new Thread() {
 
       @Override
       public void run() {
@@ -63,9 +69,10 @@ public abstract class AbstractEmbedder extends PainterAdapter {
                 continue;
               }
             }
-            step();
-            for(final Refreshable r : receivers) {
-              r.refresh();
+            if(step()) {
+              for(final Refreshable r : receivers) {
+                r.refresh();
+              }
             }
           }
         } finally {
@@ -74,15 +81,18 @@ public abstract class AbstractEmbedder extends PainterAdapter {
       }
 
     };
-    t.setDaemon(true);
-    t.start();
+    animator.setDaemon(true);
+    animator.start();
     this.receivers = receivers;
+    drawer.setAnimator(this);
   }
 
   /**
    * Simulates one step.
+   * 
+   * @return Whether a redraw is necessary.
    */
-  protected abstract void step();
+  protected abstract boolean step();
 
   /**
    * Adds a refreshable that is refreshed each step.
@@ -107,6 +117,11 @@ public abstract class AbstractEmbedder extends PainterAdapter {
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
       drawer.drawNode(g, n);
+      g.dispose();
+    }
+    for(final SpringNode n : drawer.nodes()) {
+      final Graphics2D g = (Graphics2D) gfx.create();
+      drawer.drawLabel(g, n);
       g.dispose();
     }
   }
@@ -161,7 +176,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
     if(!doesDrag()) return false;
     selected.clear();
     for(final SpringNode n : drawer.nodes()) {
-      final Shape s = drawer.nodeClickArea(n);
+      final Shape s = drawer.nodeClickArea(n, true);
       if(s.contains(p)) {
         selected.add(new SelectedNode(n));
       }
@@ -173,7 +188,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
   public boolean click(final Point2D p) {
     if(doesDrag()) return false;
     for(final SpringNode n : drawer.nodes()) {
-      final Shape s = drawer.nodeClickArea(n);
+      final Shape s = drawer.nodeClickArea(n, true);
       if(s.contains(p)) {
         drawer.selectNode(n);
         return true;
@@ -195,7 +210,7 @@ public abstract class AbstractEmbedder extends PainterAdapter {
   public String getTooltip(final Point2D p) {
     String str = null;
     for(final SpringNode n : drawer.nodes()) {
-      final Shape s = drawer.nodeClickArea(n);
+      final Shape s = drawer.nodeClickArea(n, true);
       if(s.contains(p)) {
         final String text = drawer.getTooltipText(n);
         if(text != null) {
@@ -229,6 +244,14 @@ public abstract class AbstractEmbedder extends PainterAdapter {
   public void dispose() {
     disposed = true;
     receivers.clear();
+    animator.interrupt();
+  }
+
+  @Override
+  public void forceNextFrame() {
+    synchronized(animator) {
+      animator.notifyAll();
+    }
   }
 
   /**
@@ -238,6 +261,11 @@ public abstract class AbstractEmbedder extends PainterAdapter {
    */
   public boolean isDisposed() {
     return disposed;
+  }
+
+  @Override
+  public Rectangle2D getBoundingBox() {
+    return drawer.getBoundingBox();
   }
 
 }

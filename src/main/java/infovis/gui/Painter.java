@@ -2,6 +2,7 @@ package infovis.gui;
 
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Paints and interacts with a {@link Canvas}.
@@ -110,5 +111,13 @@ public interface Painter {
    * @param cur The current position in canvas coordinates.
    */
   void moveMouse(Point2D cur);
+
+  /**
+   * Calculates the bounding box of the canvas. This method may return
+   * <code>null</code> to indicate that the bounding box is irrelevant.
+   * 
+   * @return The bounding box.
+   */
+  Rectangle2D getBoundingBox();
 
 }

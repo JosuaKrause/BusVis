@@ -20,7 +20,8 @@ public interface BusVisualization {
   /**
    * Sets the routing start time.
    * 
-   * @param time The routing time.
+   * @param time The routing time or <code>null</code> if the time should be
+   *          now.
    */
   void setStartTime(BusTime time);
 
@@ -42,5 +43,14 @@ public interface BusVisualization {
    * @param ctrl The controller to identify the changes.
    */
   void undefinedChange(Controller ctrl);
+
+  /**
+   * Overwrites the displayed time with the given value. The time must not
+   * affect the actual start time.
+   * 
+   * @param time The new value.
+   * @param blink Whether the colon should be displayed.
+   */
+  void overwriteDisplayedTime(BusTime time, boolean blink);
 
 }

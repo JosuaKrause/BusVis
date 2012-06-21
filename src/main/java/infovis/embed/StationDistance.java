@@ -2,13 +2,17 @@ package infovis.embed;
 
 import static infovis.VecUtil.*;
 import infovis.ctrl.Controller;
+import infovis.data.BusEdge;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusStation.Neighbor;
-import infovis.data.BusStation.Route;
 import infovis.data.BusTime;
 import infovis.embed.pol.Interpolator;
+import infovis.routing.RoutingManager;
+import infovis.routing.RoutingManager.CallBack;
+import infovis.routing.RoutingResult;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -16,9 +20,14 @@ import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Weights the station network after the distance from one start station.
@@ -38,9 +47,9 @@ public final class StationDistance implements Weighter, NodeDrawer {
   private final Map<BusStation, SpringNode> rev;
 
   /**
-   * The distances from the bus station.
+   * The routes from the bus station.
    */
-  protected volatile Map<BusStation, Route> routes;
+  protected volatile Map<BusStation, RoutingResult> routes;
 
   /**
    * The current reference time.
@@ -65,7 +74,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   /**
    * The controller.
    */
-  private final Controller ctrl;
+  protected final Controller ctrl;
 
   /**
    * Creates a station distance without a reference station.
@@ -74,7 +83,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
    */
   public StationDistance(final Controller ctrl) {
     this.ctrl = ctrl;
-    routes = new HashMap<BusStation, Route>();
+    routes = Collections.EMPTY_MAP;
     map = new HashMap<SpringNode, BusStation>();
     rev = new HashMap<BusStation, SpringNode>();
     for(final BusStation s : ctrl.getStations()) {
@@ -116,6 +125,16 @@ public final class StationDistance implements Weighter, NodeDrawer {
   protected boolean fade;
 
   /**
+   * The routing manager.
+   */
+  private final RoutingManager rm = RoutingManager.newInstance();
+
+  /**
+   * The animator to be notified when something has changed.
+   */
+  private Animator animator;
+
+  /**
    * Sets the values for the distance.
    * 
    * @param from The reference station.
@@ -124,48 +143,73 @@ public final class StationDistance implements Weighter, NodeDrawer {
    */
   public void set(final BusStation from, final BusTime time, final int changeTime) {
     predict = from;
-    final Thread t = new Thread() {
+    if(from == null) {
+      putSettings(Collections.EMPTY_MAP, from, time, changeTime);
+      return;
+    }
+    final CallBack<Collection<RoutingResult>> cb = new CallBack<Collection<RoutingResult>>() {
 
       @Override
-      public void run() {
-        final Map<BusStation, Route> route = new HashMap<BusStation, Route>();
-        if(from != null) {
-          final Collection<Route> routes = from.routes(time, changeTime);
-          for(final Route r : routes) {
-            route.put(r.getStation(), r);
-          }
+      public void callBack(final Collection<RoutingResult> result) {
+        final Set<BusStation> all = new HashSet<BusStation>(
+            Arrays.asList(ctrl.getAllStations()));
+        final Map<BusStation, RoutingResult> route = new HashMap<BusStation, RoutingResult>();
+        for(final RoutingResult r : result) {
+          final BusStation end = r.getEnd();
+          route.put(end, r);
+          all.remove(end);
         }
-        synchronized(StationDistance.this) {
-          if(currentCalculator != this) return;
-          routes = route;
-          if(from != StationDistance.this.from) {
-            fadeOut = StationDistance.this.from;
-            fadingStart = System.currentTimeMillis();
-            fadingEnd = fadingStart + Interpolator.DURATION;
-            fade = true;
-          }
-          StationDistance.this.from = from;
-          StationDistance.this.time = time;
-          StationDistance.this.changeTime = changeTime;
-          changed = true;
+        for(final BusStation s : all) {
+          route.put(s, new RoutingResult(from, s));
         }
+        putSettings(route, from, time, changeTime);
       }
 
     };
-    t.setDaemon(true);
-    currentCalculator = t;
-    t.start();
+    rm.findRoutes(from, null, time != null ? time : BusTime.now(), changeTime,
+        ctrl.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, ctrl.getRoutingAlgorithm(), cb);
+  }
+
+  /**
+   * Puts the new settings.
+   * 
+   * @param route The routes.
+   * @param from The start station.
+   * @param time The start time.
+   * @param changeTime The change time.
+   */
+  protected synchronized void putSettings(final Map<BusStation, RoutingResult> route,
+      final BusStation from, final BusTime time, final int changeTime) {
+    routes = route;
+    if(from != StationDistance.this.from) {
+      fadeOut = StationDistance.this.from;
+      fadingStart = System.currentTimeMillis();
+      fadingEnd = fadingStart + Interpolator.NORMAL;
+      fade = true;
+    }
+    changes = ((time != null && StationDistance.this.time != null) &&
+        (StationDistance.this.time != time || StationDistance.this.changeTime != changeTime))
+        ? FAST_ANIMATION_CHANGE : NORMAL_CHANGE;
+    StationDistance.this.from = from;
+    StationDistance.this.time = time;
+    StationDistance.this.changeTime = changeTime;
+    animator.forceNextFrame();
+  }
+
+  @Override
+  public void setAnimator(final Animator animator) {
+    this.animator = animator;
   }
 
   /**
    * Whether the weights have changed.
    */
-  protected volatile boolean changed;
+  protected volatile int changes;
 
   @Override
-  public boolean hasChanged() {
-    final boolean res = changed;
-    changed = false;
+  public int changes() {
+    final int res = changes;
+    changes = NO_CHANGE;
     return res;
   }
 
@@ -277,11 +321,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation fr = map.get(f);
     if(fr.equals(from)) return 0;
     final BusStation to = map.get(t);
-    if(to.equals(from)) {
-      final Integer d = routes.get(fr).minutes();
-      if(d == null) return 0;
-      return factor * d;
-    }
+    if(to.equals(from)) return factor * routes.get(fr).minutes();
     return -minDist;
   }
 
@@ -307,28 +347,47 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
   @Override
   public void drawEdges(final Graphics2D g, final SpringNode n) {
+    final Graphics2D g2 = (Graphics2D) g.create();
     final BusStation station = map.get(n);
-    final Route route = routes.get(station);
+    final RoutingResult route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
-    //
-    // if(from != null) {
-    // routes.get(station).getFrom();
-    // }
-    //
     final double x1 = n.getX();
     final double y1 = n.getY();
-    for(final Neighbor edge : station.getNeighbors()) {
-      final BusStation neighbor = edge.station;
+
+    // drawing highlighted edges from routes
+    if(from != null && route.getEdges() != null) {
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+      for(final BusEdge edge : route.getEdges()) {
+        final SpringNode start = rev.get(edge.getFrom());
+        final SpringNode end = rev.get(edge.getTo());
+        g2.setColor(Color.BLACK);
+        g2.setStroke(new BasicStroke(10,
+            BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_BEVEL));
+        g2.draw(new Line2D.Double(start.getX(), start.getY(), end.getX(), end.getY()));
+        g2.setColor(edge.getLine().getColor());
+        g2.setStroke(new BasicStroke(8,
+            BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_BEVEL));
+        g2.draw(new Line2D.Double(start.getX(), start.getY(), end.getX(), end.getY()));
+        g2.dispose();
+      }
+    }
+    System.out.println();
+    // drawing edges
+    for(final Neighbor neighbour : station.getNeighbors()) {
+      final BusStation neighbor = neighbour.station;
       final SpringNode node = rev.get(neighbor);
-      final Route otherRoute = routes.get(neighbor);
+      final RoutingResult otherRoute = routes.get(neighbor);
       if(otherRoute != null && otherRoute.isNotReachable()) {
         continue;
       }
       final double x2 = node.getX();
       final double y2 = node.getY();
       int counter = 0;
-      for(final BusLine line : edge.lines) {
-        g.setStroke(new BasicStroke(edge.lines.length - counter, BasicStroke.CAP_ROUND,
+      for(final BusLine line : neighbour.lines) {
+        g.setStroke(new BasicStroke(neighbour.lines.length - counter,
+            BasicStroke.CAP_ROUND,
             BasicStroke.JOIN_BEVEL));
         g.setColor(line.getColor());
         g.draw(new Line2D.Double(x1, y1, x2, y2));
@@ -340,18 +399,23 @@ public final class StationDistance implements Weighter, NodeDrawer {
   @Override
   public void drawNode(final Graphics2D g, final SpringNode n) {
     final BusStation station = map.get(n);
-    final Route route = routes.get(station);
+    final RoutingResult route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
-    final double x = n.getX();
-    final double y = n.getY();
     final Graphics2D g2 = (Graphics2D) g.create();
     g2.setColor(!station.equals(from) ? Color.WHITE : Color.RED);
-    final Shape shape = nodeClickArea(n);
+    final Shape shape = nodeClickArea(n, true);
     g2.fill(shape);
     g2.setStroke(new BasicStroke(.5f));
     g2.setColor(Color.BLACK);
     g2.draw(shape);
     g2.dispose();
+  }
+
+  @Override
+  public void drawLabel(final Graphics2D g, final SpringNode n) {
+    final BusStation station = map.get(n);
+    final double x = n.getX();
+    final double y = n.getY();
     if(station.getNeighbors().length == 2) return;
     final Graphics2D gfx = (Graphics2D) g.create();
     gfx.setColor(Color.BLACK);
@@ -379,10 +443,12 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   @Override
-  public Shape nodeClickArea(final SpringNode n) {
+  public Shape nodeClickArea(final SpringNode n, final boolean real) {
     final BusStation station = map.get(n);
     final double r = Math.max(2, station.getMaxDegree() / 2);
-    return new Ellipse2D.Double(n.getX() - r, n.getY() - r, r * 2, r * 2);
+    final double x = real ? n.getX() : n.getPredictX();
+    final double y = real ? n.getY() : n.getPredictY();
+    return new Ellipse2D.Double(x - r, y - r, r * 2, r * 2);
   }
 
   @Override
@@ -394,7 +460,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     if(fade) {
       final long time = System.currentTimeMillis();
       final double t = ((double) time - fadingStart) / ((double) fadingEnd - fadingStart);
-      final double f = Interpolator.INTERPOLATOR.interpolate(t);
+      final double f = Interpolator.SMOOTH.interpolate(t);
       final SpringNode n = f > 0.5 ? ref : rev.get(fadeOut);
       center = n != null ? n.getPos() : null;
       final double split = f > 0.5 ? (f - 0.5) * 2 : 1 - f * 2;
@@ -421,6 +487,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
       b = !b;
       g.fill(circ);
     }
+  }
+
+  @Override
+  public boolean inAnimation() {
+    return fade;
   }
 
   /**
@@ -458,7 +529,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation station = map.get(node);
     String dist;
     if(from != null && from != station) {
-      final Route route = routes.get(station);
+      final RoutingResult route = routes.get(station);
       if(!route.isNotReachable()) {
         dist = " (" + BusTime.minutesToString(route.minutes()) + ")";
       } else {
@@ -483,20 +554,31 @@ public final class StationDistance implements Weighter, NodeDrawer {
   /**
    * Getter.
    * 
-   * @return The predicted next bus station.
-   */
-  public BusStation getPredict() {
-    return predict;
-  }
-
-  /**
-   * Getter.
-   * 
    * @param station The station.
    * @return The corresponding node.
    */
   public SpringNode getNode(final BusStation station) {
     return station == null ? null : rev.get(station);
+  }
+
+  @Override
+  public Rectangle2D getBoundingBox() {
+    Rectangle2D bbox = null;
+    final BusStation s = predict;
+    if(s != null) {
+      final Point2D pos = getNode(s).getPos();
+      bbox = getCircle(StationDistance.MAX_INTERVAL, pos).getBounds2D();
+    } else {
+      for(final SpringNode n : nodes()) {
+        final Rectangle2D b = nodeClickArea(n, false).getBounds2D();
+        if(bbox == null) {
+          bbox = b;
+        } else {
+          bbox.add(b);
+        }
+      }
+    }
+    return bbox;
   }
 
 }

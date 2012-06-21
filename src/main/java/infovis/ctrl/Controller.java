@@ -3,9 +3,15 @@ package infovis.ctrl;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.routing.FastRouteFinder;
+import infovis.routing.RouteFinder;
+import infovis.routing.RoutingAlgorithm;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.JFrame;
 
@@ -15,7 +21,7 @@ import javax.swing.JFrame;
  * @author Joschi <josua.krause@googlemail.com>
  *
  */
-public class Controller {
+public final class Controller {
 
   /**
    * The list of active visualizations.
@@ -40,12 +46,15 @@ public class Controller {
   /**
    * The current start time.
    */
-  private BusTime curStartTime = new BusTime(12, 0);
+  protected volatile BusTime curStartTime = BusTime.now();
 
   /**
    * The current change time.
    */
   private int curChangeTime = 1;
+
+  /** Timer for real-time view. */
+  private final Timer timer = new Timer(true);
 
   /**
    * Creates a new controller.
@@ -56,6 +65,48 @@ public class Controller {
   public Controller(final BusStationManager manager, final JFrame frame) {
     this.manager = manager;
     this.frame = frame;
+    startTimer();
+  }
+
+  /**
+   * Starts a timer that periodically refreshes the time when
+   * {@link #isStartTimeNow()} returns <code>true</code>. The refresh happens
+   * exact at the beginning of a minute.
+   */
+  protected void startTimer() {
+    final Calendar calendar = Calendar.getInstance();
+    calendar.set(Calendar.MILLISECOND, 0);
+    calendar.set(Calendar.SECOND, 0);
+    final TimerTask task = new TimerTask() {
+
+      private int minute = calendar.get(Calendar.MINUTE);
+
+      @Override
+      public void run() {
+        if(isStartTimeNow()) {
+          final Calendar now = Calendar.getInstance();
+          final int min = now.get(Calendar.MINUTE);
+          overwriteDisplayedTime(BusTime.fromCalendar(now), BusTime.isBlinkSecond(now));
+          if(min != minute) {
+            // we may lose a user update here
+            // but very rare (only if the user clicks _very_ fast)
+            setTime(curStartTime);
+            minute = min;
+          }
+        }
+      }
+
+    };
+    timer.scheduleAtFixedRate(task, calendar.getTime(), BusTime.MILLISECONDS_PER_SECOND);
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The resource path.
+   */
+  public String getResourcePath() {
+    return manager.getPath();
   }
 
   /**
@@ -68,8 +119,12 @@ public class Controller {
     if(curSelection != null) {
       sb.append(" - ");
       sb.append(curSelection.getName());
-      sb.append(" at ");
-      sb.append(curStartTime.pretty());
+      if(isStartTimeNow()) {
+        sb.append(" now");
+      } else {
+        sb.append(" at ");
+        sb.append(curStartTime.pretty());
+      }
       sb.append(" with ");
       sb.append(BusTime.minutesToString(curChangeTime));
       sb.append(" change");
@@ -83,10 +138,59 @@ public class Controller {
   }
 
   /**
-   * Quits the application.
+   * All routing algorithms.
    */
-  public void quit() {
-    frame.dispose();
+  private static final RoutingAlgorithm[] ALGOS = new RoutingAlgorithm[] {
+    new RouteFinder(),
+
+    new FastRouteFinder(),
+  };
+
+  /**
+   * Getter.
+   * 
+   * @return Returns all routing algorithms.
+   */
+  public static RoutingAlgorithm[] getRoutingAlgorithms() {
+    return ALGOS;
+  }
+
+  /**
+   * The currently selected routing algorithm.
+   */
+  private RoutingAlgorithm algo = ALGOS[0];
+
+  /**
+   * Setter.
+   * 
+   * @param algo Sets the current routing algorithm.
+   */
+  public void setRoutingAlgorithm(final RoutingAlgorithm algo) {
+    this.algo = algo;
+    for(final BusVisualization v : vis) {
+      v.undefinedChange(this);
+    }
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The current routing algorithm.
+   */
+  public RoutingAlgorithm getRoutingAlgorithm() {
+    return algo;
+  }
+
+  /**
+   * Quits the application.
+   * 
+   * @param disposed if the thread was already disposed
+   */
+  public void quit(final boolean disposed) {
+    if(!disposed) {
+      frame.dispose();
+    }
+    timer.cancel();
   }
 
   /**
@@ -146,6 +250,35 @@ public class Controller {
   }
 
   /**
+   * Overwrites the displayed time with the given value. The time must not
+   * affect the actual start time.
+   * 
+   * @param time The new value.
+   * @param blink Whether the colon should be displayed.
+   */
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    for(final BusVisualization v : vis) {
+      v.overwriteDisplayedTime(time, blink);
+    }
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Whether now is selected as start time.
+   */
+  public boolean isStartTimeNow() {
+    return getTime() == null;
+  }
+
+  /**
+   * Selects the start time as now.
+   */
+  public void setNow() {
+    setTime(null);
+  }
+
+  /**
    * Getter.
    * 
    * @return The current starting time.
@@ -182,6 +315,8 @@ public class Controller {
    * @param v The visualization.
    */
   public void addBusVisualization(final BusVisualization v) {
+    if(v == null) throw new NullPointerException("v");
+    if(vis.contains(v)) throw new IllegalStateException("visualization already added");
     vis.add(v);
     v.setChangeTime(curChangeTime);
     v.setStartTime(curStartTime);

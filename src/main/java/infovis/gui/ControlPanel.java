@@ -1,23 +1,25 @@
-package infovis.ctrl;
+package infovis.gui;
 
 import static infovis.data.BusTime.*;
+import infovis.ctrl.BusVisualization;
+import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -37,11 +39,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   private static final long serialVersionUID = 1644268841480928696L;
 
   /**
-   * The constraint during construction.
-   */
-  private GridBagConstraints constraint;
-
-  /**
    * The station box.
    */
   protected final JComboBox box;
@@ -55,6 +52,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * The bus time label.
    */
   private final JLabel btLabel;
+
+  /**
+   * The check box to select now as start time.
+   */
+  protected final JCheckBox now;
 
   /**
    * The change time slider.
@@ -81,10 +83,16 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    */
   private final Map<BusStation, Integer> indexMap = new HashMap<BusStation, Integer>();
 
+  // /**
+  // * The algorithm box.
+  // */
+  // protected final JComboBox algoBox;
+
   /**
    * A thin wrapper for the bus station name. Also allows the <code>null</code>
-   * bus station, representing no selection. Joschi
-   * <josua.krause@googlemail.com>
+   * bus station, representing no selection.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
    */
   private static final class BusStationName {
 
@@ -145,10 +153,25 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * @param ctrl The corresponding controller.
    */
   public ControlPanel(final Controller ctrl) {
-    setLayout(new GridBagLayout());
-    constraint = new GridBagConstraints();
-    constraint.gridx = 0;
-    constraint.fill = GridBagConstraints.BOTH;
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    final Component space = Box.createRigidArea(new Dimension(5, 5));
+    // routing selection
+    // final RoutingAlgorithm[] algos = ctrl.getRoutingAlgorithms();
+    // algoBox = new JComboBox(algos);
+    // algoBox.addActionListener(new ActionListener() {
+    //
+    // @Override
+    // public void actionPerformed(final ActionEvent e) {
+    // final RoutingAlgorithm routing = (RoutingAlgorithm)
+    // algoBox.getSelectedItem();
+    // if(routing != ctrl.getRoutingAlgorithm()) {
+    // ctrl.setRoutingAlgorithm(routing);
+    // }
+    // }
+    //
+    // });
+    // algoBox.setMaximumSize(algoBox.getPreferredSize());
+    // addHor(new JLabel("Routing:"), algoBox);
     // station selection
     final BusStationName[] stations = getStations(ctrl);
     for(int i = 0; i < stations.length; ++i) {
@@ -167,6 +190,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       }
 
     });
+    box.setMaximumSize(box.getPreferredSize());
     addHor(new JLabel("Stations:"), box);
     // start time
     bt = new JSlider(0, MIDNIGHT.minutesTo(MIDNIGHT.later(-1)));
@@ -183,7 +207,25 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     });
     btLabel = new JLabel();
-    addHor(new JLabel("Start Time:"), bt, btLabel);
+    now = new JCheckBox("now");
+    now.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(final ChangeEvent e) {
+        final boolean b = ctrl.isStartTimeNow();
+        if(now.isSelected()) {
+          if(!b) {
+            ctrl.setNow();
+          }
+        } else {
+          if(b) {
+            ctrl.setTime(MIDNIGHT.later(bt.getValue()));
+          }
+        }
+      }
+
+    });
+    addHor(new JLabel("Start Time:"), bt, btLabel, now, space);
     // change time
     ct = new JSlider(-10, 60);
     ct.addChangeListener(new ChangeListener() {
@@ -198,7 +240,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     });
     ctLabel = new JLabel();
-    addHor(new JLabel("Change Time:"), ct, ctLabel);
+    addHor(new JLabel("Change Time:"), ct, ctLabel, space);
     // time window
     tw = new JSlider(0, 24);
     tw.addChangeListener(new ChangeListener() {
@@ -213,9 +255,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     });
     twLabel = new JLabel();
-    addHor(new JLabel("Max Wait:"), tw, twLabel);
+    addHor(new JLabel("Max Wait:"), tw, twLabel, space);
     // end of layout
-    constraint = null;
+    add(Box.createVerticalGlue());
     ctrl.addBusVisualization(this);
   }
 
@@ -224,23 +266,17 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * 
    * @param comps The components to add.
    */
-  private void addHor(final JComponent... comps) {
-    if(constraint == null) throw new IllegalStateException(
-        "layouting already done");
+  private void addHor(final Component... comps) {
     final JPanel hor = new JPanel();
     hor.setLayout(new BoxLayout(hor, BoxLayout.X_AXIS));
-    boolean first = true;
-    for(final JComponent c : comps) {
-      if(first) {
-        first = false;
-      } else {
-        hor.add(Box.createRigidArea(new Dimension(5, 5)));
-      }
+    for(final Component c : comps) {
+      hor.add(Box.createRigidArea(new Dimension(5, 5)));
       if(c != null) {
         hor.add(c);
       }
     }
-    add(hor, constraint);
+    hor.setAlignmentX(Component.LEFT_ALIGNMENT);
+    add(hor);
   }
 
   @Override
@@ -250,8 +286,22 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   @Override
   public void setStartTime(final BusTime time) {
+    if(time == null) {
+      bt.setEnabled(false);
+      now.setSelected(true);
+      final Calendar cal = Calendar.getInstance();
+      btLabel.setText(BusTime.fromCalendar(cal).pretty(isBlinkSecond(cal)));
+      return;
+    }
+    bt.setEnabled(true);
+    now.setSelected(false);
     bt.setValue(MIDNIGHT.minutesTo(time));
     btLabel.setText(time.pretty());
+  }
+
+  @Override
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    btLabel.setText(time.pretty(blink));
   }
 
   @Override
@@ -270,6 +320,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     final int mth = ctrl.getMaxTimeHours();
     tw.setValue(mth);
     twLabel.setText(BusTime.minutesToString(mth * BusTime.MINUTES_PER_HOUR));
+    // algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
   }
 
 }

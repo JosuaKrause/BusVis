@@ -1,6 +1,7 @@
 package infovis.data;
 
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -10,10 +11,31 @@ import java.util.Map;
  */
 public final class BusStationManager {
 
+  /** The backing map for bus station ids. */
+  private final Map<Integer, BusStation> stations;
+
+  /** The resource path. */
+  private final String path;
+
   /**
-   * The backing map for bus station ids.
+   * Constructor taking the map of bus stations.
+   * 
+   * @param stations bus station map
+   * @param path path of the CSV data, possibly <code>null</code>
    */
-  private final Map<Integer, BusStation> stations = new HashMap<Integer, BusStation>();
+  BusStationManager(final Map<Integer, BusStation> stations, final String path) {
+    this.stations = stations;
+    this.path = path;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The resource path.
+   */
+  public String getPath() {
+    return path;
+  }
 
   /**
    * Getter.
@@ -30,29 +52,8 @@ public final class BusStationManager {
    * 
    * @return All registered {@link BusStation}s.
    */
-  public Iterable<BusStation> getStations() {
-    return stations.values();
-  }
-
-  /**
-   * Creates a new bus station.
-   * 
-   * @param name The name.
-   * @param id The id. If the id is already used an
-   *          {@link IllegalArgumentException} is thrown.
-   * @param x The x position.
-   * @param y The y position.
-   * @param abstractX The abstract x position.
-   * @param abstractY The abstract y position.
-   * @return The newly created bus station.
-   */
-  public BusStation createStation(final String name, final int id, final double x,
-      final double y, final double abstractX, final double abstractY) {
-    if(stations.containsKey(id)) throw new IllegalArgumentException("id: " + id
-        + " already in use");
-    final BusStation bus = new BusStation(this, name, id, x, y, abstractX, abstractY);
-    stations.put(id, bus);
-    return bus;
+  public Collection<BusStation> getStations() {
+    return Collections.unmodifiableCollection(stations.values());
   }
 
   /**

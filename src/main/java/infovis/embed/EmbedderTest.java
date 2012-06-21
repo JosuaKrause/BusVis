@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -105,6 +106,11 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
+  public void drawLabel(final Graphics2D g, final SpringNode n) {
+    // no label
+  }
+
+  @Override
   public void drawEdges(final Graphics2D g, final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
@@ -170,9 +176,9 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public Shape nodeClickArea(final SpringNode n) {
-    final double x = n.getX();
-    final double y = n.getY();
+  public Shape nodeClickArea(final SpringNode n, final boolean real) {
+    final double x = real ? n.getX() : n.getPredictX();
+    final double y = real ? n.getY() : n.getPredictY();
     return new Ellipse2D.Double(x - 2, y - 2, 4, 4);
   }
 
@@ -202,8 +208,23 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public boolean hasChanged() {
+  public int changes() {
+    return Weighter.NO_CHANGE;
+  }
+
+  @Override
+  public Rectangle2D getBoundingBox() {
+    return null;
+  }
+
+  @Override
+  public boolean inAnimation() {
     return false;
+  }
+
+  @Override
+  public void setAnimator(final Animator animator) {
+    // no need to remember the animator
   }
 
 }
