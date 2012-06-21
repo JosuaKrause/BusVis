@@ -47,7 +47,7 @@ public class Overview extends JSVGCanvas implements BusVisualization {
    * @param height The height.
    */
   public Overview(final Controller ctrl, final int width, final int height) {
-    setURI(new File(ctrl.getResourcePath() + "abstractKN.svg").toURI().toString());
+    setURI(new File(ctrl.getResourcePath() + "abstract.svg").toURI().toString());
     setPreferredSize(new Dimension(width, height));
     setDisableInteractions(true);
     selectableText = false;
