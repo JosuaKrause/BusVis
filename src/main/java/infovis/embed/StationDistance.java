@@ -362,8 +362,8 @@ public final class StationDistance implements Weighter, NodeDrawer {
       final double y2 = node.getY();
       int counter = 0;
       for(final BusLine line : edge.lines) {
-        g.setStroke(new BasicStroke(edge.lines.length - counter, BasicStroke.CAP_ROUND,
-            BasicStroke.JOIN_BEVEL));
+        g.setStroke(new BasicStroke(edge.lines.length - counter,
+            BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
         g.setColor(line.getColor());
         g.draw(new Line2D.Double(x1, y1, x2, y2));
         ++counter;

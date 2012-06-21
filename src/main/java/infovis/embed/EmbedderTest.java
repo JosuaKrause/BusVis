@@ -2,6 +2,7 @@ package infovis.embed;
 
 import infovis.gui.Canvas;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
@@ -114,11 +115,12 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   public void drawEdges(final Graphics2D g, final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
+    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+    g.setColor(Color.BLACK);
     for(final SpringNode o : nodes) {
       if(!areNeighbors(n, o)) {
         continue;
       }
-      g.setColor(new Color(0x10000000, true));
       final double ox = o.getX();
       final double oy = o.getY();
       g.draw(new Line2D.Double(x, y, ox, oy));
