@@ -92,6 +92,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
       map.put(node, s);
       rev.put(s, node);
     }
+    // TODO put edge matrix here
   }
 
   /**
@@ -181,6 +182,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   protected synchronized void putSettings(final Map<BusStation, RoutingResult> route,
       final BusStation from, final BusTime time, final int changeTime) {
     routes = route;
+    // TODO refresh highlighted lines in edge matrix
     if(from != StationDistance.this.from) {
       fadeOut = StationDistance.this.from;
       fadingStart = System.currentTimeMillis();
