@@ -4,8 +4,9 @@ import static infovis.VecUtil.*;
 import infovis.ctrl.Controller;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
-import infovis.data.BusStation.Neighbor;
 import infovis.data.BusTime;
+import infovis.data.EdgeMatrix;
+import infovis.data.EdgeMatrix.UndirectedEdge;
 import infovis.embed.pol.Interpolator;
 import infovis.routing.RoutingManager;
 import infovis.routing.RoutingManager.CallBack;
@@ -75,6 +76,8 @@ public final class StationDistance implements Weighter, NodeDrawer {
    */
   protected final Controller ctrl;
 
+  private final EdgeMatrix matrix;
+
   /**
    * Creates a station distance without a reference station.
    * 
@@ -82,6 +85,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
    */
   public StationDistance(final Controller ctrl) {
     this.ctrl = ctrl;
+    matrix = new EdgeMatrix(ctrl.getBusStationManager());
     routes = Collections.EMPTY_MAP;
     map = new HashMap<SpringNode, BusStation>();
     rev = new HashMap<BusStation, SpringNode>();
@@ -180,6 +184,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   protected synchronized void putSettings(final Map<BusStation, RoutingResult> route,
       final BusStation from, final BusTime time, final int changeTime) {
     routes = route;
+    matrix.refreshHighlights(routes.values());
     if(from != StationDistance.this.from) {
       fadeOut = StationDistance.this.from;
       fadingStart = System.currentTimeMillis();
@@ -351,18 +356,33 @@ public final class StationDistance implements Weighter, NodeDrawer {
     if(route != null && route.isNotReachable()) return;
     final double x1 = n.getX();
     final double y1 = n.getY();
-    for(final Neighbor edge : station.getNeighbors()) {
-      final BusStation neighbor = edge.station;
+    for(final UndirectedEdge e : matrix.getEdgesFor(station)) {
+      final BusStation neighbor = e.getFrom();
+
       final SpringNode node = rev.get(neighbor);
       final RoutingResult otherRoute = routes.get(neighbor);
       if(otherRoute != null && otherRoute.isNotReachable()) {
         continue;
       }
+
       final double x2 = node.getX();
       final double y2 = node.getY();
+      final int degree = e.getDegree();
       int counter = 0;
-      for(final BusLine line : edge.lines) {
-        g.setStroke(new BasicStroke(edge.lines.length - counter,
+      final Graphics2D g2 = (Graphics2D) g.create();
+      if(from != null) {
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+      }
+      for(final BusLine line : e.getNonHighlightedEdges()) {
+        g2.setStroke(new BasicStroke(degree - counter,
+            BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+        g2.setColor(line.getColor());
+        g2.draw(new Line2D.Double(x1, y1, x2, y2));
+        ++counter;
+      }
+      g2.dispose();
+      for(final BusLine line : e.getHighlightedEdges()) {
+        g.setStroke(new BasicStroke(degree - counter,
             BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
         g.setColor(line.getColor());
         g.draw(new Line2D.Double(x1, y1, x2, y2));
