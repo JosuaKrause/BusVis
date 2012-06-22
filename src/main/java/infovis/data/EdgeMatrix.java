@@ -220,31 +220,59 @@ public final class EdgeMatrix {
     }
   }
 
-  private BusLine[] calcLines(final BusStation from, final BusStation to) {
+  /**
+   * Calculates the lines for a pair of {@link BusStation}s.
+   * 
+   * @param a One station.
+   * @param b Another station.
+   * @return The lines connecting the stations.
+   */
+  private static BusLine[] calcLines(final BusStation a, final BusStation b) {
     final Set<BusLine> set = new HashSet<BusLine>();
-    for(final BusEdge e : from.getEdges()) {
-      if(e.getTo().equals(to)) {
+    for(final BusEdge e : a.getEdges()) {
+      if(e.getTo().equals(b)) {
         set.add(e.getLine());
       }
     }
-    for(final BusEdge e : to.getEdges()) {
-      if(e.getTo().equals(from)) {
+    for(final BusEdge e : b.getEdges()) {
+      if(e.getTo().equals(a)) {
         set.add(e.getLine());
       }
     }
     return set.toArray(new BusLine[set.size()]);
   }
 
+  /**
+   * Getter.
+   * 
+   * @param a A station.
+   * @param b Another station.
+   * @return The undirected edge between those or <code>null</code> if there is
+   *         no line.
+   */
   public UndirectedEdge getFor(final BusStation a, final BusStation b) {
     return getFor(a.getId(), b.getId());
   }
 
-  public UndirectedEdge getFor(final int a, final int b) {
+  /**
+   * Getter.
+   * 
+   * @param a A station id.
+   * @param b Another station id.
+   * @return The undirected edge between those or <code>null</code> if there is
+   *         no line.
+   */
+  private UndirectedEdge getFor(final int a, final int b) {
     if(a == b) return null;
     if(a > b) return getFor(b, a);
     return matrix[b - 1][a];
   }
 
+  /**
+   * Refreshes the highlights according to the given routes.
+   * 
+   * @param routes The routes.
+   */
   public void refreshHighlights(final Collection<RoutingResult> routes) {
     for(int i = 1; i <= maxId; ++i) {
       for(int j = 0; j < i; ++j) {
@@ -267,11 +295,25 @@ public final class EdgeMatrix {
     }
   }
 
+  /**
+   * Getter.
+   * 
+   * @param station A station.
+   * @return All undirected edges of a station (only to stations with a lower
+   *         id).
+   */
   public Iterable<UndirectedEdge> getEdgesFor(final BusStation station) {
     return getEdgesFor(station.getId());
   }
 
-  public Iterable<UndirectedEdge> getEdgesFor(final int id) {
+  /**
+   * Getter.
+   * 
+   * @param id A station id.
+   * @return All undirected edges of a station (only to stations with a lower
+   *         id).
+   */
+  private Iterable<UndirectedEdge> getEdgesFor(final int id) {
     if(id == 0) return Collections.EMPTY_LIST;
     return new Iterable<UndirectedEdge>() {
 

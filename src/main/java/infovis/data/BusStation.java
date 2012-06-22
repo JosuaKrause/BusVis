@@ -194,9 +194,6 @@ public final class BusStation implements Comparable<BusStation> {
    * Returns all neighbors of this node.
    * 
    * @return The neighbors.
-   * @deprecated Replaced with
-   *             {@link EdgeMatrix.UndirectedEdge#getNonHighlightedLines()} and
-   *             {@link EdgeMatrix.UndirectedEdge#getHighlightedLines()}.
    */
   @Deprecated
   public Neighbor[] getNeighbors() {
@@ -224,15 +221,23 @@ public final class BusStation implements Comparable<BusStation> {
   /**
    * Getter.
    * 
-   * @return The maximum degree of this station.
+   * @return The max number of lines of this station.
    */
-  @Deprecated
-  public int getMaxDegree() {
+  public int getMaxLines() {
     int max = 0;
     for(final Neighbor edge : getNeighbors()) {
       max = Math.max(max, edge.lines.length);
     }
     return max;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The number of neighbors of a station.
+   */
+  public int getDegree() {
+    return getNeighbors().length;
   }
 
   /**
