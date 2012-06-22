@@ -73,6 +73,11 @@ public final class BusStation implements Comparable<BusStation> {
     return id;
   }
 
+  /**
+   * Getter.
+   * 
+   * @return Returns all edges associated with this bus station.
+   */
   public Collection<BusEdge> getEdges() {
     return Collections.unmodifiableList(edges);
   }
@@ -189,6 +194,9 @@ public final class BusStation implements Comparable<BusStation> {
    * Returns all neighbors of this node.
    * 
    * @return The neighbors.
+   * @deprecated Replaced with
+   *             {@link EdgeMatrix.UndirectedEdge#getNonHighlightedLines()} and
+   *             {@link EdgeMatrix.UndirectedEdge#getHighlightedLines()}.
    */
   @Deprecated
   public Neighbor[] getNeighbors() {

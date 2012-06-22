@@ -76,6 +76,9 @@ public final class StationDistance implements Weighter, NodeDrawer {
    */
   protected final Controller ctrl;
 
+  /**
+   * The undirected edge matrix.
+   */
   private final EdgeMatrix matrix;
 
   /**
@@ -367,13 +370,13 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
       final double x2 = node.getX();
       final double y2 = node.getY();
-      final int degree = e.getDegree();
+      final int degree = e.getLineDegree();
       int counter = 0;
       final Graphics2D g2 = (Graphics2D) g.create();
       if(from != null) {
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
       }
-      for(final BusLine line : e.getNonHighlightedEdges()) {
+      for(final BusLine line : e.getNonHighlightedLines()) {
         g2.setStroke(new BasicStroke(degree - counter,
             BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
         g2.setColor(line.getColor());
@@ -381,7 +384,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
         ++counter;
       }
       g2.dispose();
-      for(final BusLine line : e.getHighlightedEdges()) {
+      for(final BusLine line : e.getHighlightedLines()) {
         g.setStroke(new BasicStroke(degree - counter,
             BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
         g.setColor(line.getColor());

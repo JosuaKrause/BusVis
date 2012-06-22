@@ -9,23 +9,58 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * The edge matrix gives an undirected representation of the bus network.
+ * 
+ * @author Joschi <josua.krause@googlemail.com>
+ */
 public final class EdgeMatrix {
 
-  public static class UndirectedEdge {
+  /**
+   * Represents an undirected edge between two stations.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  public static final class UndirectedEdge {
 
+    /**
+     * The station with the lower id.
+     */
     private final BusStation from;
 
+    /**
+     * The station with the higher id.
+     */
     private final BusStation to;
 
+    /**
+     * The lines travelling between the stations.
+     */
     private final BusLine[] lines;
 
+    /**
+     * The highlighted lines.
+     */
     private final BitSet highlighted;
 
+    /**
+     * The highest highlighted line.
+     */
     private int highest;
 
+    /**
+     * The number of highlighted lines.
+     */
     private int count;
 
-    private UndirectedEdge(final BusStation from, final BusStation to,
+    /**
+     * Creates an undirected edge. The stations must be already sorted.
+     * 
+     * @param from The source station.
+     * @param to The destination station.
+     * @param lines The lines.
+     */
+    protected UndirectedEdge(final BusStation from, final BusStation to,
         final BusLine[] lines) {
       assert from.getId() < to.getId();
       this.from = from;
@@ -36,20 +71,38 @@ public final class EdgeMatrix {
       count = 0;
     }
 
+    /**
+     * Getter.
+     * 
+     * @return The lower id station.
+     */
     public BusStation getFrom() {
       return from;
     }
 
+    /**
+     * Getter.
+     * 
+     * @return The higher id station.
+     */
     public BusStation getTo() {
       return to;
     }
 
+    /**
+     * Clears the highlights.
+     */
     public void clearHighlighted() {
       highlighted.clear();
       highest = -1;
       count = 0;
     }
 
+    /**
+     * Adds an line to highlight.
+     * 
+     * @param hl The line to highlight.
+     */
     public void addHighlighted(final BusLine hl) {
       for(int j = 0; j < lines.length; ++j) {
         if(hl.equals(lines[j])) {
@@ -66,7 +119,12 @@ public final class EdgeMatrix {
       throw new IllegalStateException("line not found");
     }
 
-    public BusLine[] getHighlightedEdges() {
+    /**
+     * Getter.
+     * 
+     * @return The highlighted lines.
+     */
+    public BusLine[] getHighlightedLines() {
       final BusLine[] res = new BusLine[count];
       if(count == 0) return res;
       int p = 0;
@@ -87,7 +145,12 @@ public final class EdgeMatrix {
       return res;
     }
 
-    public BusLine[] getNonHighlightedEdges() {
+    /**
+     * Getter.
+     * 
+     * @return The non highlighted lines.
+     */
+    public BusLine[] getNonHighlightedLines() {
       final int l = lines.length - count;
       final BusLine[] res = new BusLine[l];
       if(l == 0) return res;
@@ -102,16 +165,32 @@ public final class EdgeMatrix {
       return res;
     }
 
-    public int getDegree() {
+    /**
+     * Getter.
+     * 
+     * @return The number of lines connecting the two stations.
+     */
+    public int getLineDegree() {
       return lines.length;
     }
 
   }
 
+  /**
+   * The highest bus station id.
+   */
   private final int maxId;
 
+  /**
+   * The matrix.
+   */
   protected final UndirectedEdge[][] matrix;
 
+  /**
+   * Creates a matrix for the given manager.
+   * 
+   * @param mng The manager.
+   */
   public EdgeMatrix(final BusStationManager mng) {
     int max = 0;
     for(final BusStation bs : mng.getStations()) {
