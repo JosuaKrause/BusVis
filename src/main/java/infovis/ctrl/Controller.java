@@ -364,4 +364,13 @@ public final class Controller {
     }
   }
 
+  /**
+   * Getter.
+   * 
+   * @return The bus station manager.
+   */
+  public BusStationManager getBusStationManager() {
+    return manager;
+  }
+
 }

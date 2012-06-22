@@ -2,11 +2,11 @@ package infovis.embed;
 
 import static infovis.VecUtil.*;
 import infovis.ctrl.Controller;
-import infovis.data.BusEdge;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
-import infovis.data.BusStation.Neighbor;
 import infovis.data.BusTime;
+import infovis.data.EdgeMatrix;
+import infovis.data.EdgeMatrix.UndirectedEdge;
 import infovis.embed.pol.Interpolator;
 import infovis.routing.RoutingManager;
 import infovis.routing.RoutingManager.CallBack;
@@ -77,12 +77,18 @@ public final class StationDistance implements Weighter, NodeDrawer {
   protected final Controller ctrl;
 
   /**
+   * The undirected edge matrix.
+   */
+  private final EdgeMatrix matrix;
+
+  /**
    * Creates a station distance without a reference station.
    * 
    * @param ctrl The controller.
    */
   public StationDistance(final Controller ctrl) {
     this.ctrl = ctrl;
+    matrix = new EdgeMatrix(ctrl.getBusStationManager());
     routes = Collections.EMPTY_MAP;
     map = new HashMap<SpringNode, BusStation>();
     rev = new HashMap<BusStation, SpringNode>();
@@ -182,7 +188,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   protected synchronized void putSettings(final Map<BusStation, RoutingResult> route,
       final BusStation from, final BusTime time, final int changeTime) {
     routes = route;
-    // TODO refresh highlighted lines in edge matrix
+    matrix.refreshHighlights(routes.values());
     if(from != StationDistance.this.from) {
       fadeOut = StationDistance.this.from;
       fadingStart = System.currentTimeMillis();
@@ -349,48 +355,39 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
   @Override
   public void drawEdges(final Graphics2D g, final SpringNode n) {
-    final Graphics2D g2 = (Graphics2D) g.create();
     final BusStation station = map.get(n);
     final RoutingResult route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
     final double x1 = n.getX();
     final double y1 = n.getY();
+    for(final UndirectedEdge e : matrix.getEdgesFor(station)) {
+      final BusStation neighbor = e.getLower();
 
-    // drawing highlighted edges from routes
-    if(from != null && route.getEdges() != null) {
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
-      for(final BusEdge edge : route.getEdges()) {
-        final SpringNode start = rev.get(edge.getFrom());
-        final SpringNode end = rev.get(edge.getTo());
-        g2.setColor(Color.BLACK);
-        g2.setStroke(new BasicStroke(10,
-            BasicStroke.CAP_ROUND,
-            BasicStroke.JOIN_BEVEL));
-        g2.draw(new Line2D.Double(start.getX(), start.getY(), end.getX(), end.getY()));
-        g2.setColor(edge.getLine().getColor());
-        g2.setStroke(new BasicStroke(8,
-            BasicStroke.CAP_ROUND,
-            BasicStroke.JOIN_BEVEL));
-        g2.draw(new Line2D.Double(start.getX(), start.getY(), end.getX(), end.getY()));
-        g2.dispose();
-      }
-    }
-    System.out.println();
-    // drawing edges
-    for(final Neighbor neighbour : station.getNeighbors()) {
-      final BusStation neighbor = neighbour.station;
       final SpringNode node = rev.get(neighbor);
       final RoutingResult otherRoute = routes.get(neighbor);
       if(otherRoute != null && otherRoute.isNotReachable()) {
         continue;
       }
+
       final double x2 = node.getX();
       final double y2 = node.getY();
+      final int degree = e.getLineDegree();
       int counter = 0;
-      for(final BusLine line : neighbour.lines) {
-        g.setStroke(new BasicStroke(neighbour.lines.length - counter,
-            BasicStroke.CAP_ROUND,
-            BasicStroke.JOIN_BEVEL));
+      final Graphics2D g2 = (Graphics2D) g.create();
+      if(from != null) {
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+      }
+      for(final BusLine line : e.getNonHighlightedLines()) {
+        g2.setStroke(new BasicStroke(degree - counter,
+            BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+        g2.setColor(line.getColor());
+        g2.draw(new Line2D.Double(x1, y1, x2, y2));
+        ++counter;
+      }
+      g2.dispose();
+      for(final BusLine line : e.getHighlightedLines()) {
+        g.setStroke(new BasicStroke(degree - counter,
+            BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
         g.setColor(line.getColor());
         g.draw(new Line2D.Double(x1, y1, x2, y2));
         ++counter;
@@ -418,7 +415,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation station = map.get(n);
     final double x = n.getX();
     final double y = n.getY();
-    if(station.getNeighbors().length == 2) return;
+    if(station.getDegree() == 2) return;
     final Graphics2D gfx = (Graphics2D) g.create();
     gfx.setColor(Color.BLACK);
     gfx.translate(x, y);
@@ -447,7 +444,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   @Override
   public Shape nodeClickArea(final SpringNode n, final boolean real) {
     final BusStation station = map.get(n);
-    final double r = Math.max(2, station.getMaxDegree() / 2);
+    final double r = Math.max(2, station.getMaxLines() / 2);
     final double x = real ? n.getX() : n.getPredictX();
     final double y = real ? n.getY() : n.getPredictY();
     return new Ellipse2D.Double(x - r, y - r, r * 2, r * 2);
@@ -458,36 +455,40 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final SpringNode ref = getReferenceNode();
     if(ref == null && !fade) return;
     Point2D center;
-    Color col;
+    double alpha;
     if(fade) {
       final long time = System.currentTimeMillis();
       final double t = ((double) time - fadingStart) / ((double) fadingEnd - fadingStart);
       final double f = Interpolator.SMOOTH.interpolate(t);
       final SpringNode n = f > 0.5 ? ref : rev.get(fadeOut);
       center = n != null ? n.getPos() : null;
-      final double split = f > 0.5 ? (f - 0.5) * 2 : 1 - f * 2;
-      final int alpha = Math.max(0, Math.min((int) (split * 255), 255));
-      col = new Color(alpha << 24
-          | (Color.LIGHT_GRAY.getRGB() & 0x00ffffff), true);
       if(t >= 1.0) {
+        alpha = 1;
         fadeOut = null;
         fade = false;
+      } else {
+        alpha = f > 0.5 ? (f - 0.5) * 2 : 1 - f * 2;
       }
     } else {
       center = ref.getPos();
-      col = Color.LIGHT_GRAY;
+      alpha = 1;
     }
     if(center == null) return;
     boolean b = true;
+    g.setColor(Color.WHITE);
     for(int i = MAX_INTERVAL; i > 0; --i) {
       final Shape circ = getCircle(i, center);
-      final double d = (MAX_INTERVAL - i + 2.0) / (MAX_INTERVAL + 2);
-      final int oldAlpha = col.getAlpha();
-      final int newAlpha = (int) Math.round(oldAlpha * d);
-      final Color c = new Color(newAlpha << 24 | (col.getRGB() & 0x00ffffff), true);
-      g.setColor(b ? c : Color.WHITE);
+      final Graphics2D g2 = (Graphics2D) g.create();
+      if(b) {
+        final double d = (MAX_INTERVAL - i + 2.0) / (MAX_INTERVAL + 2);
+        final double curAlpha = alpha * d;
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+            (float) curAlpha));
+        g2.setColor(Color.LIGHT_GRAY);
+      }
       b = !b;
-      g.fill(circ);
+      g2.fill(circ);
+      g2.dispose();
     }
   }
 
