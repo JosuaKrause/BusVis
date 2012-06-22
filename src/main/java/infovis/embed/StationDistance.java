@@ -16,6 +16,7 @@ import infovis.routing.RoutingResult;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
@@ -425,8 +426,17 @@ public final class StationDistance implements Weighter, NodeDrawer {
         new Point2D.Double(node.getMaxX(), node.getMinY()));
     final double x = pos.getX();
     final double y = pos.getY();
-    g.setColor(Color.BLACK);
     g.translate(x, y);
+    final FontMetrics fm = g.getFontMetrics();
+    final String label = station.getName();
+    final Rectangle2D bbox = fm.getStringBounds(label, g);
+    final Graphics2D g2 = (Graphics2D) g.create();
+    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+        0.3f * (float) (d < 1 ? d * d : 1)));
+    g2.setColor(Color.WHITE);
+    g2.fill(bbox);
+    g2.dispose();
+    g.setColor(Color.BLACK);
     g.drawString(station.getName(), 0, 0);
   }
 
