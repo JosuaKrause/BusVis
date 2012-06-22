@@ -44,11 +44,6 @@ public final class EdgeMatrix {
     private final BitSet highlighted;
 
     /**
-     * The highest highlighted line.
-     */
-    private int highest;
-
-    /**
      * The number of highlighted lines.
      */
     private int count;
@@ -67,7 +62,6 @@ public final class EdgeMatrix {
       this.higher = higher;
       this.lines = lines;
       highlighted = new BitSet();
-      highest = -1;
       count = 0;
     }
 
@@ -94,7 +88,6 @@ public final class EdgeMatrix {
      */
     public synchronized void clearHighlighted() {
       highlighted.clear();
-      highest = -1;
       count = 0;
     }
 
@@ -110,9 +103,6 @@ public final class EdgeMatrix {
             ++count;
           }
           highlighted.set(j);
-          if(j > highest) {
-            highest = j;
-          }
           return;
         }
       }
@@ -128,19 +118,8 @@ public final class EdgeMatrix {
       final BusLine[] res = new BusLine[count];
       if(count == 0) return res;
       int p = 0;
-      int i = 0;
-      for(;;) {
-        if(p == 0) {
-          if(highlighted.get(0)) {
-            res[i++] = lines[0];
-          }
-        } else {
-          res[i++] = lines[p];
-        }
-        if(p >= highest) {
-          break;
-        }
-        p = highlighted.nextSetBit(p);
+      for(int i = highlighted.nextSetBit(0); i >= 0; i = highlighted.nextSetBit(i + 1)) {
+        res[p++] = lines[i];
       }
       return res;
     }
@@ -154,14 +133,11 @@ public final class EdgeMatrix {
       final int l = lines.length - count;
       final BusLine[] res = new BusLine[l];
       if(l == 0) return res;
-      int p = 0;
-      for(int i = 0; i < lines.length; ++i) {
-        if(!highlighted.get(i)) {
-          res[p++] = lines[i];
-        }
+      int i = highlighted.nextClearBit(0);
+      for(int p = 0; p < l; ++p) {
+        res[p] = lines[i];
+        i = highlighted.nextClearBit(i + 1);
       }
-      if(p < l) throw new IllegalStateException("some lines not matched (got "
-          + p + " expected " + l + ") lines: " + lines.length);
       return res;
     }
 
