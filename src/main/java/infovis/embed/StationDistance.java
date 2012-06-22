@@ -389,7 +389,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
   @Override
   public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n) {
-    final double d = ctx.toComponentLength(2);
+    final double d = ctx.toComponentLength(1);
     if(d < 1) {
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) (d * d)));
     }
