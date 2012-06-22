@@ -1,5 +1,7 @@
 package infovis.data;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -69,6 +71,15 @@ public final class BusStation implements Comparable<BusStation> {
    */
   public int getId() {
     return id;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Returns all edges associated with this bus station.
+   */
+  public Collection<BusEdge> getEdges() {
+    return Collections.unmodifiableList(edges);
   }
 
   /**
@@ -148,6 +159,7 @@ public final class BusStation implements Comparable<BusStation> {
    * 
    * @author Joschi <josua.krause@googlemail.com>
    */
+  @Deprecated
   public static final class Neighbor {
 
     /**
@@ -183,6 +195,7 @@ public final class BusStation implements Comparable<BusStation> {
    * 
    * @return The neighbors.
    */
+  @Deprecated
   public Neighbor[] getNeighbors() {
     if(neighbors == null) {
       final Map<BusStation, Set<BusLine>> acc = new HashMap<BusStation, Set<BusLine>>();
@@ -208,14 +221,23 @@ public final class BusStation implements Comparable<BusStation> {
   /**
    * Getter.
    * 
-   * @return The maximum degree of this station.
+   * @return The max number of lines of this station.
    */
-  public int getMaxDegree() {
+  public int getMaxLines() {
     int max = 0;
     for(final Neighbor edge : getNeighbors()) {
       max = Math.max(max, edge.lines.length);
     }
     return max;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The number of neighbors of a station.
+   */
+  public int getDegree() {
+    return getNeighbors().length;
   }
 
   /**
