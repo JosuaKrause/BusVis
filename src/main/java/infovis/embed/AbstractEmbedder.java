@@ -150,7 +150,9 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
         hovered.add(n);
       }
     }
-    refreshAll();
+    if(!hovered.isEmpty()) {
+      refreshAll();
+    }
   }
 
   /**
