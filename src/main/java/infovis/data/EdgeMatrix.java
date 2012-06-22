@@ -108,6 +108,10 @@ public final class EdgeMatrix {
 
   }
 
+  private final int[] maxLines;
+
+  private final int[] degree;
+
   private final int maxId;
 
   protected final UndirectedEdge[][] matrix;
@@ -121,6 +125,8 @@ public final class EdgeMatrix {
       }
     }
     maxId = max;
+    maxLines = new int[maxId + 1];
+    degree = new int[maxId + 1];
     matrix = new UndirectedEdge[max][];
     for(int i = 1; i <= max; ++i) {
       final BusStation to = mng.getForId(i);
@@ -135,9 +141,29 @@ public final class EdgeMatrix {
         }
         final BusLine[] lines = calcLines(from, to);
         if(lines.length > 0) {
+          updateLinesAndDegree(from.getId(), to.getId(), lines.length);
           tmp[j] = new UndirectedEdge(from, to, lines);
         }
       }
+    }
+  }
+
+  /**
+   * Updates the degree and the maximum lines of the given bus stations. This
+   * method should only be called during initialization.
+   * 
+   * @param a One station id.
+   * @param b Another station id.
+   * @param numLines The number of lines between them.
+   */
+  private void updateLinesAndDegree(final int a, final int b, final int numLines) {
+    ++degree[a];
+    ++degree[b];
+    if(maxLines[a] < numLines) {
+      maxLines[a] = numLines;
+    }
+    if(maxLines[b] < numLines) {
+      maxLines[b] = numLines;
     }
   }
 
@@ -242,6 +268,26 @@ public final class EdgeMatrix {
       }
 
     };
+  }
+
+  /**
+   * Getter.
+   * 
+   * @param station The station.
+   * @return The maximum number of lines for this station.
+   */
+  public int getMaxLines(final BusStation station) {
+    return maxLines[station.getId()];
+  }
+
+  /**
+   * Getter.
+   * 
+   * @param station The station.
+   * @return The degree of this station.
+   */
+  public int getDegree(final BusStation station) {
+    return degree[station.getId()];
   }
 
 }
