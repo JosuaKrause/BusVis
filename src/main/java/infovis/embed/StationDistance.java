@@ -420,7 +420,9 @@ public final class StationDistance implements Weighter, NodeDrawer {
     if(d < 1) {
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) (d * d)));
     }
-    final Point2D pos = ctx.toComponentCoordinates(new Point2D.Double(n.getX(), n.getY()));
+    final Rectangle2D node = nodeClickArea(n, true).getBounds2D();
+    final Point2D pos = ctx.toComponentCoordinates(
+        new Point2D.Double(node.getMaxX(), node.getMinY()));
     final double x = pos.getX();
     final double y = pos.getY();
     g.setColor(Color.BLACK);
