@@ -21,7 +21,7 @@ import javax.swing.SwingUtilities;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class MainWindow extends JFrame {
+public final class MainWindow extends JFrame {
 
   /**
    * SVUID.

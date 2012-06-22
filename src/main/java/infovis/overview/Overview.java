@@ -27,7 +27,7 @@ import org.apache.batik.swing.JSVGCanvas;
  * 
  * @author Marc Spicker
  */
-public class Overview extends JSVGCanvas implements BusVisualization {
+public final class Overview extends JSVGCanvas implements BusVisualization {
 
   /**
    * Serial ID.
@@ -82,8 +82,7 @@ public class Overview extends JSVGCanvas implements BusVisualization {
 
   @Override
   public void focusStation() {
-    // TODO Auto-generated method stub
-
+    // TODO focus station
   }
 
   @Override

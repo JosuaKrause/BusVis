@@ -24,7 +24,7 @@ import javax.swing.WindowConstants;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class EmbedderTest implements NodeDrawer, Weighter {
+public final class EmbedderTest implements NodeDrawer, Weighter {
 
   /**
    * Starts the test.

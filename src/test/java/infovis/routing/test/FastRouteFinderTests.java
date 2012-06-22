@@ -143,59 +143,6 @@ public class FastRouteFinderTests {
     return getLastEnd(route).getMinute();
   }
 
-  // /**
-  // * Tests if routes without changes are taken if suitable.
-  // *
-  // * <pre>
-  // * , 00:00 ---1--- 00:01.
-  // * / \
-  // * (A) 00:01 ---2---> 00:02 (B) 00:02 ---2---> 00:03 (C)
-  // * \ /
-  // * ` 00:03 ---3--- 00:04´
-  // * </pre>
-  // *
-  // * @throws InterruptedException exception
-  // */
-  // @Test
-  // public void continuous() throws InterruptedException {
-  // final BusDataBuilder builder = new BusDataBuilder(null);
-  // final BusLine s1 = BusDataBuilder.createLine("B1", Color.RED), s2 =
-  // BusDataBuilder.createLine(
-  // "B2", Color.BLUE), s3 = BusDataBuilder.createLine("B3", Color.YELLOW);
-  // final BusStation a = builder.createStation("A", 0, 0, 0, 0, 0), b =
-  // builder.createStation("B", 1, 0, 0, 0, 0), c = builder.createStation("C",
-  // 2, 0, 0, 0, 0);
-  //
-  // builder.addEdge(a, s1, 1, b, new BusTime(0, 0), new BusTime(0, 1));
-  //
-  // final BusEdge ab = builder.addEdge(a, s2, 1, b, new BusTime(0, 1), new
-  // BusTime(0, 2));
-  // final BusEdge bc = builder.addEdge(b, s2, 1, c, new BusTime(0, 2), new
-  // BusTime(0, 3));
-  //
-  // builder.addEdge(b, s3, 1, c, new BusTime(0, 3), new BusTime(0, 4));
-  //
-  // final BusStationManager manager = builder.finish();
-  //
-  // final List<BusEdge> route = RouteFinder.findRoute(a, c, new BusTime(0, 0),
-  // 5, manager.getMaxTimeHours() * 60);
-  //
-  // assertEquals(Arrays.asList(ab, bc), route);
-  //
-  // final Map<BusStation, BusTime> times = new HashMap<BusStation, BusTime>();
-  // times.put(a, null);
-  // times.put(b, new BusTime(0, 1));
-  // times.put(c, new BusTime(0, 3));
-  // final Collection<RoutingResult> res = FastRouteFinder.routes(a, new
-  // BusTime(0, 0), 5,
-  // manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
-  // for(final RoutingResult r : res) {
-  // final BusStation s = r.getEnd();
-  // assertEquals(times.get(s),
-  // r.isStartNode() || r.isNotReachable() ? null : r.getEndTime());
-  // }
-  // }
-
   /**
    * Finds all shortest routes from all stations at 12:00 AM. This test checks
    * also the performance by letting each route take up to 100 milliseconds.

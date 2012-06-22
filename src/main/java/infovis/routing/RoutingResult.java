@@ -11,7 +11,7 @@ import java.util.Collection;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class RoutingResult {
+public final class RoutingResult {
 
   /**
    * The start bus station.
@@ -27,11 +27,6 @@ public class RoutingResult {
    * The travel time.
    */
   private final int minutes;
-
-  /**
-   * Whether the destination is not reachable.
-   */
-  private final boolean inr;
 
   /**
    * The edges used by this route.
@@ -59,7 +54,6 @@ public class RoutingResult {
     this.minutes = minutes;
     this.edges = edges;
     this.startTime = startTime;
-    inr = false;
   }
 
   /**
@@ -73,7 +67,6 @@ public class RoutingResult {
     this.to = to;
     minutes = from != to ? -1 : 0;
     edges = null;
-    inr = from != to;
     startTime = null;
   }
 
@@ -120,7 +113,7 @@ public class RoutingResult {
    * @return Whether the destination is not reachable.
    */
   public boolean isNotReachable() {
-    return inr;
+    return edges == null && from != to;
   }
 
   /**

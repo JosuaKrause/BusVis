@@ -10,7 +10,7 @@ import java.awt.geom.Point2D;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class CircularEmbedder extends AbstractEmbedder {
+public final class CircularEmbedder extends AbstractEmbedder {
 
   /**
    * The weighter.

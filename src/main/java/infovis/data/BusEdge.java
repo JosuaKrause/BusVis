@@ -8,7 +8,7 @@ import java.util.Comparator;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class BusEdge implements Comparable<BusEdge> {
+public final class BusEdge implements Comparable<BusEdge> {
 
   /** Bus line. */
   private final BusLine line;
