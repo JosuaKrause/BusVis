@@ -9,7 +9,7 @@ import java.util.Collections;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class BusStationManager {
+public final class BusStationManager implements BusStationEnumerator {
 
   /** A fast lookup table. BusStation ids are generally dense. */
   private final BusStation[] fastLookup;
@@ -61,11 +61,7 @@ public final class BusStationManager {
     return fastLookup[id];
   }
 
-  /**
-   * Getter.
-   * 
-   * @return All registered {@link BusStation}s.
-   */
+  @Override
   public Collection<BusStation> getStations() {
     return fastIterate;
   }

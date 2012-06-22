@@ -1,7 +1,6 @@
 package infovis.routing.test;
 
 import static org.junit.Assert.*;
-import infovis.ctrl.Controller;
 import infovis.data.BusDataBuilder;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
@@ -84,13 +83,12 @@ public class RoutingManagerTests {
   @Test
   public void findRoutes() throws Exception {
     final BusStationManager man = BusDataBuilder.load("src/main/resources/");
-    final Controller ctrl = new Controller(man, null);
     final RoutingManager rm = RoutingManager.newInstance();
     final Semaphore sem = new Semaphore(0);
     final AtomicReference<Collection<RoutingResult>> ref =
         new AtomicReference<Collection<RoutingResult>>();
 
-    rm.findRoutes(ctrl, man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60,
+    rm.findRoutes(man, man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60,
         new RouteFinder(), new CallBack<Collection<RoutingResult>>() {
       @Override
       public void callBack(final Collection<RoutingResult> result) {
@@ -111,7 +109,6 @@ public class RoutingManagerTests {
   @Test
   public void terminateRouting() throws Exception {
     final BusStationManager man = BusDataBuilder.load("src/main/resources/");
-    final Controller ctrl = new Controller(man, null);
     final CountDownLatch cd = new CountDownLatch(2);
     final AtomicBoolean ref = new AtomicBoolean(false);
     final RoutingManager rm = RoutingManager.newInstance();
@@ -119,7 +116,7 @@ public class RoutingManagerTests {
       @Override
       public Collection<RoutingResult> call() throws InterruptedException {
         cd.countDown();
-        final Collection<RoutingResult> routes = new RouteFinder().findRoutes(ctrl,
+        final Collection<RoutingResult> routes = new RouteFinder().findRoutes(man,
             man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60);
         ref.getAndSet(true); // should not exit normally
         return routes;

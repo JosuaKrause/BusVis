@@ -1,6 +1,7 @@
 package infovis.ctrl;
 
 import infovis.data.BusStation;
+import infovis.data.BusStationEnumerator;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.routing.FastRouteFinder;
@@ -22,7 +23,7 @@ import javax.swing.JFrame;
  * @author Joschi <josua.krause@googlemail.com>
  *
  */
-public final class Controller {
+public final class Controller implements BusStationEnumerator {
 
   /**
    * The list of active visualizations.
@@ -334,11 +335,7 @@ public final class Controller {
     vis.remove(v);
   }
 
-  /**
-   * Getter.
-   * 
-   * @return All bus stations.
-   */
+  @Override
   public Collection<BusStation> getStations() {
     return manager.getStations();
   }
