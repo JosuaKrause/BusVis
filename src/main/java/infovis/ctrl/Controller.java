@@ -337,15 +337,6 @@ public final class Controller {
   /**
    * Getter.
    * 
-   * @return The bus station manager.
-   */
-  public BusStationManager getManager() {
-    return manager;
-  }
-
-  /**
-   * Getter.
-   * 
    * @return All bus stations.
    */
   public Collection<BusStation> getStations() {

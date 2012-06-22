@@ -99,7 +99,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   protected final StationDistance dist;
 
   /**
-   * Whether to use a pring embedder.
+   * Whether to use a spring embedder.
    */
   private static final boolean USE_SPRING_EMBEDDER = false;
 

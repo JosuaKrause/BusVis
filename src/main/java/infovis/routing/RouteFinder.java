@@ -1,5 +1,6 @@
 package infovis.routing;
 
+import infovis.ctrl.Controller;
 import infovis.data.BusDataBuilder;
 import infovis.data.BusEdge;
 import infovis.data.BusStation;
@@ -41,10 +42,11 @@ public final class RouteFinder implements RoutingAlgorithm {
   };
 
   @Override
-  public Collection<RoutingResult> findRoutes(final BusStationManager bsm,
+  public Collection<RoutingResult> findRoutes(final Controller ctrl,
       final BusStation station, final BitSet dests, final BusTime start, final int wait,
       final int maxDuration) throws InterruptedException {
-    final Map<BusStation, List<BusEdge>> map = findRoutesFrom(bsm, station, dests, start,
+    final Map<BusStation, List<BusEdge>> map = findRoutesFrom(ctrl, station, dests,
+        start,
         wait, maxDuration);
     final List<RoutingResult> res = new ArrayList<RoutingResult>(map.size());
     for(final Entry<BusStation, List<BusEdge>> e : map.entrySet()) {
@@ -64,7 +66,7 @@ public final class RouteFinder implements RoutingAlgorithm {
    * Finds shortest routes to all reachable stations from the given start
    * station at the given start time.
    * 
-   * @param bsm The bus station manager.
+   * @param ctrl The controller.
    * @param station start position
    * @param dests set of IDs of stations that should be reached,
    *          <code>null</code> means all stations of the start station's
@@ -77,13 +79,13 @@ public final class RouteFinder implements RoutingAlgorithm {
    *           the computation
    */
   public static Map<BusStation, List<BusEdge>> findRoutesFrom(
-      final BusStationManager bsm, final BusStation station, final BitSet dests,
+      final Controller ctrl, final BusStation station, final BitSet dests,
       final BusTime start, final int wait, final int maxDuration)
           throws InterruptedException {
     // set of stations yet to be found
     final BitSet notFound = dests == null ? new BitSet() : (BitSet) dests.clone();
     if(dests == null) {
-      for(final BusStation s : bsm.getStations()) {
+      for(final BusStation s : ctrl.getStations()) {
         notFound.set(s.getId());
       }
     }
@@ -143,7 +145,7 @@ public final class RouteFinder implements RoutingAlgorithm {
   /**
    * Finds a single shortest route from the start station to the destination.
    * 
-   * @param bsm The bus station manager.
+   * @param ctrl The controller.
    * @param station start station
    * @param dest destination
    * @param start start time
@@ -152,13 +154,13 @@ public final class RouteFinder implements RoutingAlgorithm {
    * @return shortest route if found, <code>null</code> otherwise
    * @throws InterruptedException if the current thread was interrupted
    */
-  public static List<BusEdge> findRoute(final BusStationManager bsm,
+  public static List<BusEdge> findRoute(final Controller ctrl,
       final BusStation station, final BusStation dest,
       final BusTime start, final int wait, final int maxDuration)
           throws InterruptedException {
     final BitSet set = new BitSet();
     set.set(dest.getId());
-    return findRoutesFrom(bsm, station, set, start, wait, maxDuration).get(dest);
+    return findRoutesFrom(ctrl, station, set, start, wait, maxDuration).get(dest);
   }
 
   @Override
@@ -285,6 +287,7 @@ public final class RouteFinder implements RoutingAlgorithm {
    */
   public static void main(final String[] args) throws Exception {
     final BusStationManager man = BusDataBuilder.load("src/main/resources");
+    final Controller ctrl = new Controller(man, null);
     final BitSet set = new BitSet();
     for(final BusStation a : man.getStations()) {
       set.set(a.getId());
@@ -299,8 +302,8 @@ public final class RouteFinder implements RoutingAlgorithm {
       for(int i = 0; i < numTests; ++i) {
         int count = 0;
         final long time = System.currentTimeMillis();
-        for(final BusStation a : man.getStations()) {
-          RouteFinder.findRoutesFrom(man, a, set, new BusTime(12, 0), 5,
+        for(final BusStation a : ctrl.getStations()) {
+          RouteFinder.findRoutesFrom(ctrl, a, set, new BusTime(12, 0), 5,
               man.getMaxTimeHours()
               * BusTime.MINUTES_PER_HOUR);
           ++count;
@@ -324,7 +327,7 @@ public final class RouteFinder implements RoutingAlgorithm {
           new FileOutputStream("res.txt")));
       for(final BusStation a : stations) {
         dos.writeByte(a.getId());
-        final Map<BusStation, List<BusEdge>> routes = RouteFinder.findRoutesFrom(man, a,
+        final Map<BusStation, List<BusEdge>> routes = RouteFinder.findRoutesFrom(ctrl, a,
             set, new BusTime(12, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
         for(final BusStation to : stations) {
           dos.writeByte(to.getId());
@@ -341,7 +344,7 @@ public final class RouteFinder implements RoutingAlgorithm {
           new FileInputStream("res.txt")));
       for(int station; (station = in.read()) != -1;) {
         final BusStation a = man.getForId(station);
-        final Map<BusStation, List<BusEdge>> routes = RouteFinder.findRoutesFrom(man, a,
+        final Map<BusStation, List<BusEdge>> routes = RouteFinder.findRoutesFrom(ctrl, a,
             set, new BusTime(12, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
         for(int toId; (toId = in.read()) < 128;) {
           final BusStation to = man.getForId(toId);

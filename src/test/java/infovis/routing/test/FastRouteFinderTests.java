@@ -1,6 +1,7 @@
 package infovis.routing.test;
 
 import static org.junit.Assert.*;
+import infovis.ctrl.Controller;
 import infovis.data.BusDataBuilder;
 import infovis.data.BusEdge;
 import infovis.data.BusLine;
@@ -39,8 +40,10 @@ public class FastRouteFinderTests {
     final BusEdge bc = builder.addEdge(b, s2, 1, c, new BusTime(0, 3), new BusTime(0, 4));
 
     final BusStationManager man = builder.finish();
+    final Controller ctrl = new Controller(man, null);
 
-    final Deque<BusEdge> route = FastRouteFinder.routeTo(man, a, c, new BusTime(0, 0), 2,
+    final Deque<BusEdge> route = FastRouteFinder.routeTo(ctrl, a, c, new BusTime(0, 0),
+        2,
         man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
 
     assertEquals(Arrays.asList(ab, bc), route);
@@ -70,9 +73,10 @@ public class FastRouteFinderTests {
     builder.addEdge(d, line, 8, e, new BusTime(0, 4), new BusTime(0, 5));
 
     final BusStationManager manager = builder.finish();
+    final Controller ctrl = new Controller(manager, null);
 
     final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
-    final Deque<BusEdge> routeTo = FastRouteFinder.routeTo(manager, c, e, new BusTime(2,
+    final Deque<BusEdge> routeTo = FastRouteFinder.routeTo(ctrl, c, e, new BusTime(2,
         0), 0,
         mth);
     final int[] ids = { 2, 0, 3, 4};
@@ -81,7 +85,7 @@ public class FastRouteFinderTests {
     for(final BusEdge edge : routeTo) {
       assertEquals(ids[i++], edge.getTo().getId());
     }
-    assertNull(FastRouteFinder.routeTo(manager, e, c, new BusTime(2, 0), 0, mth));
+    assertNull(FastRouteFinder.routeTo(ctrl, e, c, new BusTime(2, 0), 0, mth));
   }
 
   /**
@@ -111,18 +115,19 @@ public class FastRouteFinderTests {
     builder.addEdge(g, line, 8, h, new BusTime(0, 1), new BusTime(0, 2));
 
     final BusStationManager manager = builder.finish();
+    final Controller ctrl = new Controller(manager, null);
 
     final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
     assertEquals(4,
-        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 0, mth)));
+        getLastEndMinute(FastRouteFinder.routeTo(ctrl, e, h, new BusTime(0, 0), 0, mth)));
     assertEquals(5,
-        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 1, mth)));
-    assertNull(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 0, 0));
+        getLastEndMinute(FastRouteFinder.routeTo(ctrl, e, h, new BusTime(0, 0), 1, mth)));
+    assertNull(FastRouteFinder.routeTo(ctrl, e, h, new BusTime(0, 0), 0, 0));
     assertEquals(4,
-        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 0,
+        getLastEndMinute(FastRouteFinder.routeTo(ctrl, e, h, new BusTime(0, 0), 0,
             BusTime.MINUTES_PER_HOUR)));
     assertEquals(5,
-        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 1,
+        getLastEndMinute(FastRouteFinder.routeTo(ctrl, e, h, new BusTime(0, 0), 1,
             BusTime.HOURS_PER_DAY * BusTime.MINUTES_PER_HOUR)));
   }
 
@@ -155,6 +160,7 @@ public class FastRouteFinderTests {
   @Test
   public void at12Am() throws Exception {
     final BusStationManager man = BusDataBuilder.load("src/main/resources");
+    final Controller ctrl = new Controller(man, null);
     final AtomicBoolean fail = new AtomicBoolean(false);
     int num = 0;
     for(@SuppressWarnings("unused")
@@ -186,7 +192,7 @@ public class FastRouteFinderTests {
       }
       System.out.println(a
           + ", "
-          + FastRouteFinder.routes(man, a, new BusTime(12, 0), 5,
+          + FastRouteFinder.routes(ctrl, a, new BusTime(12, 0), 5,
               man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR).size());
     }
 
