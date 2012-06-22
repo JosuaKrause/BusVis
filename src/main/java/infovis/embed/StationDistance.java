@@ -20,7 +20,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,11 +42,13 @@ public final class StationDistance implements Weighter, NodeDrawer {
   /**
    * The reverse backing map for the spring nodes.
    */
+  // TODO as array
   private final Map<BusStation, SpringNode> rev;
 
   /**
    * The routes from the bus station.
    */
+  // TODO as array
   protected volatile Map<BusStation, RoutingResult> routes;
 
   /**
@@ -150,8 +151,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
       @Override
       public void callBack(final Collection<RoutingResult> result) {
-        final Set<BusStation> all = new HashSet<BusStation>(
-            Arrays.asList(ctrl.getAllStations()));
+        final Set<BusStation> all = new HashSet<BusStation>(ctrl.getStations());
         final Map<BusStation, RoutingResult> route = new HashMap<BusStation, RoutingResult>();
         for(final RoutingResult r : result) {
           final BusStation end = r.getEnd();
@@ -165,8 +165,9 @@ public final class StationDistance implements Weighter, NodeDrawer {
       }
 
     };
-    rm.findRoutes(from, null, time != null ? time : BusTime.now(), changeTime,
-        ctrl.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, ctrl.getRoutingAlgorithm(), cb);
+    rm.findRoutes(ctrl.getManager(), from, null, time != null ? time : BusTime.now(),
+        changeTime, ctrl.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR,
+        ctrl.getRoutingAlgorithm(), cb);
   }
 
   /**

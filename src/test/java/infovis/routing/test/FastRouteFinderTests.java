@@ -40,7 +40,7 @@ public class FastRouteFinderTests {
 
     final BusStationManager man = builder.finish();
 
-    final Deque<BusEdge> route = FastRouteFinder.routeTo(a, c, new BusTime(0, 0), 2,
+    final Deque<BusEdge> route = FastRouteFinder.routeTo(man, a, c, new BusTime(0, 0), 2,
         man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
 
     assertEquals(Arrays.asList(ab, bc), route);
@@ -72,7 +72,8 @@ public class FastRouteFinderTests {
     final BusStationManager manager = builder.finish();
 
     final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
-    final Deque<BusEdge> routeTo = FastRouteFinder.routeTo(c, e, new BusTime(2, 0), 0,
+    final Deque<BusEdge> routeTo = FastRouteFinder.routeTo(manager, c, e, new BusTime(2,
+        0), 0,
         mth);
     final int[] ids = { 2, 0, 3, 4};
     int i = 0;
@@ -80,7 +81,7 @@ public class FastRouteFinderTests {
     for(final BusEdge edge : routeTo) {
       assertEquals(ids[i++], edge.getTo().getId());
     }
-    assertNull(FastRouteFinder.routeTo(e, c, new BusTime(2, 0), 0, mth));
+    assertNull(FastRouteFinder.routeTo(manager, e, c, new BusTime(2, 0), 0, mth));
   }
 
   /**
@@ -113,14 +114,16 @@ public class FastRouteFinderTests {
 
     final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
     assertEquals(4,
-        getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 0, mth)));
+        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 0, mth)));
     assertEquals(5,
-        getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 1, mth)));
-    assertNull(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 0, 0));
-    assertEquals(4, getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 0,
-        BusTime.MINUTES_PER_HOUR)));
-    assertEquals(5, getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 1,
-        BusTime.HOURS_PER_DAY * BusTime.MINUTES_PER_HOUR)));
+        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 1, mth)));
+    assertNull(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 0, 0));
+    assertEquals(4,
+        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 0,
+            BusTime.MINUTES_PER_HOUR)));
+    assertEquals(5,
+        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 1,
+            BusTime.HOURS_PER_DAY * BusTime.MINUTES_PER_HOUR)));
   }
 
   /**
@@ -183,7 +186,7 @@ public class FastRouteFinderTests {
       }
       System.out.println(a
           + ", "
-          + FastRouteFinder.routes(a, new BusTime(12, 0), 5,
+          + FastRouteFinder.routes(man, a, new BusTime(12, 0), 5,
               man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR).size());
     }
 

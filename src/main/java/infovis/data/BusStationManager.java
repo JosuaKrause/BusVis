@@ -1,8 +1,8 @@
 package infovis.data;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 
 /**
  * The {@link BusStationManager} takes care of {@link BusStation}s.
@@ -11,8 +11,11 @@ import java.util.Map;
  */
 public final class BusStationManager {
 
-  /** The backing map for bus station ids. */
-  private final Map<Integer, BusStation> stations;
+  /** A fast lookup table. BusStation ids are generally dense. */
+  private final BusStation[] fastLookup;
+
+  /** An unmodifiable collection of all bus stations. */
+  private final Collection<BusStation> fastIterate;
 
   /** The resource path. */
   private final String path;
@@ -23,8 +26,19 @@ public final class BusStationManager {
    * @param stations bus station map
    * @param path path of the CSV data, possibly <code>null</code>
    */
-  BusStationManager(final Map<Integer, BusStation> stations, final String path) {
-    this.stations = stations;
+  BusStationManager(final Collection<BusStation> stations, final String path) {
+    fastIterate = Collections.unmodifiableCollection(new ArrayList<BusStation>(stations));
+    int maxId = 0;
+    for(final BusStation b: fastIterate) {
+      final int id = b.getId();
+      if(id > maxId) {
+        maxId = id;
+      }
+    }
+    fastLookup = new BusStation[maxId + 1];
+    for(final BusStation b: fastIterate) {
+      fastLookup[b.getId()] = b;
+    }
     this.path = path;
   }
 
@@ -44,7 +58,7 @@ public final class BusStationManager {
    * @return The bus station with the given id.
    */
   public BusStation getForId(final int id) {
-    return stations.get(id);
+    return fastLookup[id];
   }
 
   /**
@@ -53,7 +67,25 @@ public final class BusStationManager {
    * @return All registered {@link BusStation}s.
    */
   public Collection<BusStation> getStations() {
-    return Collections.unmodifiableCollection(stations.values());
+    return fastIterate;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The maximal bus station id.
+   */
+  public int maxId() {
+    return fastLookup.length - 1;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The number of bus stations.
+   */
+  public int count() {
+    return fastIterate.size();
   }
 
   /**

@@ -9,6 +9,7 @@ import infovis.routing.RoutingAlgorithm;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -336,10 +337,10 @@ public final class Controller {
   /**
    * Getter.
    * 
-   * @return All bus stations.
+   * @return The bus station manager.
    */
-  public Iterable<BusStation> getStations() {
-    return manager.getStations();
+  public BusStationManager getManager() {
+    return manager;
   }
 
   /**
@@ -347,12 +348,8 @@ public final class Controller {
    * 
    * @return All bus stations.
    */
-  public BusStation[] getAllStations() {
-    final List<BusStation> res = new ArrayList<BusStation>();
-    for(final BusStation s : manager.getStations()) {
-      res.add(s);
-    }
-    return res.toArray(new BusStation[res.size()]);
+  public Collection<BusStation> getStations() {
+    return manager.getStations();
   }
 
   /**

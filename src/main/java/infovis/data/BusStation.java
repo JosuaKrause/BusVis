@@ -25,13 +25,9 @@ public final class BusStation implements Comparable<BusStation> {
   /** A sorted list of all bus edges starting with the earliest edge (00:00). */
   private final List<BusEdge> edges;
 
-  /** The bus manager. */
-  private final BusStationManager manager;
-
   /**
    * Creates a bus station.
    * 
-   * @param manager The manager.
    * @param name The name.
    * @param id The id, has to be non-negative.
    * @param x The x position.
@@ -40,10 +36,9 @@ public final class BusStation implements Comparable<BusStation> {
    * @param abstractY The y position on the abstract map.
    * @param edges sorted list of edges
    */
-  BusStation(final BusStationManager manager, final String name, final int id,
+  BusStation(final String name, final int id,
       final double x, final double y, final double abstractX, final double abstractY,
       final List<BusEdge> edges) {
-    this.manager = manager;
     this.name = name;
     this.id = id;
     this.x = x;
@@ -281,15 +276,6 @@ public final class BusStation implements Comparable<BusStation> {
    */
   public double getAbstractY() {
     return abstractY;
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return this station's {@link BusStationManager}
-   */
-  public BusStationManager getManager() {
-    return manager;
   }
 
   @Override

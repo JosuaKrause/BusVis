@@ -18,6 +18,7 @@ public interface RoutingAlgorithm {
    * Finds shortest routes to all reachable stations from the given start
    * station at the given start time.
    * 
+   * @param manager The bus station manager.
    * @param station start position
    * @param dests set of IDs of stations that should be reached,
    *          <code>null</code> means all stations of the start station's
@@ -29,8 +30,8 @@ public interface RoutingAlgorithm {
    * @throws InterruptedException if the current thread was interrupted during
    *           the computation
    */
-  Collection<RoutingResult> findRoutes(final BusStation station, final BitSet dests,
-      final BusTime start, final int wait, final int maxDuration)
-      throws InterruptedException;
+  Collection<RoutingResult> findRoutes(BusStationManager manager,
+      final BusStation station, final BitSet dests, final BusTime start, final int wait,
+      final int maxDuration) throws InterruptedException;
 
 }

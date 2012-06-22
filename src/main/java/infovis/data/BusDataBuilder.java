@@ -26,10 +26,10 @@ import au.com.bytecode.opencsv.CSVReader;
 public final class BusDataBuilder {
   /** Bus stations. */
   private final Map<Integer, BusStation> stations = new HashMap<Integer, BusStation>();
-  /** Container for all bus stations. */
-  private final BusStationManager manager;
   /** Map from station IDs to the bus edges originating at this station. */
   private final Map<Integer, List<BusEdge>> edges = new HashMap<Integer, List<BusEdge>>();
+  /** The path to the resources. */
+  private final String path;
 
   /**
    * Constructor taking the path of the CSV files.
@@ -37,7 +37,7 @@ public final class BusDataBuilder {
    * @param path path of the CSV files, possibly <code>null</code>
    */
   public BusDataBuilder(final String path) {
-    manager = new BusStationManager(stations, path);
+    this.path = path;
   }
 
   /**
@@ -145,8 +145,7 @@ public final class BusDataBuilder {
         + " already in use");
     final List<BusEdge> edgeList = new ArrayList<BusEdge>();
     edges.put(id, edgeList);
-    final BusStation bus = new BusStation(manager, name, id, x, y, abstractX, abstractY,
-        edgeList);
+    final BusStation bus = new BusStation(name, id, x, y, abstractX, abstractY, edgeList);
     stations.put(id, bus);
     return bus;
   }
@@ -218,6 +217,6 @@ public final class BusDataBuilder {
     for(final Entry<Integer, List<BusEdge>> e : edges.entrySet()) {
       Collections.sort(e.getValue());
     }
-    return manager;
+    return new BusStationManager(stations.values(), path);
   }
 }

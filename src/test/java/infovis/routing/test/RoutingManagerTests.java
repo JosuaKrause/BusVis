@@ -88,7 +88,7 @@ public class RoutingManagerTests {
     final AtomicReference<Collection<RoutingResult>> ref =
         new AtomicReference<Collection<RoutingResult>>();
 
-    rm.findRoutes(man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60,
+    rm.findRoutes(man, man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60,
         new RouteFinder(), new CallBack<Collection<RoutingResult>>() {
       @Override
       public void callBack(final Collection<RoutingResult> result) {
@@ -116,9 +116,8 @@ public class RoutingManagerTests {
       @Override
       public Collection<RoutingResult> call() throws InterruptedException {
         cd.countDown();
-        final Collection<RoutingResult> routes = new RouteFinder().findRoutes(
-            man.getForId(1), null, new BusTime(12, 00),
-            1, 24 * 60);
+        final Collection<RoutingResult> routes = new RouteFinder().findRoutes(man,
+            man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60);
         ref.getAndSet(true); // should not exit normally
         return routes;
       }

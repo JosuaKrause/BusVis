@@ -3,6 +3,7 @@ package infovis.routing;
 import infovis.data.BusEdge;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
+import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public final class FastRouteFinder implements RoutingAlgorithm {
   /**
    * Finds the shortest route to the given station.
    * 
+   * @param bsm The bus station manager.
    * @param from The start station.
    * @param dest The destination.
    * @param start The start time.
@@ -34,11 +36,12 @@ public final class FastRouteFinder implements RoutingAlgorithm {
    * @return The shortest route to the destination or <code>null</code> if there
    *         exists no route to the given destination.
    */
-  public static Deque<BusEdge> routeTo(final BusStation from, final BusStation dest,
+  public static Deque<BusEdge> routeTo(final BusStationManager bsm,
+      final BusStation from, final BusStation dest,
       final BusTime start,
       final int changeTime, final int maxTime) {
     final Map<Integer, Route> routes = new HashMap<Integer, Route>();
-    iniRoutes(from, routes, start);
+    iniRoutes(bsm, routes, start);
     if(!findRoutes(from, routes, dest, start, changeTime, maxTime)) return null;
     return convertRoutes(routes.get(dest.getId()));
   }
@@ -46,17 +49,17 @@ public final class FastRouteFinder implements RoutingAlgorithm {
   /**
    * Finds shortest routes to all bus stations.
    * 
+   * @param bsm The bus station manager.
    * @param from The start bus station.
    * @param start The start time.
    * @param changeTime The time to change lines.
    * @param maxTime The maximum time in minutes.
    * @return The reach-ability of all bus stations.
    */
-  public static Collection<RoutingResult> routes(final BusStation from,
-      final BusTime start,
-      final int changeTime, final int maxTime) {
+  public static Collection<RoutingResult> routes(final BusStationManager bsm,
+      final BusStation from, final BusTime start, final int changeTime, final int maxTime) {
     final Map<Integer, Route> routes = new HashMap<Integer, Route>();
-    iniRoutes(from, routes, start);
+    iniRoutes(bsm, routes, start);
     findRoutes(from, routes, null, start, changeTime, maxTime);
     return convert(start, from, routes.values());
   }
@@ -217,23 +220,24 @@ public final class FastRouteFinder implements RoutingAlgorithm {
   /**
    * Initializes the route objects.
    * 
-   * @param from The start bus station.
+   * @param bsm The bus station manager.
    * @param routes The route map.
    * @param start The start time.
    */
-  private static void iniRoutes(final BusStation from, final Map<Integer, Route> routes,
+  private static void iniRoutes(final BusStationManager bsm,
+      final Map<Integer, Route> routes,
       final BusTime start) {
-    for(final BusStation station : from.getManager().getStations()) {
+    for(final BusStation station : bsm.getStations()) {
       routes.put(station.getId(), new Route(station, start));
     }
   }
 
   @Override
-  public Collection<RoutingResult> findRoutes(final BusStation station,
-      final BitSet dests,
-      final BusTime start, final int wait, final int maxDuration)
+  public Collection<RoutingResult> findRoutes(final BusStationManager bsm,
+      final BusStation station, final BitSet dests, final BusTime start, final int wait,
+      final int maxDuration)
           throws InterruptedException {
-    return routes(station, start, wait, maxDuration);
+    return routes(bsm, station, start, wait, maxDuration);
   }
 
   @Override

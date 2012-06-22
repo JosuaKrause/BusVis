@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,6 +82,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /**
    * Maps bus stations to indices in the combo box.
    */
+  // TODO as array
   private final Map<BusStation, Integer> indexMap = new HashMap<BusStation, Integer>();
 
   // /**
@@ -130,12 +132,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * @return All bus station names.
    */
   private static BusStationName[] getStations(final Controller ctrl) {
-    final BusStation[] arr = ctrl.getAllStations();
+    final Collection<BusStation> s = ctrl.getStations();
+    final BusStation[] arr = s.toArray(new BusStation[s.size()]);
     Arrays.sort(arr, new Comparator<BusStation>() {
 
       @Override
-      public int compare(final BusStation b0, final BusStation b1) {
-        return b0.getName().compareTo(b1.getName());
+      public int compare(final BusStation a, final BusStation b) {
+        return a.getName().compareTo(b.getName());
       }
 
     });
