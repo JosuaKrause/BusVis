@@ -360,7 +360,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final double x1 = n.getX();
     final double y1 = n.getY();
     for(final UndirectedEdge e : matrix.getEdgesFor(station)) {
-      final BusStation neighbor = e.getFrom();
+      final BusStation neighbor = e.getLower();
 
       final SpringNode node = rev.get(neighbor);
       final RoutingResult otherRoute = routes.get(neighbor);
