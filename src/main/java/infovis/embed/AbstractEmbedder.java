@@ -1,5 +1,6 @@
 package infovis.embed;
 
+import infovis.gui.Context;
 import infovis.gui.PainterAdapter;
 import infovis.gui.Refreshable;
 
@@ -105,23 +106,27 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
   }
 
   @Override
-  public void draw(final Graphics2D gfx) {
+  public void draw(final Graphics2D gfx, final Context ctx) {
     final Graphics2D g2 = (Graphics2D) gfx.create();
-    drawer.drawBackground(g2);
+    drawer.drawBackground(g2, ctx);
     g2.dispose();
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawEdges(g, n);
+      drawer.drawEdges(g, ctx, n);
       g.dispose();
     }
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawNode(g, n);
+      drawer.drawNode(g, ctx, n);
       g.dispose();
     }
+  }
+
+  @Override
+  public void drawHUD(final Graphics2D gfx, final Context ctx) {
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawLabel(g, n);
+      drawer.drawLabel(g, ctx, n);
       g.dispose();
     }
   }

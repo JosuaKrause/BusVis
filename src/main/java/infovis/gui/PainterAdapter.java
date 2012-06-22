@@ -12,12 +12,12 @@ import java.awt.geom.Rectangle2D;
 public class PainterAdapter implements Painter {
 
   @Override
-  public void draw(final Graphics2D gfx) {
+  public void draw(final Graphics2D gfx, final Context ctx) {
     // draw nothing
   }
 
   @Override
-  public void drawHUD(final Graphics2D gfx) {
+  public void drawHUD(final Graphics2D gfx, final Context ctx) {
     // draw nothing
   }
 

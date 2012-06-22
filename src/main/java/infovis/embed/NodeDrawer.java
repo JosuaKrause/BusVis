@@ -1,5 +1,7 @@
 package infovis.embed;
 
+import infovis.gui.Context;
+
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Point2D;
@@ -16,33 +18,38 @@ public interface NodeDrawer {
    * Draws the given node. The graphics device must be translated manually.
    * 
    * @param g The device.
+   * @param ctx The canvas context.
    * @param n The node.
    */
-  void drawNode(Graphics2D g, SpringNode n);
+  void drawNode(Graphics2D g, Context ctx, SpringNode n);
 
   /**
    * Draws the edges of the given node. The graphics device must be translated
    * manually.
    * 
    * @param g The device.
+   * @param ctx The canvas context.
    * @param n The node.
    */
-  void drawEdges(Graphics2D g, SpringNode n);
+  void drawEdges(Graphics2D g, Context ctx, SpringNode n);
 
   /**
-   * Draws the label of a given node.
+   * Draws the label of a given node. Note that the coordinates are in component
+   * coordinates.
    * 
    * @param g The device.
+   * @param ctx The canvas context.
    * @param n The node.
    */
-  void drawLabel(Graphics2D g, SpringNode n);
+  void drawLabel(Graphics2D g, Context ctx, SpringNode n);
 
   /**
    * Draws the background.
    * 
    * @param g The graphics context.
+   * @param ctx The canvas context.
    */
-  void drawBackground(Graphics2D g);
+  void drawBackground(Graphics2D g, Context ctx);
 
   /**
    * A shape defining the area, where a click is associated with the given node.

@@ -16,16 +16,18 @@ public interface Painter {
    * this method and needs no further investigation.
    * 
    * @param gfx The graphics context.
+   * @param ctx The canvas context.
    */
-  void draw(Graphics2D gfx);
+  void draw(Graphics2D gfx, Context ctx);
 
   /**
    * Draws a HUD (Head-Up-Display) on the canvas. This method draws over the
    * canvas and uses the components coordinate space.
    * 
    * @param gfx The graphics context.
+   * @param ctx The canvas context.
    */
-  void drawHUD(Graphics2D gfx);
+  void drawHUD(Graphics2D gfx, Context ctx);
 
   /**
    * Is called when the user clicks at the component and the HUD action does not

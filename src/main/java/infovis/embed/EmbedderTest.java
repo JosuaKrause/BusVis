@@ -1,6 +1,7 @@
 package infovis.embed;
 
 import infovis.gui.Canvas;
+import infovis.gui.Context;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -99,7 +100,7 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void drawNode(final Graphics2D g, final SpringNode n) {
+  public void drawNode(final Graphics2D g, final Context ctx, final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
     g.setColor(Color.RED);
@@ -107,12 +108,12 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void drawLabel(final Graphics2D g, final SpringNode n) {
+  public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n) {
     // no label
   }
 
   @Override
-  public void drawEdges(final Graphics2D g, final SpringNode n) {
+  public void drawEdges(final Graphics2D g, final Context ctx, final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
     g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
@@ -185,7 +186,7 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void drawBackground(final Graphics2D g) {
+  public void drawBackground(final Graphics2D g, final Context ctx) {
     // void
   }
 

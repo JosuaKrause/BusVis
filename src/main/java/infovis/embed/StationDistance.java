@@ -7,6 +7,7 @@ import infovis.data.BusStation;
 import infovis.data.BusStation.Neighbor;
 import infovis.data.BusTime;
 import infovis.embed.pol.Interpolator;
+import infovis.gui.Context;
 import infovis.routing.RoutingManager;
 import infovis.routing.RoutingManager.CallBack;
 import infovis.routing.RoutingResult;
@@ -345,7 +346,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   @Override
-  public void drawEdges(final Graphics2D g, final SpringNode n) {
+  public void drawEdges(final Graphics2D g, final Context ctx, final SpringNode n) {
     final BusStation station = map.get(n);
     final RoutingResult route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
@@ -372,7 +373,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   @Override
-  public void drawNode(final Graphics2D g, final SpringNode n) {
+  public void drawNode(final Graphics2D g, final Context ctx, final SpringNode n) {
     final BusStation station = map.get(n);
     final RoutingResult route = routes.get(station);
     if(route != null && route.isNotReachable()) return;
@@ -387,16 +388,19 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   @Override
-  public void drawLabel(final Graphics2D g, final SpringNode n) {
+  public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n) {
+    final double d = ctx.toComponentLength(2);
+    if(d < 1) {
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) (d * d)));
+    }
     final BusStation station = map.get(n);
-    final double x = n.getX();
-    final double y = n.getY();
+    final Point2D pos = ctx.toComponentCoordinates(new Point2D.Double(n.getX(), n.getY()));
+    final double x = pos.getX();
+    final double y = pos.getY();
     if(station.getNeighbors().length == 2) return;
-    final Graphics2D gfx = (Graphics2D) g.create();
-    gfx.setColor(Color.BLACK);
-    gfx.translate(x, y);
-    gfx.drawString(station.getName(), 0, 0);
-    gfx.dispose();
+    g.setColor(Color.BLACK);
+    g.translate(x, y);
+    g.drawString(station.getName(), 0, 0);
   }
 
   @Override
@@ -427,7 +431,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   @Override
-  public void drawBackground(final Graphics2D g) {
+  public void drawBackground(final Graphics2D g, final Context ctx) {
     final SpringNode ref = getReferenceNode();
     if(ref == null && !fade) return;
     Point2D center;

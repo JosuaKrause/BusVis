@@ -201,6 +201,55 @@ public class Canvas extends JComponent implements Refreshable {
     super.setBackground(bg);
   }
 
+  /**
+   * A context for this canvas.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  private final class CanvasContext implements Context {
+
+    /**
+     * Whether this context is in canvas space.
+     */
+    private final boolean inCanvasSpace;
+
+    /**
+     * Creates a context for this canvas.
+     * 
+     * @param inCanvasSpace Whether the normal
+     *          {@link Painter#draw(Graphics2D, Context)} is called.
+     */
+    public CanvasContext(final boolean inCanvasSpace) {
+      this.inCanvasSpace = inCanvasSpace;
+    }
+
+    @Override
+    public Point2D toCanvasCoordinates(final Point2D p) {
+      return getForScreen(p);
+    }
+
+    @Override
+    public double toCanvasLength(final double length) {
+      return inReal(length);
+    }
+
+    @Override
+    public Point2D toComponentCoordinates(final Point2D p) {
+      return new Point2D.Double(getXFromCanvas(p.getX()), getYFromCanvas(p.getY()));
+    }
+
+    @Override
+    public double toComponentLength(final double length) {
+      return fromReal(length);
+    }
+
+    @Override
+    public boolean inCanvasCoordinates() {
+      return inCanvasSpace;
+    }
+
+  }
+
   @Override
   public void paintComponent(final Graphics g) {
     final Graphics2D g2 = (Graphics2D) g.create();
@@ -215,9 +264,9 @@ public class Canvas extends JComponent implements Refreshable {
     final Graphics2D gfx = (Graphics2D) g2.create();
     gfx.translate(offX, offY);
     gfx.scale(zoom, zoom);
-    painter.draw(gfx);
+    painter.draw(gfx, new CanvasContext(true));
     gfx.dispose();
-    painter.drawHUD(g2);
+    painter.drawHUD(g2, new CanvasContext(false));
     g2.dispose();
   }
 
@@ -391,6 +440,17 @@ public class Canvas extends JComponent implements Refreshable {
   }
 
   /**
+   * Calculates the screen coordinate of the given input in real coordinates.
+   * 
+   * @param s The coordinate in real coordinates. Due to uniform zooming both
+   *          horizontal and vertical coordinates can be converted.
+   * @return In screen coordinates.
+   */
+  protected double fromReal(final double s) {
+    return s * zoom;
+  }
+
+  /**
    * Calculates the real coordinate from the components coordinate.
    * 
    * @param x The components x coordinate.
@@ -411,7 +471,27 @@ public class Canvas extends JComponent implements Refreshable {
   }
 
   /**
-   * Converts a point in component coordinates in canvas coordinates.
+   * Calculates the component coordinate from the real coordinate.
+   * 
+   * @param x The real x coordinate.
+   * @return The component coordinate.
+   */
+  protected double getXFromCanvas(final double x) {
+    return fromReal(x) + offX;
+  }
+
+  /**
+   * Calculates the component coordinate from the real coordinate.
+   * 
+   * @param y The real y coordinate.
+   * @return The component coordinate.
+   */
+  protected double getYFromCanvas(final double y) {
+    return fromReal(y) + offY;
+  }
+
+  /**
+   * Converts a point in component coordinates to canvas coordinates.
    * 
    * @param p The point.
    * @return The point in the canvas coordinates.
