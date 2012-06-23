@@ -4,7 +4,9 @@ import infovis.data.BusEdge;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Encapsulates the result of a routing.
@@ -48,11 +50,25 @@ public final class RoutingResult {
    * @param startTime The start time.
    */
   public RoutingResult(final BusStation from, final BusStation to, final int minutes,
+      final BusEdge[] edges, final BusTime startTime) {
+    this(from, to, minutes, Arrays.asList(edges), startTime);
+  }
+
+  /**
+   * Creates a routing result for a reachable station.
+   * 
+   * @param from The start station.
+   * @param to The end station.
+   * @param minutes The travel time.
+   * @param edges The edges used by this route.
+   * @param startTime The start time.
+   */
+  public RoutingResult(final BusStation from, final BusStation to, final int minutes,
       final Collection<BusEdge> edges, final BusTime startTime) {
     this.from = from;
     this.to = to;
     this.minutes = minutes;
-    this.edges = edges;
+    this.edges = Collections.unmodifiableCollection(edges);
     this.startTime = startTime;
   }
 
@@ -130,7 +146,7 @@ public final class RoutingResult {
    * 
    * @return The edges used by this route.
    */
-  public Iterable<BusEdge> getEdges() {
+  public Collection<BusEdge> getEdges() {
     return edges;
   }
 

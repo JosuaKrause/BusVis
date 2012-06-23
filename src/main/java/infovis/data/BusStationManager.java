@@ -51,12 +51,7 @@ public final class BusStationManager implements BusStationEnumerator {
     return path;
   }
 
-  /**
-   * Getter.
-   * 
-   * @param id The id of a bus station.
-   * @return The bus station with the given id.
-   */
+  @Override
   public BusStation getForId(final int id) {
     return fastLookup[id];
   }
@@ -66,20 +61,12 @@ public final class BusStationManager implements BusStationEnumerator {
     return fastIterate;
   }
 
-  /**
-   * Getter.
-   * 
-   * @return The maximal bus station id.
-   */
+  @Override
   public int maxId() {
     return fastLookup.length - 1;
   }
 
-  /**
-   * Getter.
-   * 
-   * @return The number of bus stations.
-   */
+  @Override
   public int count() {
     return fastIterate.size();
   }

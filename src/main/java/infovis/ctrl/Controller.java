@@ -340,6 +340,21 @@ public final class Controller implements BusStationEnumerator {
     return manager.getStations();
   }
 
+  @Override
+  public int maxId() {
+    return manager.maxId();
+  }
+
+  @Override
+  public int count() {
+    return manager.count();
+  }
+
+  @Override
+  public BusStation getForId(final int id) {
+    return manager.getForId(id);
+  }
+
   /**
    * Sets the focus on the current selected bus station.
    */

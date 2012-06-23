@@ -21,10 +21,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.PriorityQueue;
 
 /**
@@ -45,18 +42,19 @@ public final class RouteFinder implements RoutingAlgorithm {
   public Collection<RoutingResult> findRoutes(final BusStationEnumerator bse,
       final BusStation station, final BitSet dests, final BusTime start, final int wait,
       final int maxDuration) throws InterruptedException {
-    final Map<BusStation, List<BusEdge>> map = findRoutesFrom(bse, station, dests,
-        start,
-        wait, maxDuration);
-    final List<RoutingResult> res = new ArrayList<RoutingResult>(map.size());
-    for(final Entry<BusStation, List<BusEdge>> e : map.entrySet()) {
-      final List<BusEdge> list = e.getValue();
-      final BusStation to = e.getKey();
-      if(list.isEmpty()) {
+    final BusEdge[][] map = findRoutesFrom(bse, station, dests, start, wait, maxDuration);
+    final List<RoutingResult> res = new ArrayList<RoutingResult>(bse.count());
+    for(int id = 0; id < map.length; ++id) {
+      final BusEdge[] list = map[id];
+      if(list == null) {
+        continue;
+      }
+      final BusStation to = bse.getForId(id);
+      if(list.length == 0) {
         res.add(new RoutingResult(station));
       } else {
         res.add(new RoutingResult(station, to,
-            start.minutesTo(list.get(list.size() - 1).getEnd()), list, start));
+            start.minutesTo(list[list.length - 1].getEnd()), list, start));
       }
     }
     return res;
@@ -74,11 +72,11 @@ public final class RouteFinder implements RoutingAlgorithm {
    * @param start start time
    * @param wait waiting time when changing lines
    * @param maxDuration maximum allowed duration of a route
-   * @return map from station to shortest route
+   * @return map from station id to shortest route
    * @throws InterruptedException if the current thread was interrupted during
    *           the computation
    */
-  public static Map<BusStation, List<BusEdge>> findRoutesFrom(
+  public static BusEdge[][] findRoutesFrom(
       final BusStationEnumerator bse, final BusStation station, final BitSet dests,
       final BusTime start, final int wait, final int maxDuration)
           throws InterruptedException {
@@ -91,7 +89,7 @@ public final class RouteFinder implements RoutingAlgorithm {
     }
     notFound.set(station.getId(), false);
 
-    final Map<BusStation, Route> bestRoutes = new HashMap<BusStation, Route>();
+    final Route[] bestRoutes = new Route[bse.maxId() + 1];
     final PriorityQueue<Route> queue = new PriorityQueue<Route>(16, CMP);
     for(final BusEdge e : station.getEdges(start)) {
       final Route route = new Route(start, e);
@@ -105,9 +103,9 @@ public final class RouteFinder implements RoutingAlgorithm {
       final BusEdge last = current.last;
       final BusStation dest = last.getTo();
 
-      final Route best = bestRoutes.get(dest);
+      final Route best = bestRoutes[dest.getId()];
       if(best == null) {
-        bestRoutes.put(dest, current);
+        bestRoutes[dest.getId()] = current;
         notFound.set(dest.getId(), false);
       }
 
@@ -134,10 +132,13 @@ public final class RouteFinder implements RoutingAlgorithm {
       }
     }
 
-    final Map<BusStation, List<BusEdge>> res = new HashMap<BusStation, List<BusEdge>>();
-    res.put(station, Collections.EMPTY_LIST);
-    for(final Entry<BusStation, Route> e : bestRoutes.entrySet()) {
-      res.put(e.getKey(), e.getValue().asList());
+    final BusEdge[][] res = new BusEdge[bse.maxId() + 1][];
+    res[station.getId()] = new BusEdge[0];
+    for(int id = 0; id < bestRoutes.length; ++id) {
+      if(bestRoutes[id] == null) {
+        continue;
+      }
+      res[id] = bestRoutes[id].asArray();
     }
     return res;
   }
@@ -154,13 +155,13 @@ public final class RouteFinder implements RoutingAlgorithm {
    * @return shortest route if found, <code>null</code> otherwise
    * @throws InterruptedException if the current thread was interrupted
    */
-  public static List<BusEdge> findRoute(final BusStationEnumerator bse,
+  public static BusEdge[] findRoute(final BusStationEnumerator bse,
       final BusStation station, final BusStation dest,
       final BusTime start, final int wait, final int maxDuration)
           throws InterruptedException {
     final BitSet set = new BitSet();
     set.set(dest.getId());
-    return findRoutesFrom(bse, station, set, start, wait, maxDuration).get(dest);
+    return findRoutesFrom(bse, station, set, start, wait, maxDuration)[dest.getId()];
   }
 
   @Override
@@ -175,11 +176,13 @@ public final class RouteFinder implements RoutingAlgorithm {
    */
   private static final class Route {
     /** Route up to this point, possibly {@code null}. */
-    final Route before;
+    protected final Route before;
     /** Last edge in the route. */
-    final BusEdge last;
+    protected final BusEdge last;
     /** Overall travel time in minutes. */
-    final int travelTime;
+    protected final int travelTime;
+    /** The length of this route. */
+    private final int length;
     /** Stations in this route. */
     private final BitSet stations;
 
@@ -196,6 +199,7 @@ public final class RouteFinder implements RoutingAlgorithm {
       stations = new BitSet();
       stations.set(first.getFrom().getId());
       stations.set(first.getTo().getId());
+      length = 1;
     }
 
     /**
@@ -207,6 +211,7 @@ public final class RouteFinder implements RoutingAlgorithm {
     private Route(final Route before, final BusEdge last) {
       this.before = before;
       this.last = last;
+      length = before.length + 1;
       travelTime = before.timePlus(last);
       stations = (BitSet) before.stations.clone();
       stations.set(last.getTo().getId());
@@ -261,15 +266,19 @@ public final class RouteFinder implements RoutingAlgorithm {
     }
 
     /**
-     * Creates a list containing all edges of this route.
+     * Creates an array containing all edges of this route.
      * 
-     * @return list containing all edges
+     * @return array containing all edges
      */
-    public List<BusEdge> asList() {
-      final List<BusEdge> list = before == null ? new ArrayList<BusEdge>()
-          : before.asList();
-      list.add(last);
-      return list;
+    public BusEdge[] asArray() {
+      final BusEdge[] res = new BusEdge[length];
+      Route cur = this;
+      int i = length;
+      while(--i >= 0) {
+        res[i] = cur.last;
+        cur = cur.before;
+      }
+      return res;
     }
 
     @Override
@@ -326,13 +335,13 @@ public final class RouteFinder implements RoutingAlgorithm {
           new FileOutputStream("res.txt")));
       for(final BusStation a : stations) {
         dos.writeByte(a.getId());
-        final Map<BusStation, List<BusEdge>> routes = RouteFinder.findRoutesFrom(man, a,
+        final BusEdge[][] routes = RouteFinder.findRoutesFrom(man, a,
             set, new BusTime(12, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
         for(final BusStation to : stations) {
           dos.writeByte(to.getId());
-          final List<BusEdge> route = routes.get(to);
-          final int time = route == null ? -1 : route.isEmpty() ? 0 :
-            new BusTime(12, 0).minutesTo(route.get(route.size() - 1).getEnd());
+          final BusEdge[] route = routes[to.getId()];
+          final int time = route == null ? -1 : route.length == 0 ? 0 :
+            new BusTime(12, 0).minutesTo(route[route.length - 1].getEnd());
           dos.writeInt(time);
         }
         dos.writeByte(-2);
@@ -343,22 +352,22 @@ public final class RouteFinder implements RoutingAlgorithm {
           new FileInputStream("res.txt")));
       for(int station; (station = in.read()) != -1;) {
         final BusStation a = man.getForId(station);
-        final Map<BusStation, List<BusEdge>> routes = RouteFinder.findRoutesFrom(man, a,
+        final BusEdge[][] routes = RouteFinder.findRoutesFrom(man, a,
             set, new BusTime(12, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
         for(int toId; (toId = in.read()) < 128;) {
           final BusStation to = man.getForId(toId);
           final int duration = in.readInt();
-          final List<BusEdge> route = routes.get(to);
+          final BusEdge[] route = routes[to.getId()];
           if(duration == -1) {
             if(route != null) {
               System.out.println("Didn't expect route from " + a + " to " + to + ": " + route);
             }
           } else if(duration == 0) {
-            if(route == null || station == toId && !route.isEmpty()) {
+            if(route == null || station == toId && route.length != 0) {
               System.out.println("Route from and to " + a + " should be empty: " + route);
             }
           } else if(route == null
-              || new BusTime(12, 0).minutesTo(route.get(route.size() - 1).getEnd()) != duration) {
+              || new BusTime(12, 0).minutesTo(route[route.length - 1].getEnd()) != duration) {
             System.out.println("Expected " + duration + "min from " + a + " to " + to
                 + ": " + route);
           }
