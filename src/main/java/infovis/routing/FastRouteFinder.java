@@ -7,8 +7,10 @@ import infovis.data.BusStationEnumerator;
 import infovis.data.BusTime;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -241,7 +243,16 @@ public final class FastRouteFinder implements RoutingAlgorithm {
       final int maxDuration)
           throws InterruptedException {
     final Collection<RoutingResult> res = routes(bse, station, start, wait, maxDuration);
-    return res.toArray(new RoutingResult[res.size()]);
+    final RoutingResult[] arr = res.toArray(new RoutingResult[res.size()]);
+    Arrays.sort(arr, new Comparator<RoutingResult>() {
+
+      @Override
+      public int compare(final RoutingResult a, final RoutingResult b) {
+        return a.getEnd().getId() - b.getEnd().getId();
+      }
+
+    });
+    return arr;
   }
 
   @Override
