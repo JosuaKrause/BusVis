@@ -1,6 +1,4 @@
-package infovis.embed.pol;
-
-import static java.lang.Math.*;
+package infovis.util;
 
 /**
  * An interpolator maps values from the range <code>[0,1]</code> to
@@ -22,7 +20,7 @@ public interface Interpolator {
   Interpolator SMOOTH = new Interpolator() {
     @Override
     public double interpolate(final double t) {
-      return sin((t - 0.5) * PI) * 0.5 + 0.5;
+      return Math.sin((t - 0.5) * Math.PI) * 0.5 + 0.5;
     }
   };
 
