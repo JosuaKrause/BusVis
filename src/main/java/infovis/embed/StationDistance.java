@@ -416,7 +416,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   @Override
   public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n) {
     final BusStation station = map.get(n);
-    if(station.getDegree() == 2) return;
+    if(matrix.getDegree(station) == 2) return;
     final double d = ctx.toComponentLength(1);
     if(d < 1) {
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) (d * d)));
@@ -461,7 +461,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   @Override
   public Shape nodeClickArea(final SpringNode n, final boolean real) {
     final BusStation station = map.get(n);
-    final double r = Math.max(2, station.getMaxLines() / 2);
+    final double r = Math.max(2, matrix.getMaxLines(station) / 2);
     final double x = real ? n.getX() : n.getPredictX();
     final double y = real ? n.getY() : n.getPredictY();
     return new Ellipse2D.Double(x - r, y - r, r * 2, r * 2);

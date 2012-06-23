@@ -2,13 +2,8 @@ package infovis.data;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * A {@link BusStation} contains informations about bus stations in the traffic
@@ -152,92 +147,6 @@ public final class BusStation implements Comparable<BusStation> {
     }
     }
     return low % edges.size();
-  }
-
-  /**
-   * A neighbor is a bus station with lines that connect to the given station.
-   * 
-   * @author Joschi <josua.krause@googlemail.com>
-   */
-  @Deprecated
-  public static final class Neighbor {
-
-    /**
-     * The neighboring station.
-     */
-    public final BusStation station;
-
-    /**
-     * The lines that connect to the neighbor.
-     */
-    public final BusLine[] lines;
-
-    /**
-     * Creates a new neighbor.
-     * 
-     * @param station The station.
-     * @param lines The lines.
-     */
-    public Neighbor(final BusStation station, final BusLine[] lines) {
-      this.station = station;
-      this.lines = lines;
-    }
-
-  }
-
-  /**
-   * The cached neighbors of this node.
-   */
-  private Neighbor[] neighbors;
-
-  /**
-   * Returns all neighbors of this node.
-   * 
-   * @return The neighbors.
-   */
-  @Deprecated
-  public Neighbor[] getNeighbors() {
-    if(neighbors == null) {
-      final Map<BusStation, Set<BusLine>> acc = new HashMap<BusStation, Set<BusLine>>();
-      for(final BusEdge edge : edges) {
-        final BusStation to = edge.getTo();
-        final BusLine line = edge.getLine();
-        if(!acc.containsKey(to)) {
-          acc.put(to, new HashSet<BusLine>());
-        }
-        acc.get(to).add(line);
-      }
-      final Neighbor[] res = new Neighbor[acc.size()];
-      int i = 0;
-      for(final Entry<BusStation, Set<BusLine>> e : acc.entrySet()) {
-        final Set<BusLine> lines = e.getValue();
-        res[i++] = new Neighbor(e.getKey(), lines.toArray(new BusLine[lines.size()]));
-      }
-      neighbors = res;
-    }
-    return neighbors;
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return The max number of lines of this station.
-   */
-  public int getMaxLines() {
-    int max = 0;
-    for(final Neighbor edge : getNeighbors()) {
-      max = Math.max(max, edge.lines.length);
-    }
-    return max;
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return The number of neighbors of a station.
-   */
-  public int getDegree() {
-    return getNeighbors().length;
   }
 
   /**
