@@ -4,7 +4,6 @@ import infovis.data.BusStation;
 import infovis.data.BusStationEnumerator;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
-import infovis.routing.FastRouteFinder;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 
@@ -144,8 +143,6 @@ public final class Controller implements BusStationEnumerator {
    */
   private static final RoutingAlgorithm[] ALGOS = new RoutingAlgorithm[] {
     new RouteFinder(),
-
-    new FastRouteFinder(),
   };
 
   /**

@@ -21,6 +21,7 @@ import org.junit.Test;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
+@SuppressWarnings({ "deprecation", "javadoc"})
 public class FastRouteFinderTests {
 
   /**

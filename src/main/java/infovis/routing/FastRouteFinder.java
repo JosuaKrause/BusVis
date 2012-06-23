@@ -21,7 +21,10 @@ import java.util.Queue;
  * A fast but in rare cases incorrect routing algorithm.
  * 
  * @author Joschi <josua.krause@googlemail.com>
+ * @deprecated Replaced by {@link RouteFinder}. This class is not maintained
+ *             anymore. No optimizations and no adaption to interface changes.
  */
+@Deprecated
 public final class FastRouteFinder implements RoutingAlgorithm {
 
   /**

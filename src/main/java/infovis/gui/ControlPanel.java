@@ -5,6 +5,7 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.routing.RoutingAlgorithm;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -85,10 +86,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   // TODO as array
   private final Map<BusStation, Integer> indexMap = new HashMap<BusStation, Integer>();
 
-  // /**
-  // * The algorithm box.
-  // */
-  // protected final JComboBox algoBox;
+  /**
+   * The algorithm box.
+   */
+  protected final JComboBox algoBox;
 
   /**
    * A thin wrapper for the bus station name. Also allows the <code>null</code>
@@ -159,22 +160,26 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     final Component space = Box.createRigidArea(new Dimension(5, 5));
     // routing selection
-    // final RoutingAlgorithm[] algos = ctrl.getRoutingAlgorithms();
-    // algoBox = new JComboBox(algos);
-    // algoBox.addActionListener(new ActionListener() {
-    //
-    // @Override
-    // public void actionPerformed(final ActionEvent e) {
-    // final RoutingAlgorithm routing = (RoutingAlgorithm)
-    // algoBox.getSelectedItem();
-    // if(routing != ctrl.getRoutingAlgorithm()) {
-    // ctrl.setRoutingAlgorithm(routing);
-    // }
-    // }
-    //
-    // });
-    // algoBox.setMaximumSize(algoBox.getPreferredSize());
-    // addHor(new JLabel("Routing:"), algoBox);
+    final RoutingAlgorithm[] algos = Controller.getRoutingAlgorithms();
+    if(algos.length != 1) {
+      algoBox = new JComboBox(algos);
+      algoBox.addActionListener(new ActionListener() {
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+          final RoutingAlgorithm routing = (RoutingAlgorithm)
+              algoBox.getSelectedItem();
+          if(routing != ctrl.getRoutingAlgorithm()) {
+            ctrl.setRoutingAlgorithm(routing);
+          }
+        }
+
+      });
+      algoBox.setMaximumSize(algoBox.getPreferredSize());
+      addHor(new JLabel("Routing:"), algoBox);
+    } else {
+      algoBox = null;
+    }
     // station selection
     final BusStationName[] stations = getStations(ctrl);
     for(int i = 0; i < stations.length; ++i) {
@@ -323,7 +328,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     final int mth = ctrl.getMaxTimeHours();
     tw.setValue(mth);
     twLabel.setText(BusTime.minutesToString(mth * BusTime.MINUTES_PER_HOUR));
-    // algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
+    if(algoBox != null) {
+      algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
+    }
   }
 
 }
