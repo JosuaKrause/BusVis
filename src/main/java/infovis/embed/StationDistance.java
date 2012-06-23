@@ -1,17 +1,17 @@
 package infovis.embed;
 
-import static infovis.VecUtil.*;
+import static infovis.util.VecUtil.*;
 import infovis.ctrl.Controller;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.data.EdgeMatrix;
 import infovis.data.EdgeMatrix.UndirectedEdge;
-import infovis.embed.pol.Interpolator;
 import infovis.gui.Context;
 import infovis.routing.RoutingManager;
 import infovis.routing.RoutingManager.CallBack;
 import infovis.routing.RoutingResult;
+import infovis.util.Interpolator;
 
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;

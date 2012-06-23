@@ -1,4 +1,4 @@
-package infovis;
+package infovis.util;
 
 import java.awt.geom.Point2D;
 

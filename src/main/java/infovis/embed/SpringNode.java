@@ -1,6 +1,6 @@
 package infovis.embed;
 
-import infovis.embed.pol.Interpolator;
+import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
 import java.util.Random;
