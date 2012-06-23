@@ -66,11 +66,6 @@ public final class BusStationManager implements BusStationEnumerator {
     return fastLookup.length - 1;
   }
 
-  @Override
-  public int count() {
-    return fastIterate.size();
-  }
-
   /**
    * The maximum amount of time a route can take.
    */

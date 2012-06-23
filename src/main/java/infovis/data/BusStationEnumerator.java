@@ -28,13 +28,6 @@ public interface BusStationEnumerator {
   /**
    * Getter.
    * 
-   * @return The number of bus stations.
-   */
-  int count();
-
-  /**
-   * Getter.
-   * 
    * @param id The id of a bus station.
    * @return The bus station with the given id.
    */

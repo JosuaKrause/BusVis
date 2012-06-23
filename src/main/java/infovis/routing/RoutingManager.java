@@ -5,7 +5,6 @@ import infovis.data.BusStationEnumerator;
 import infovis.data.BusTime;
 
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.concurrent.Callable;
 
 /**
@@ -48,10 +47,10 @@ public final class RoutingManager {
    */
   public void findRoutes(final BusStationEnumerator bse, final BusStation station,
       final BitSet dests, final BusTime start, final int wait, final int maxDuration,
-      final RoutingAlgorithm algo, final CallBack<Collection<RoutingResult>> call) {
-    registerTask(new Callable<Collection<RoutingResult>>() {
+      final RoutingAlgorithm algo, final CallBack<RoutingResult[]> call) {
+    registerTask(new Callable<RoutingResult[]>() {
       @Override
-      public Collection<RoutingResult> call() throws InterruptedException {
+      public RoutingResult[] call() throws InterruptedException {
         return algo.findRoutes(bse, station, dests, start, wait, maxDuration);
       }
     }, call);

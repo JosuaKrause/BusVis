@@ -343,11 +343,6 @@ public final class Controller implements BusStationEnumerator {
   }
 
   @Override
-  public int count() {
-    return manager.count();
-  }
-
-  @Override
   public BusStation getForId(final int id) {
     return manager.getForId(id);
   }

@@ -6,7 +6,6 @@ import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 
 import java.util.BitSet;
-import java.util.Collection;
 
 /**
  * A routing algorithm finds routes to arbitrary bus stations.
@@ -31,7 +30,7 @@ public interface RoutingAlgorithm {
    * @throws InterruptedException if the current thread was interrupted during
    *           the computation
    */
-  Collection<RoutingResult> findRoutes(BusStationEnumerator bse,
+  RoutingResult[] findRoutes(BusStationEnumerator bse,
       final BusStation station, final BitSet dests, final BusTime start, final int wait,
       final int maxDuration) throws InterruptedException;
 
