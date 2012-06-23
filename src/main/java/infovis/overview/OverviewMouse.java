@@ -122,6 +122,7 @@ public final class OverviewMouse extends MouseAdapter {
     }
     if(minDist >= STATION_RADIUS * STATION_RADIUS) return false;
     ctrl.selectStation(closestStation);
+    ctrl.focusStation();
     return true;
   }
 
