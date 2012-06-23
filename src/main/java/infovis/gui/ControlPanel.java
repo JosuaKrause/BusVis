@@ -15,8 +15,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -81,10 +79,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   private final JLabel twLabel;
 
   /**
-   * Maps bus stations to indices in the combo box.
+   * Maps bus station ids to indices in the combo box.
    */
-  // TODO as array
-  private final Map<BusStation, Integer> indexMap = new HashMap<BusStation, Integer>();
+  private final int[] indexMap;
 
   /**
    * The algorithm box.
@@ -182,8 +179,12 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     }
     // station selection
     final BusStationName[] stations = getStations(ctrl);
+    indexMap = new int[ctrl.maxId() + 1];
     for(int i = 0; i < stations.length; ++i) {
-      indexMap.put(stations[i].station, i);
+      if(stations[i].station == null) {
+        continue;
+      }
+      indexMap[stations[i].station.getId()] = i;
     }
     box = new JComboBox(stations);
     box.addActionListener(new ActionListener() {
@@ -289,7 +290,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   @Override
   public void selectBusStation(final BusStation station) {
-    box.setSelectedIndex(indexMap.get(station));
+    box.setSelectedIndex(station != null ? indexMap[station.getId()] : 0);
   }
 
   @Override

@@ -42,8 +42,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   /**
    * The reverse backing map for the spring nodes.
    */
-  // TODO as array
-  private final Map<BusStation, SpringNode> rev;
+  private final SpringNode[] rev;
 
   /**
    * The routes from the bus station.
@@ -85,12 +84,12 @@ public final class StationDistance implements Weighter, NodeDrawer {
     this.ctrl = ctrl;
     routes = Collections.EMPTY_MAP;
     map = new HashMap<SpringNode, BusStation>();
-    rev = new HashMap<BusStation, SpringNode>();
+    rev = new SpringNode[ctrl.maxId() + 1];
     for(final BusStation s : ctrl.getStations()) {
       final SpringNode node = new SpringNode();
       node.setPosition(s.getDefaultX(), s.getDefaultY());
       map.put(node, s);
-      rev.put(s, node);
+      rev[s.getId()] = node;
     }
   }
 
@@ -354,7 +353,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final double y1 = n.getY();
     for(final Neighbor edge : station.getNeighbors()) {
       final BusStation neighbor = edge.station;
-      final SpringNode node = rev.get(neighbor);
+      final SpringNode node = getNode(neighbor);
       final RoutingResult otherRoute = routes.get(neighbor);
       if(otherRoute != null && otherRoute.isNotReachable()) {
         continue;
@@ -437,7 +436,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
       final long time = System.currentTimeMillis();
       final double t = ((double) time - fadingStart) / ((double) fadingEnd - fadingStart);
       final double f = Interpolator.SMOOTH.interpolate(t);
-      final SpringNode n = f > 0.5 ? ref : rev.get(fadeOut);
+      final SpringNode n = f > 0.5 ? ref : getNode(fadeOut);
       center = n != null ? n.getPos() : null;
       if(t >= 1.0) {
         alpha = 1;
@@ -501,7 +500,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
   @Override
   public SpringNode getReferenceNode() {
-    return from == null ? null : rev.get(from);
+    return getNode(from);
   }
 
   @Override
@@ -538,7 +537,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
    * @return The corresponding node.
    */
   public SpringNode getNode(final BusStation station) {
-    return station == null ? null : rev.get(station);
+    return station == null ? null : rev[station.getId()];
   }
 
   @Override
