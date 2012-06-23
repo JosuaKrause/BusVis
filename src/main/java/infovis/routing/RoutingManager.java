@@ -1,10 +1,10 @@
 package infovis.routing;
 
 import infovis.data.BusStation;
+import infovis.data.BusStationEnumerator;
 import infovis.data.BusTime;
 
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.concurrent.Callable;
 
 /**
@@ -36,6 +36,7 @@ public final class RoutingManager {
    * routing finishes without being interrupted, the given callback is called
    * with the result as argument.
    * 
+   * @param bse The bus station enumerator.
    * @param station start station
    * @param dests IDs of requested destinations
    * @param start start time
@@ -44,13 +45,13 @@ public final class RoutingManager {
    * @param algo The routing algorithm.
    * @param call callback for results
    */
-  public void findRoutes(final BusStation station, final BitSet dests,
-      final BusTime start, final int wait, final int maxDuration,
-      final RoutingAlgorithm algo, final CallBack<Collection<RoutingResult>> call) {
-    registerTask(new Callable<Collection<RoutingResult>>() {
+  public void findRoutes(final BusStationEnumerator bse, final BusStation station,
+      final BitSet dests, final BusTime start, final int wait, final int maxDuration,
+      final RoutingAlgorithm algo, final CallBack<RoutingResult[]> call) {
+    registerTask(new Callable<RoutingResult[]>() {
       @Override
-      public Collection<RoutingResult> call() throws InterruptedException {
-        return algo.findRoutes(station, dests, start, wait, maxDuration);
+      public RoutingResult[] call() throws InterruptedException {
+        return algo.findRoutes(bse, station, dests, start, wait, maxDuration);
       }
     }, call);
   }

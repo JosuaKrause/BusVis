@@ -1,14 +1,15 @@
 package infovis.ctrl;
 
 import infovis.data.BusStation;
+import infovis.data.BusStationEnumerator;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
-import infovis.routing.FastRouteFinder;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,7 +22,7 @@ import javax.swing.JFrame;
  * @author Joschi <josua.krause@googlemail.com>
  *
  */
-public final class Controller {
+public final class Controller implements BusStationEnumerator {
 
   /**
    * The list of active visualizations.
@@ -142,8 +143,6 @@ public final class Controller {
    */
   private static final RoutingAlgorithm[] ALGOS = new RoutingAlgorithm[] {
     new RouteFinder(),
-
-    new FastRouteFinder(),
   };
 
   /**
@@ -333,26 +332,19 @@ public final class Controller {
     vis.remove(v);
   }
 
-  /**
-   * Getter.
-   * 
-   * @return All bus stations.
-   */
-  public Iterable<BusStation> getStations() {
+  @Override
+  public Collection<BusStation> getStations() {
     return manager.getStations();
   }
 
-  /**
-   * Getter.
-   * 
-   * @return All bus stations.
-   */
-  public BusStation[] getAllStations() {
-    final List<BusStation> res = new ArrayList<BusStation>();
-    for(final BusStation s : manager.getStations()) {
-      res.add(s);
-    }
-    return res.toArray(new BusStation[res.size()]);
+  @Override
+  public int maxId() {
+    return manager.maxId();
+  }
+
+  @Override
+  public BusStation getForId(final int id) {
+    return manager.getForId(id);
   }
 
   /**

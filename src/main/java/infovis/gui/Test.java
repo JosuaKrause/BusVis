@@ -15,7 +15,7 @@ import javax.swing.WindowConstants;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class Test extends PainterAdapter {
+public final class Test extends PainterAdapter {
 
   /**
    * Starts the test application.

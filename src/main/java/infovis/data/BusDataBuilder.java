@@ -24,12 +24,17 @@ import au.com.bytecode.opencsv.CSVReader;
  * @author Leo Woerteler
  */
 public final class BusDataBuilder {
+
+  /** Maps the external bus station ids to the internal ones. */
+  private final Map<Integer, Integer> idMap = new HashMap<Integer, Integer>();
   /** Bus stations. */
   private final Map<Integer, BusStation> stations = new HashMap<Integer, BusStation>();
-  /** Container for all bus stations. */
-  private final BusStationManager manager;
   /** Map from station IDs to the bus edges originating at this station. */
   private final Map<Integer, List<BusEdge>> edges = new HashMap<Integer, List<BusEdge>>();
+  /** The path to the resources. */
+  private final String path;
+  /** The currently maximal id. */
+  private int id;
 
   /**
    * Constructor taking the path of the CSV files.
@@ -37,7 +42,7 @@ public final class BusDataBuilder {
    * @param path path of the CSV files, possibly <code>null</code>
    */
   public BusDataBuilder(final String path) {
-    manager = new BusStationManager(stations, path);
+    this.path = path;
   }
 
   /**
@@ -144,15 +149,16 @@ public final class BusDataBuilder {
    */
   public BusStation createStation(final String name, final int id, final double x,
       final double y, final double abstractX, final double abstractY) {
-    if(id < 0) throw new IllegalArgumentException("id '" + id
-        + "' has to be non-negative");
-    if(stations.containsKey(id)) throw new IllegalArgumentException("id: " + id
+    if(idMap.containsKey(id)) throw new IllegalArgumentException("id: " + id
         + " already in use");
+    // keep bus station ids dense
+    final int realId = this.id++;
+    idMap.put(id, realId);
     final List<BusEdge> edgeList = new ArrayList<BusEdge>();
-    edges.put(id, edgeList);
-    final BusStation bus = new BusStation(manager, name, id, x, y, abstractX, abstractY,
+    edges.put(realId, edgeList);
+    final BusStation bus = new BusStation(name, realId, x, y, abstractX, abstractY,
         edgeList);
-    stations.put(id, bus);
+    stations.put(realId, bus);
     return bus;
   }
 
@@ -209,7 +215,7 @@ public final class BusDataBuilder {
    * @throws IllegalArgumentException if the ID has no associated station
    */
   private BusStation getStation(final int id) {
-    final BusStation station = stations.get(id);
+    final BusStation station = stations.get(idMap.get(id));
     if(station == null) throw new IllegalArgumentException("Unknown station: " + id);
     return station;
   }
@@ -223,6 +229,7 @@ public final class BusDataBuilder {
     for(final Entry<Integer, List<BusEdge>> e : edges.entrySet()) {
       Collections.sort(e.getValue());
     }
-    return manager;
+    return new BusStationManager(stations.values(), path);
   }
+
 }

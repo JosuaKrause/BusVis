@@ -7,7 +7,8 @@ import java.awt.Color;
  * 
  * @author Leo Woerteler
  */
-public class BusLine {
+public final class BusLine {
+
   /** Bus line name. */
   private final String name;
 
@@ -58,4 +59,5 @@ public class BusLine {
   public int hashCode() {
     return name.hashCode();
   }
+
 }

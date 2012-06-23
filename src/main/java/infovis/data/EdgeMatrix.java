@@ -3,7 +3,6 @@ package infovis.data;
 import infovis.routing.RoutingResult;
 
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -175,28 +174,21 @@ public final class EdgeMatrix {
   /**
    * Creates a matrix for the given manager.
    * 
-   * @param mng The manager.
+   * @param bse The bus station enumerator.
    */
-  public EdgeMatrix(final BusStationManager mng) {
-    int max = 0;
-    for(final BusStation bs : mng.getStations()) {
-      final int id = bs.getId();
-      if(id > max) {
-        max = id;
-      }
-    }
-    maxId = max;
+  public EdgeMatrix(final BusStationEnumerator bse) {
+    maxId = bse.maxId();
     maxLines = new int[maxId + 1];
     degree = new int[maxId + 1];
-    matrix = new UndirectedEdge[max][];
-    for(int i = 1; i <= max; ++i) {
-      final BusStation higher = mng.getForId(i);
+    matrix = new UndirectedEdge[maxId][];
+    for(int i = 1; i <= maxId; ++i) {
+      final BusStation higher = bse.getForId(i);
       if(higher == null) {
         continue;
       }
       final UndirectedEdge[] tmp = matrix[i - 1] = new UndirectedEdge[i];
       for(int j = 0; j < i; ++j) {
-        final BusStation lower = mng.getForId(j);
+        final BusStation lower = bse.getForId(j);
         if(lower == null) {
           continue;
         }
@@ -281,7 +273,7 @@ public final class EdgeMatrix {
    * 
    * @param routes The routes.
    */
-  public synchronized void refreshHighlights(final Collection<RoutingResult> routes) {
+  public synchronized void refreshHighlights(final RoutingResult[] routes) {
     for(int i = 1; i <= maxId; ++i) {
       for(int j = 0; j < i; ++j) {
         final UndirectedEdge e = getFor(j, i);
