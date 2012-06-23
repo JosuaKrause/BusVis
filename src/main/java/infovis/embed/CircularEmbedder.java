@@ -1,7 +1,7 @@
 package infovis.embed;
 
-import static infovis.VecUtil.*;
-import infovis.embed.pol.Interpolator;
+import static infovis.util.VecUtil.*;
+import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
 
