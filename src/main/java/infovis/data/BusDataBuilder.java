@@ -65,18 +65,18 @@ public final class BusDataBuilder {
           -parseDouble(stop[2]) * 10000, abstractX, abstractY);
     }
 
-    final Map<String, Color> colors = new HashMap<String, Color>();
+    final Map<String, BusLine> lines = new HashMap<String, BusLine>();
     final CSVReader colorReader = readerFor(new File(root, "linecolor.csv"));
     for(String[] line; (line = colorReader.readNext()) != null;) {
-      colors.put(line[0].replace('_', '/'),
-          new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3])));
+      final String name = line[0].replace('_', '/');
+      lines.put(name, createLine(name,
+          new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]))));
     }
 
     for(final File line : new File(root, "lines").listFiles()) {
       final String name = line.getName().replace('_', '/').replace(".csv", "");
-      final Color color = colors.get(name);
-      final BusLine busLine = createLine(name, color != null ? color
-          : colors.get(name.replaceAll("\\D.*", "")));
+      final BusLine busLine = lines.containsKey(name) ? lines.get(name)
+          : lines.get(name.replaceAll("\\D.*", ""));
 
       final CSVReader lineReader = readerFor(line);
       int tourNr = 0;

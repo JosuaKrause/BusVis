@@ -9,48 +9,101 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * The edge matrix gives an undirected representation of the bus network.
+ * 
+ * @author Joschi <josua.krause@googlemail.com>
+ */
 public final class EdgeMatrix {
 
-  public static class UndirectedEdge {
+  /**
+   * Represents an undirected edge between two stations.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  public static final class UndirectedEdge {
 
-    private final BusStation from;
+    /**
+     * The station with the lower id.
+     */
+    private final BusStation lower;
 
-    private final BusStation to;
+    /**
+     * The station with the higher id.
+     */
+    private final BusStation higher;
 
+    /**
+     * The lines traveling between the stations.
+     */
     private final BusLine[] lines;
 
+    /**
+     * The highlighted lines.
+     */
     private final BitSet highlighted;
 
+    /**
+     * The highest highlighted line.
+     */
     private int highest;
 
+    /**
+     * The number of highlighted lines.
+     */
     private int count;
 
-    private UndirectedEdge(final BusStation from, final BusStation to,
+    /**
+     * Creates an undirected edge. The stations must be already sorted.
+     * 
+     * @param lower The source station.
+     * @param higher The destination station.
+     * @param lines The lines.
+     */
+    protected UndirectedEdge(final BusStation lower, final BusStation higher,
         final BusLine[] lines) {
-      assert from.getId() < to.getId();
-      this.from = from;
-      this.to = to;
+      assert lower.getId() < higher.getId();
+      this.lower = lower;
+      this.higher = higher;
       this.lines = lines;
       highlighted = new BitSet();
       highest = -1;
       count = 0;
     }
 
-    public BusStation getFrom() {
-      return from;
+    /**
+     * Getter.
+     * 
+     * @return The lower id station.
+     */
+    public BusStation getLower() {
+      return lower;
     }
 
-    public BusStation getTo() {
-      return to;
+    /**
+     * Getter.
+     * 
+     * @return The higher id station.
+     */
+    public BusStation getHigher() {
+      return higher;
     }
 
-    public void clearHighlighted() {
+    /**
+     * Clears the highlights.
+     */
+    public synchronized void clearHighlighted() {
       highlighted.clear();
       highest = -1;
       count = 0;
     }
 
-    public void addHighlighted(final BusLine hl) {
+    /**
+     * Adds an line to highlight.
+     * 
+     * @param hl The line to highlight.
+     */
+    public synchronized void addHighlighted(final BusLine hl) {
       for(int j = 0; j < lines.length; ++j) {
         if(hl.equals(lines[j])) {
           if(!highlighted.get(j)) {
@@ -66,7 +119,12 @@ public final class EdgeMatrix {
       throw new IllegalStateException("line not found");
     }
 
-    public BusLine[] getHighlightedEdges() {
+    /**
+     * Getter.
+     * 
+     * @return The highlighted lines.
+     */
+    public synchronized BusLine[] getHighlightedLines() {
       final BusLine[] res = new BusLine[count];
       if(count == 0) return res;
       int p = 0;
@@ -87,7 +145,12 @@ public final class EdgeMatrix {
       return res;
     }
 
-    public BusLine[] getNonHighlightedEdges() {
+    /**
+     * Getter.
+     * 
+     * @return The non highlighted lines.
+     */
+    public synchronized BusLine[] getNonHighlightedLines() {
       final int l = lines.length - count;
       final BusLine[] res = new BusLine[l];
       if(l == 0) return res;
@@ -102,20 +165,42 @@ public final class EdgeMatrix {
       return res;
     }
 
-    public int getDegree() {
+    /**
+     * Getter.
+     * 
+     * @return The number of lines connecting the two stations.
+     */
+    public int getLineDegree() {
       return lines.length;
     }
 
   }
 
+  /**
+   * The map for the maximal number of lines per station.
+   */
   private final int[] maxLines;
 
+  /**
+   * The map for the degree of a station.
+   */
   private final int[] degree;
 
+  /**
+   * The highest bus station id.
+   */
   private final int maxId;
 
+  /**
+   * The matrix.
+   */
   protected final UndirectedEdge[][] matrix;
 
+  /**
+   * Creates a matrix for the given manager.
+   * 
+   * @param mng The manager.
+   */
   public EdgeMatrix(final BusStationManager mng) {
     int max = 0;
     for(final BusStation bs : mng.getStations()) {
@@ -129,20 +214,20 @@ public final class EdgeMatrix {
     degree = new int[maxId + 1];
     matrix = new UndirectedEdge[max][];
     for(int i = 1; i <= max; ++i) {
-      final BusStation to = mng.getForId(i);
-      if(to == null) {
+      final BusStation higher = mng.getForId(i);
+      if(higher == null) {
         continue;
       }
       final UndirectedEdge[] tmp = matrix[i - 1] = new UndirectedEdge[i];
       for(int j = 0; j < i; ++j) {
-        final BusStation from = mng.getForId(j);
-        if(from == null) {
+        final BusStation lower = mng.getForId(j);
+        if(lower == null) {
           continue;
         }
-        final BusLine[] lines = calcLines(from, to);
+        final BusLine[] lines = calcLines(lower, higher);
         if(lines.length > 0) {
-          updateLinesAndDegree(from.getId(), to.getId(), lines.length);
-          tmp[j] = new UndirectedEdge(from, to, lines);
+          updateLinesAndDegree(lower.getId(), higher.getId(), lines.length);
+          tmp[j] = new UndirectedEdge(lower, higher, lines);
         }
       }
     }
@@ -167,32 +252,60 @@ public final class EdgeMatrix {
     }
   }
 
-  private BusLine[] calcLines(final BusStation from, final BusStation to) {
+  /**
+   * Calculates the lines for a pair of {@link BusStation}s.
+   * 
+   * @param a One station.
+   * @param b Another station.
+   * @return The lines connecting the stations.
+   */
+  private static BusLine[] calcLines(final BusStation a, final BusStation b) {
     final Set<BusLine> set = new HashSet<BusLine>();
-    for(final BusEdge e : from.getEdges()) {
-      if(e.getTo().equals(to)) {
+    for(final BusEdge e : a.getEdges()) {
+      if(e.getTo().equals(b)) {
         set.add(e.getLine());
       }
     }
-    for(final BusEdge e : to.getEdges()) {
-      if(e.getTo().equals(from)) {
+    for(final BusEdge e : b.getEdges()) {
+      if(e.getTo().equals(a)) {
         set.add(e.getLine());
       }
     }
     return set.toArray(new BusLine[set.size()]);
   }
 
+  /**
+   * Getter.
+   * 
+   * @param a A station.
+   * @param b Another station.
+   * @return The undirected edge between those or <code>null</code> if there is
+   *         no line.
+   */
   public UndirectedEdge getFor(final BusStation a, final BusStation b) {
     return getFor(a.getId(), b.getId());
   }
 
-  public UndirectedEdge getFor(final int a, final int b) {
+  /**
+   * Getter.
+   * 
+   * @param a A station id.
+   * @param b Another station id.
+   * @return The undirected edge between those or <code>null</code> if there is
+   *         no line.
+   */
+  private UndirectedEdge getFor(final int a, final int b) {
     if(a == b) return null;
     if(a > b) return getFor(b, a);
     return matrix[b - 1][a];
   }
 
-  public void refreshHighlights(final Collection<RoutingResult> routes) {
+  /**
+   * Refreshes the highlights according to the given routes.
+   * 
+   * @param routes The routes.
+   */
+  public synchronized void refreshHighlights(final Collection<RoutingResult> routes) {
     for(int i = 1; i <= maxId; ++i) {
       for(int j = 0; j < i; ++j) {
         final UndirectedEdge e = getFor(j, i);
@@ -214,11 +327,25 @@ public final class EdgeMatrix {
     }
   }
 
+  /**
+   * Getter.
+   * 
+   * @param station A station.
+   * @return All undirected edges of a station (only to stations with a lower
+   *         id).
+   */
   public Iterable<UndirectedEdge> getEdgesFor(final BusStation station) {
     return getEdgesFor(station.getId());
   }
 
-  public Iterable<UndirectedEdge> getEdgesFor(final int id) {
+  /**
+   * Getter.
+   * 
+   * @param id A station id.
+   * @return All undirected edges of a station (only to stations with a lower
+   *         id).
+   */
+  private Iterable<UndirectedEdge> getEdgesFor(final int id) {
     if(id == 0) return Collections.EMPTY_LIST;
     return new Iterable<UndirectedEdge>() {
 

@@ -68,6 +68,11 @@ public final class BusStation implements Comparable<BusStation> {
     return id;
   }
 
+  /**
+   * Getter.
+   * 
+   * @return Returns all edges associated with this bus station.
+   */
   public Collection<BusEdge> getEdges() {
     return Collections.unmodifiableList(edges);
   }
