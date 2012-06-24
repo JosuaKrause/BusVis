@@ -73,6 +73,7 @@ public final class RouteFinder implements RoutingAlgorithm {
       final BusStationEnumerator bse, final BusStation station, final BitSet dests,
       final BusTime start, final int wait, final int maxDuration, final int maxWalk)
           throws InterruptedException {
+    final int maxWalkSecs = maxWalk * BusTime.SECONDS_PER_MINUTE;
     // set of stations yet to be found
     final BitSet notFound = dests == null ? new BitSet() : (BitSet) dests.clone();
     if(dests == null) {
@@ -88,6 +89,20 @@ public final class RouteFinder implements RoutingAlgorithm {
       final Route route = new Route(start, e);
       if(route.travelTime <= maxDuration) {
         queue.add(route);
+      }
+    }
+
+    for(final BusStation dest : bse.getStations()) {
+      if(!dest.equals(station)) {
+        final int walkSecs = station.walkingSeconds(dest);
+        if(0 <= walkSecs && walkSecs <= maxWalkSecs) {
+          final BusTime end = start.later((walkSecs + BusTime.SECONDS_PER_MINUTE - 1)
+              / BusTime.SECONDS_PER_MINUTE);
+          final Route route = new Route(start, BusEdge.walking(station, dest, start, end));
+          if(route.travelTime <= maxDuration) {
+            queue.add(route);
+          }
+        }
       }
     }
 
@@ -128,7 +143,7 @@ public final class RouteFinder implements RoutingAlgorithm {
         for(final BusStation st : bse.getStations()) {
           if(!current.contains(st) && bestRoutes[st.getId()] == null) {
             final int secs = dest.walkingSeconds(st);
-            if(secs < 0 || secs > maxWalk) {
+            if(secs < 0 || secs > maxWalk * BusTime.SECONDS_PER_MINUTE) {
               continue;
             }
 

@@ -167,8 +167,8 @@ public final class StationDistance implements Weighter, NodeDrawer {
       }
 
     };
-    rm.findRoutes(ctrl, from, null, time != null ? time : BusTime.now(),
-        changeTime, ctrl.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, 5,
+    rm.findRoutes(ctrl, from, null, time != null ? time : BusTime.now(), changeTime,
+        ctrl.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, ctrl.getWalkTime(),
         ctrl.getRoutingAlgorithm(), cb);
   }
 
