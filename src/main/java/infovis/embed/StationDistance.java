@@ -2,6 +2,7 @@ package infovis.embed;
 
 import static infovis.util.VecUtil.*;
 import infovis.ctrl.Controller;
+import infovis.data.BusEdge;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
@@ -23,8 +24,15 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
+import setvis.bubbleset.BubbleSet;
+import setvis.shape.AbstractShapeGenerator;
+import setvis.shape.BSplineShapeGenerator;
+import setvis.shape.PolygonShapeGenerator;
+import setvis.shape.ShapeSimplifier;
 
 /**
  * Weights the station network after the distance from one start station.
@@ -402,6 +410,17 @@ public final class StationDistance implements Weighter, NodeDrawer {
     }
   }
 
+  /**
+   * The bubble set generator.
+   */
+  private static final AbstractShapeGenerator BUBBLES = new ShapeSimplifier(
+      new BSplineShapeGenerator(new ShapeSimplifier(new PolygonShapeGenerator(
+          new BubbleSet()))), 1.0);
+
+  static {
+    BUBBLES.setRadius(0);
+  }
+
   @Override
   public void drawNode(final Graphics2D g, final Context ctx, final SpringNode n,
       final boolean hovered) {
@@ -417,6 +436,31 @@ public final class StationDistance implements Weighter, NodeDrawer {
     g2.setColor(Color.BLACK);
     g2.draw(shape);
     g2.dispose();
+    if(hovered) {
+      final Collection<BusEdge> edges = route.getEdges();
+      if(edges == null) return;
+      final int size = edges.size();
+      final Rectangle2D[] rects = new Rectangle2D[size + 1];
+      final Line2D[] lines = new Line2D[size];
+      final SpringNode start = getReferenceNode();
+      rects[0] = nodeClickArea(start, true).getBounds2D();
+      Point2D pos = start.getPos();
+      int i = 0;
+      for(final BusEdge e : edges) {
+        final SpringNode cur = getNode(e.getTo());
+        final Point2D curPos = cur.getPos();
+        lines[i] = new Line2D.Double(pos, curPos);
+        rects[i + 1] = nodeClickArea(cur, true).getBounds2D();
+        pos = curPos;
+        ++i;
+      }
+      final Shape bubble = BUBBLES.createShapeFor(rects, new Rectangle2D[0], lines);
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+      g.setColor(Color.BLUE);
+      g.fill(bubble);
+      g.setColor(Color.BLACK);
+      g.draw(bubble);
+    }
   }
 
   @Override
