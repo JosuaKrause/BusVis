@@ -16,11 +16,14 @@ import java.util.PriorityQueue;
  * @author Leo Woerteler
  */
 public final class RouteFinder implements RoutingAlgorithm {
-  /** Comparator for comparing {@link Route}s by travel time. */
+  /** Comparator for comparing Routes by travel time, length an walking time. */
   private static final Comparator<Route> CMP = new Comparator<Route>() {
     @Override
     public int compare(final Route o1, final Route o2) {
-      return o1.travelTime - o2.travelTime;
+      final int timeDiff = o1.travelTime - o2.travelTime;
+      if(timeDiff != 0) return timeDiff;
+      final int stepsDiff = o1.getLength() - o2.getLength();
+      return stepsDiff != 0 ? timeDiff : o1.walkTime() - o2.walkTime();
     }
   };
 
@@ -265,6 +268,30 @@ public final class RouteFinder implements RoutingAlgorithm {
      */
     public boolean contains(final BusStation s) {
       return stations.get(s.getId());
+    }
+
+    /**
+     * Getter.
+     * 
+     * @return number of edges in this route
+     */
+    public int getLength() {
+      return length;
+    }
+
+    /**
+     * Total time walked in this route.
+     * 
+     * @return number of minutes spent walking
+     */
+    public int walkTime() {
+      int walked = 0;
+      for(Route route = this; route != null; route = route.before) {
+        if(route.last.getLine() == BusLine.WALK) {
+          walked += route.last.travelMinutes();
+        }
+      }
+      return walked;
     }
 
     /**
