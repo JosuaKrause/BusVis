@@ -1,6 +1,7 @@
 package infovis.routing;
 
 import infovis.data.BusEdge;
+import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 
@@ -166,6 +167,32 @@ public final class RoutingResult {
    */
   public BusTime getEndTime() {
     return startTime.later(minutes());
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(getClass().getSimpleName()).append("[\n").append("  from=").append(
+        from.getName()).append(",\n  to=").append(to.getName()).append(",\n  steps=[\n" +
+            "    start at ").append(from.getName()).append(" at ");
+    BusTime curTime = startTime;
+    sb.append(curTime.pretty()).append(",\n");
+    for(final BusEdge e : getEdges()) {
+      final int wait = curTime.minutesTo(e.getStart());
+      if(wait > 0) {
+        sb.append("    wait for ").append(BusTime.minutesToString(wait)).append(",\n");
+      }
+      if(BusLine.WALK.equals(e.getLine())) {
+        sb.append("    walk ");
+      } else {
+        sb.append("    take bus line ").append(e.getLine().getName()).append(" for ");
+      }
+      sb.append(BusTime.minutesToString(e.travelMinutes())).append(" to ").append(
+          e.getTo().getName()).append(",\n");
+      curTime = e.getEnd();
+    }
+    sb.append("  ],\n  time=").append(BusTime.minutesToString(minutes())).append("\n]");
+    return sb.toString();
   }
 
 }

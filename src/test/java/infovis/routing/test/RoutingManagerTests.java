@@ -86,7 +86,7 @@ public class RoutingManagerTests {
     final Semaphore sem = new Semaphore(0);
     final AtomicReference<RoutingResult[]> ref = new AtomicReference<RoutingResult[]>();
 
-    rm.findRoutes(man, man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60,
+    rm.findRoutes(man, man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60, 0,
         new RouteFinder(), new CallBack<RoutingResult[]>() {
           @Override
           public void callBack(final RoutingResult[] result) {
@@ -115,7 +115,7 @@ public class RoutingManagerTests {
       public RoutingResult[] call() throws InterruptedException {
         cd.countDown();
         final RoutingResult[] routes = new RouteFinder().findRoutes(man,
-            man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60);
+            man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60, 0);
         ref.getAndSet(true); // should not exit normally
         return routes;
       }

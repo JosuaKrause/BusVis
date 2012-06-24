@@ -42,16 +42,17 @@ public final class RoutingManager {
    * @param start start time
    * @param wait minimum waiting time when changing bus lines
    * @param maxDuration maximum time in minutes that a route may take
+   * @param maxWalk maximum allowed continuous walking time
    * @param algo The routing algorithm.
    * @param call callback for results
    */
   public void findRoutes(final BusStationEnumerator bse, final BusStation station,
       final BitSet dests, final BusTime start, final int wait, final int maxDuration,
-      final RoutingAlgorithm algo, final CallBack<RoutingResult[]> call) {
+      final int maxWalk, final RoutingAlgorithm algo, final CallBack<RoutingResult[]> call) {
     registerTask(new Callable<RoutingResult[]>() {
       @Override
       public RoutingResult[] call() throws InterruptedException {
-        return algo.findRoutes(bse, station, dests, start, wait, maxDuration);
+        return algo.findRoutes(bse, station, dests, start, wait, maxDuration, maxWalk);
       }
     }, call);
   }
