@@ -19,8 +19,31 @@ public final class BusStation implements Comparable<BusStation> {
   /** The (non-negative) unique id of the bus station. */
   private final int id;
 
+  /**
+   * The default x coordinate for this bus station.
+   */
+  private final double x;
+
+  /**
+   * The default y coordinate for this bus station.
+   */
+  private final double y;
+
+  /**
+   * The x coordinate for this bus station on the abstract map.
+   */
+  private final double abstractX;
+
+  /**
+   * The y coordinate for this bus station on the abstract map.
+   */
+  private final double abstractY;
+
   /** A sorted list of all bus edges starting with the earliest edge (00:00). */
   private final List<BusEdge> edges;
+
+  /** Walking distances to the other stations. */
+  private final List<Integer> walkingDists;
 
   /**
    * Creates a bus station.
@@ -32,10 +55,11 @@ public final class BusStation implements Comparable<BusStation> {
    * @param abstractX The x position on the abstract map.
    * @param abstractY The y position on the abstract map.
    * @param edges sorted list of edges
+   * @param walkingDists walking distances
    */
   BusStation(final String name, final int id,
       final double x, final double y, final double abstractX, final double abstractY,
-      final List<BusEdge> edges) {
+      final List<BusEdge> edges, final List<Integer> walkingDists) {
     this.name = name;
     this.id = id;
     this.x = x;
@@ -43,6 +67,7 @@ public final class BusStation implements Comparable<BusStation> {
     this.abstractX = abstractX;
     this.abstractY = abstractY;
     this.edges = edges;
+    this.walkingDists = walkingDists;
   }
 
   /**
@@ -145,16 +170,6 @@ public final class BusStation implements Comparable<BusStation> {
   }
 
   /**
-   * The default x coordinate for this bus station.
-   */
-  private final double x;
-
-  /**
-   * The default y coordinate for this bus station.
-   */
-  private final double y;
-
-  /**
    * Getter.
    * 
    * @return The default x coordinate for this bus station.
@@ -173,14 +188,15 @@ public final class BusStation implements Comparable<BusStation> {
   }
 
   /**
-   * The x coordinate for this bus station on the abstract map.
+   * Number of seconds it takes to walk from this station to the given one.
+   * 
+   * @param other other station
+   * @return distance in seconds if known, {@code -1} otherwise
    */
-  private final double abstractX;
-
-  /**
-   * The y coordinate for this bus station on the abstract map.
-   */
-  private final double abstractY;
+  public int walkingSeconds(final BusStation other) {
+    final int oid = other.getId();
+    return walkingDists.size() <= oid ? -1 : walkingDists.get(oid);
+  }
 
   /**
    * Getter.

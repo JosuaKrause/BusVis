@@ -24,35 +24,26 @@ import javax.swing.JFrame;
  */
 public final class Controller implements BusStationEnumerator {
 
-  /**
-   * The list of active visualizations.
-   */
+  /** The list of active visualizations. */
   private final List<BusVisualization> vis = new ArrayList<BusVisualization>();
 
-  /**
-   * The bus station manager.
-   */
+  /** The bus station manager. */
   private final BusStationManager manager;
 
-  /**
-   * The frame.
-   */
+  /** The frame. */
   private final JFrame frame;
 
-  /**
-   * The currently selected bus station.
-   */
+  /** The currently selected bus station. */
   private BusStation curSelection;
 
-  /**
-   * The current start time.
-   */
+  /** The current start time. */
   protected volatile BusTime curStartTime = BusTime.now();
 
-  /**
-   * The current change time.
-   */
-  private int curChangeTime = 1;
+  /** The current change time. */
+  private volatile int curChangeTime = 3;
+
+  /** Current maximum walking time. */
+  private volatile int currWalkTime = 5;
 
   /** Timer for real-time view. */
   private final Timer timer = new Timer(true);
@@ -363,6 +354,27 @@ public final class Controller implements BusStationEnumerator {
    */
   public BusStationManager getBusStationManager() {
     return manager;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return current maximum walking time
+   */
+  public int getWalkTime() {
+    return currWalkTime;
+  }
+
+  /**
+   * Setter.
+   * 
+   * @param newWalkTime new maximum walk time
+   */
+  public void setWalkTime(final int newWalkTime) {
+    currWalkTime = newWalkTime;
+    for(final BusVisualization v : vis) {
+      v.undefinedChange(this);
+    }
   }
 
 }

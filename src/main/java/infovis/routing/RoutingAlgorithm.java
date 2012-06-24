@@ -26,12 +26,13 @@ public interface RoutingAlgorithm {
    * @param start start time
    * @param wait waiting time when changing lines
    * @param maxDuration maximum allowed duration of a route
+   * @param maxWalk maximum allowed continuous walking time
    * @return all routes
    * @throws InterruptedException if the current thread was interrupted during
    *           the computation
    */
   RoutingResult[] findRoutes(BusStationEnumerator bse,
       final BusStation station, final BitSet dests, final BusTime start, final int wait,
-      final int maxDuration) throws InterruptedException;
+      final int maxDuration, final int maxWalk) throws InterruptedException;
 
 }

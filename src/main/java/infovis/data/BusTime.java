@@ -29,12 +29,12 @@ public final class BusTime implements Comparable<BusTime> {
   /**
    * The number of seconds in one minute.
    */
-  public static final long SECONDS_PER_MINUTE = 60;
+  public static final int SECONDS_PER_MINUTE = 60;
 
   /**
    * The number of milliseconds in one second.
    */
-  public static final long MILLISECONDS_PER_SECOND = 1000;
+  public static final int MILLISECONDS_PER_SECOND = 1000;
 
   /**
    * The hour of the time.

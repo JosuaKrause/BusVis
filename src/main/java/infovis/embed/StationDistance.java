@@ -167,8 +167,8 @@ public final class StationDistance implements Weighter, NodeDrawer {
       }
 
     };
-    rm.findRoutes(ctrl, from, null, time != null ? time : BusTime.now(),
-        changeTime, ctrl.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR,
+    rm.findRoutes(ctrl, from, null, time != null ? time : BusTime.now(), changeTime,
+        ctrl.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, ctrl.getWalkTime(),
         ctrl.getRoutingAlgorithm(), cb);
   }
 
@@ -368,6 +368,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final double x1 = n.getX();
     final double y1 = n.getY();
     for(final UndirectedEdge e : matrix.getEdgesFor(station)) {
+      final int degree = e.getLineDegree() - e.walkingHighlighted();
+      if(degree <= 0) {
+        continue;
+      }
+
       final BusStation neighbor = e.getLower();
 
       final SpringNode node = getNode(neighbor);
@@ -379,7 +384,6 @@ public final class StationDistance implements Weighter, NodeDrawer {
       final double x2 = node.getX();
       final double y2 = node.getY();
       final Line2D drawLine = new Line2D.Double(x1, y1, x2, y2);
-      final int degree = e.getLineDegree();
       final BasicStroke stroke =
           new BasicStroke(degree, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL);
       final Rectangle2D bbox = stroke.createStrokedShape(drawLine).getBounds2D();
@@ -394,6 +398,9 @@ public final class StationDistance implements Weighter, NodeDrawer {
       synchronized(e) {
         int counter = 0;
         for(final BusLine line : e.getNonHighlightedLines()) {
+          if(line.equals(BusLine.WALK)) {
+            continue;
+          }
           g2.setStroke(new BasicStroke(degree - counter,
               BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
           g2.setColor(line.getColor());
@@ -456,8 +463,8 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final float d = (float) (z * z);
 
     final Graphics2D g2 = (Graphics2D) g.create();
-    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f * (d < 1 ? d
-        : 1)));
+    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f *
+        (d < 1 ? d : 1)));
     g2.setColor(Color.WHITE);
     g2.fill(bbox);
     g2.dispose();

@@ -240,7 +240,7 @@ public final class FastRouteFinder implements RoutingAlgorithm {
   @Override
   public RoutingResult[] findRoutes(final BusStationEnumerator bse,
       final BusStation station, final BitSet dests, final BusTime start, final int wait,
-      final int maxDuration)
+      final int maxDuration, final int maxWalk)
           throws InterruptedException {
     final Collection<RoutingResult> res = routes(bse, station, start, wait, maxDuration);
     final RoutingResult[] arr = res.toArray(new RoutingResult[res.size()]);

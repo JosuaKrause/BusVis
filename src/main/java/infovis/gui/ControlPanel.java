@@ -33,59 +33,43 @@ import javax.swing.event.ChangeListener;
  */
 public final class ControlPanel extends JPanel implements BusVisualization {
 
-  /**
-   * SVUID.
-   */
+  /** SVUID. */
   private static final long serialVersionUID = 1644268841480928696L;
 
-  /**
-   * The station box.
-   */
+  /** The station box. */
   protected final JComboBox box;
 
-  /**
-   * The bus time slider.
-   */
+  /** The bus time slider. */
   protected final JSlider bt;
 
-  /**
-   * The bus time label.
-   */
+  /** The bus time label. */
   private final JLabel btLabel;
 
-  /**
-   * The check box to select now as start time.
-   */
+  /** The check box to select now as start time. */
   protected final JCheckBox now;
 
-  /**
-   * The change time slider.
-   */
+  /** The change time slider. */
   protected final JSlider ct;
 
-  /**
-   * The change time label.
-   */
+  /** The change time label. */
   private final JLabel ctLabel;
 
-  /**
-   * The time window slider.
-   */
+  /** The time window slider. */
   protected final JSlider tw;
 
-  /**
-   * The time window label.
-   */
+  /** The walk time window label. */
+  private final JLabel twwLabel;
+
+  /** The walk time window slider. */
+  protected final JSlider tww;
+
+  /** The time window label. */
   private final JLabel twLabel;
 
-  /**
-   * Maps bus station ids to indices in the combo box.
-   */
+  /** Maps bus station ids to indices in the combo box. */
   private final int[] indexMap;
 
-  /**
-   * The algorithm box.
-   */
+  /** The algorithm box. */
   protected final JComboBox algoBox;
 
   /**
@@ -96,10 +80,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    */
   private static final class BusStationName {
 
-    /**
-     * The associated bus station.
-     */
+    /** The associated bus station. */
     public final BusStation station;
+
+    /** The name of the station. */
+    private final String name;
 
     /**
      * Creates a bus station name object.
@@ -111,16 +96,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       name = station != null ? station.getName() : "(no selection)";
     }
 
-    /**
-     * The name of the station.
-     */
-    private final String name;
-
     @Override
     public String toString() {
       return name;
     }
-
   }
 
   /**
@@ -201,10 +180,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     });
     box.setMaximumSize(box.getPreferredSize());
     addHor(new JLabel("Stations:"), box);
+
     // start time
     bt = new JSlider(0, MIDNIGHT.minutesTo(MIDNIGHT.later(-1)));
     bt.addChangeListener(new ChangeListener() {
-
       @Override
       public void stateChanged(final ChangeEvent e) {
         final int min = bt.getValue();
@@ -213,12 +192,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
           ctrl.setTime(MIDNIGHT.later(min));
         }
       }
-
     });
+
     btLabel = new JLabel();
     now = new JCheckBox("now");
     now.addChangeListener(new ChangeListener() {
-
       @Override
       public void stateChanged(final ChangeEvent e) {
         final boolean b = ctrl.isStartTimeNow();
@@ -232,13 +210,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
           }
         }
       }
-
     });
     addHor(new JLabel("Start Time:"), bt, btLabel, now, space);
     // change time
     ct = new JSlider(-10, 60);
     ct.addChangeListener(new ChangeListener() {
-
       @Override
       public void stateChanged(final ChangeEvent e) {
         final int min = ct.getValue();
@@ -246,14 +222,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
           ctrl.setChangeTime(min);
         }
       }
-
     });
     ctLabel = new JLabel();
     addHor(new JLabel("Change Time:"), ct, ctLabel, space);
+
     // time window
     tw = new JSlider(0, 24);
     tw.addChangeListener(new ChangeListener() {
-
       @Override
       public void stateChanged(final ChangeEvent arg0) {
         final int v = tw.getValue();
@@ -263,8 +238,26 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       }
 
     });
+
     twLabel = new JLabel();
     addHor(new JLabel("Max Wait:"), tw, twLabel, space);
+
+    // walk time window
+    tww = new JSlider(0, 2 * BusTime.MINUTES_PER_HOUR);
+    tww.addChangeListener(new ChangeListener() {
+      @Override
+      public void stateChanged(final ChangeEvent arg0) {
+        final int v = tww.getValue();
+        if(ctrl.getWalkTime() != v) {
+          ctrl.setWalkTime(v);
+        }
+      }
+
+    });
+
+    twwLabel = new JLabel();
+    addHor(new JLabel("Max Walk:"), tww, twwLabel, space);
+
     // end of layout
     add(Box.createVerticalGlue());
     ctrl.addBusVisualization(this);
@@ -329,6 +322,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     final int mth = ctrl.getMaxTimeHours();
     tw.setValue(mth);
     twLabel.setText(BusTime.minutesToString(mth * BusTime.MINUTES_PER_HOUR));
+
+    final int walkTime = ctrl.getWalkTime();
+    tww.setValue(walkTime);
+    twwLabel.setText(BusTime.minutesToString(walkTime));
     if(algoBox != null) {
       algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
     }
