@@ -22,6 +22,9 @@ public final class BusStation implements Comparable<BusStation> {
   /** A sorted list of all bus edges starting with the earliest edge (00:00). */
   private final List<BusEdge> edges;
 
+  /** Walking distances to the other stations. */
+  private final List<Integer> walkingDists;
+
   /**
    * Creates a bus station.
    * 
@@ -32,10 +35,11 @@ public final class BusStation implements Comparable<BusStation> {
    * @param abstractX The x position on the abstract map.
    * @param abstractY The y position on the abstract map.
    * @param edges sorted list of edges
+   * @param walkingDists walking distances
    */
   BusStation(final String name, final int id,
       final double x, final double y, final double abstractX, final double abstractY,
-      final List<BusEdge> edges) {
+      final List<BusEdge> edges, final List<Integer> walkingDists) {
     this.name = name;
     this.id = id;
     this.x = x;
@@ -43,6 +47,7 @@ public final class BusStation implements Comparable<BusStation> {
     this.abstractX = abstractX;
     this.abstractY = abstractY;
     this.edges = edges;
+    this.walkingDists = walkingDists;
   }
 
   /**
@@ -170,6 +175,17 @@ public final class BusStation implements Comparable<BusStation> {
    */
   public double getDefaultY() {
     return y;
+  }
+
+  /**
+   * Number of seconds it takes to walk from this station to the given one.
+   * 
+   * @param other other station
+   * @return distance in seconds if known, {@code -1} otherwise
+   */
+  public int walkingSeconds(final BusStation other) {
+    final int oid = other.getId();
+    return walkingDists.size() <= oid ? -1 : walkingDists.get(oid);
   }
 
   /**
