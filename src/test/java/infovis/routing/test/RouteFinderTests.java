@@ -8,6 +8,7 @@ import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.routing.RouteFinder;
+import infovis.routing.RoutingResult;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -249,6 +250,23 @@ public class RouteFinderTests {
 
     t.interrupt();
     assertFalse("Test took longer than " + (count * 0.1) + "s", fail.get());
+  }
+
+  /**
+   * Tests walking from Sternenplatz (106) to Spanierstraße (107).
+   * 
+   * @throws Exception Exception.
+   */
+  @Test
+  public void walking() throws Exception {
+    final BusStationManager man = BusDataBuilder.load("src/main/resources");
+    final RouteFinder rf = new RouteFinder();
+    final BitSet bs = new BitSet();
+    bs.set(107);
+    final RoutingResult[] routes = rf.findRoutes(man, man.getForId(106), bs,
+        BusTime.MIDNIGHT, 1, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR,
+        man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR * BusTime.SECONDS_PER_MINUTE);
+    System.out.println(routes[107]);
   }
 
 }
