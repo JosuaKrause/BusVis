@@ -46,6 +46,11 @@
 	      <artifactId>batik-swing</artifactId>
 	      <version>1.7</version>
 	    </dependency>
+	    <dependency>
+		  <groupId>Bubble-Sets</groupId>
+		  <artifactId>Bubble-Sets</artifactId>
+		  <version>0.0.1-SNAPSHOT</version>
+	    </dependency>
 	</dependencies>
 	<repositories>
     <repository>
