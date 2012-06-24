@@ -88,6 +88,7 @@ public final class EdgeMatrix {
     public synchronized void clearHighlighted() {
       highlighted.clear();
       count = 0;
+      walkLight = 1;
     }
 
     /**
@@ -96,6 +97,9 @@ public final class EdgeMatrix {
      * @param hl The line to highlight.
      */
     public synchronized void addHighlighted(final BusLine hl) {
+      if(BusLine.WALK.equals(hl)) {
+        walkLight = 0;
+      }
       for(int j = 0; j < lines.length; ++j) {
         if(hl.equals(lines[j])) {
           if(!highlighted.get(j)) {
@@ -149,6 +153,21 @@ public final class EdgeMatrix {
       return lines.length;
     }
 
+    /**
+     * <code>0</code> when walking is highlighted and <code>1</code> otherwise.
+     */
+    private int walkLight;
+
+    /**
+     * Getter.
+     * 
+     * @return Returns <code>0</code> if walking is highlighted and
+     *         <code>1</code> if not.
+     */
+    public int walkingHighlighted() {
+      return walkLight;
+    }
+
   }
 
   /**
@@ -187,10 +206,8 @@ public final class EdgeMatrix {
       for(int j = 0; j < i; ++j) {
         final BusStation lower = bse.getForId(j);
         final BusLine[] lines = calcLines(lower, higher);
-        if(lines.length > 0) {
-          updateLinesAndDegree(lower.getId(), higher.getId(), lines.length);
-          tmp[j] = new UndirectedEdge(lower, higher, lines);
-        }
+        updateLinesAndDegree(lower.getId(), higher.getId(), lines.length);
+        tmp[j] = new UndirectedEdge(lower, higher, lines);
       }
     }
   }
@@ -204,8 +221,10 @@ public final class EdgeMatrix {
    * @param numLines The number of lines between them.
    */
   private void updateLinesAndDegree(final int a, final int b, final int numLines) {
-    ++degree[a];
-    ++degree[b];
+    if(numLines > 1) {
+      ++degree[a];
+      ++degree[b];
+    }
     if(maxLines[a] < numLines) {
       maxLines[a] = numLines;
     }
@@ -223,6 +242,7 @@ public final class EdgeMatrix {
    */
   private static BusLine[] calcLines(final BusStation a, final BusStation b) {
     final Set<BusLine> set = new HashSet<BusLine>();
+    set.add(BusLine.WALK);
     for(final BusEdge e : a.getEdges()) {
       if(e.getTo().equals(b)) {
         set.add(e.getLine());
@@ -284,11 +304,6 @@ public final class EdgeMatrix {
       }
       for(final BusEdge bd : edges) {
         final UndirectedEdge ue = getFor(bd.getFrom(), bd.getTo());
-        // we walked here
-        if(BusLine.WALK.equals(bd.getLine())) {
-          // TODO add a way to highlight walking paths...
-          continue;
-        }
         ue.addHighlighted(bd.getLine());
       }
     }
