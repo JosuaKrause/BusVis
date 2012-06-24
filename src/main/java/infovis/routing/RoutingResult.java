@@ -4,14 +4,16 @@ import infovis.data.BusEdge;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Encapsulates the result of a routing.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class RoutingResult {
+public final class RoutingResult {
 
   /**
    * The start bus station.
@@ -27,11 +29,6 @@ public class RoutingResult {
    * The travel time.
    */
   private final int minutes;
-
-  /**
-   * Whether the destination is not reachable.
-   */
-  private final boolean inr;
 
   /**
    * The edges used by this route.
@@ -53,13 +50,26 @@ public class RoutingResult {
    * @param startTime The start time.
    */
   public RoutingResult(final BusStation from, final BusStation to, final int minutes,
+      final BusEdge[] edges, final BusTime startTime) {
+    this(from, to, minutes, Arrays.asList(edges), startTime);
+  }
+
+  /**
+   * Creates a routing result for a reachable station.
+   * 
+   * @param from The start station.
+   * @param to The end station.
+   * @param minutes The travel time.
+   * @param edges The edges used by this route.
+   * @param startTime The start time.
+   */
+  public RoutingResult(final BusStation from, final BusStation to, final int minutes,
       final Collection<BusEdge> edges, final BusTime startTime) {
     this.from = from;
     this.to = to;
     this.minutes = minutes;
-    this.edges = edges;
+    this.edges = Collections.unmodifiableCollection(edges);
     this.startTime = startTime;
-    inr = false;
   }
 
   /**
@@ -73,7 +83,6 @@ public class RoutingResult {
     this.to = to;
     minutes = from != to ? -1 : 0;
     edges = null;
-    inr = from != to;
     startTime = null;
   }
 
@@ -120,7 +129,7 @@ public class RoutingResult {
    * @return Whether the destination is not reachable.
    */
   public boolean isNotReachable() {
-    return inr;
+    return edges == null && from != to;
   }
 
   /**
@@ -137,7 +146,7 @@ public class RoutingResult {
    * 
    * @return The edges used by this route.
    */
-  public Iterable<BusEdge> getEdges() {
+  public Collection<BusEdge> getEdges() {
     return edges;
   }
 

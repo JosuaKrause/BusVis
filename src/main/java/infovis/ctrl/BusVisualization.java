@@ -44,4 +44,13 @@ public interface BusVisualization {
    */
   void undefinedChange(Controller ctrl);
 
+  /**
+   * Overwrites the displayed time with the given value. The time must not
+   * affect the actual start time.
+   * 
+   * @param time The new value.
+   * @param blink Whether the colon should be displayed.
+   */
+  void overwriteDisplayedTime(BusTime time, boolean blink);
+
 }

@@ -6,7 +6,7 @@ package infovis.embed;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class SpringEmbedder extends AbstractEmbedder {
+public final class SpringEmbedder extends AbstractEmbedder {
 
   /**
    * The weighter, defining edges between nodes.

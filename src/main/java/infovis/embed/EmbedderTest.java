@@ -1,7 +1,9 @@
 package infovis.embed;
 
 import infovis.gui.Canvas;
+import infovis.gui.Context;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
@@ -23,7 +25,7 @@ import javax.swing.WindowConstants;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class EmbedderTest implements NodeDrawer, Weighter {
+public final class EmbedderTest implements NodeDrawer, Weighter {
 
   /**
    * Starts the test.
@@ -98,7 +100,8 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void drawNode(final Graphics2D g, final SpringNode n, final boolean hovered) {
+  public void drawNode(final Graphics2D g, final Context ctx, final SpringNode n,
+      final boolean hovered) {
     final double x = n.getX();
     final double y = n.getY();
     g.setColor(hovered ? Color.RED : Color.BLUE);
@@ -106,19 +109,20 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void drawLabel(final Graphics2D g, final SpringNode n) {
+  public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n) {
     // no label
   }
 
   @Override
-  public void drawEdges(final Graphics2D g, final SpringNode n) {
+  public void drawEdges(final Graphics2D g, final Context ctx, final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
+    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+    g.setColor(Color.BLACK);
     for(final SpringNode o : nodes) {
       if(!areNeighbors(n, o)) {
         continue;
       }
-      g.setColor(new Color(0x10000000, true));
       final double ox = o.getX();
       final double oy = o.getY();
       g.draw(new Line2D.Double(x, y, ox, oy));
@@ -183,7 +187,7 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void drawBackground(final Graphics2D g) {
+  public void drawBackground(final Graphics2D g, final Context ctx) {
     // void
   }
 

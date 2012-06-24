@@ -5,15 +5,16 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.routing.RoutingAlgorithm;
 
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -78,14 +79,14 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   private final JLabel twLabel;
 
   /**
-   * Maps bus stations to indices in the combo box.
+   * Maps bus station ids to indices in the combo box.
    */
-  private final Map<BusStation, Integer> indexMap = new HashMap<BusStation, Integer>();
+  private final int[] indexMap;
 
-  // /**
-  // * The algorithm box.
-  // */
-  // protected final JComboBox algoBox;
+  /**
+   * The algorithm box.
+   */
+  protected final JComboBox algoBox;
 
   /**
    * A thin wrapper for the bus station name. Also allows the <code>null</code>
@@ -129,12 +130,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * @return All bus station names.
    */
   private static BusStationName[] getStations(final Controller ctrl) {
-    final BusStation[] arr = ctrl.getAllStations();
+    final Collection<BusStation> s = ctrl.getStations();
+    final BusStation[] arr = s.toArray(new BusStation[s.size()]);
     Arrays.sort(arr, new Comparator<BusStation>() {
 
       @Override
-      public int compare(final BusStation b0, final BusStation b1) {
-        return b0.getName().compareTo(b1.getName());
+      public int compare(final BusStation a, final BusStation b) {
+        return a.getName().compareTo(b.getName());
       }
 
     });
@@ -155,26 +157,34 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     final Component space = Box.createRigidArea(new Dimension(5, 5));
     // routing selection
-    // final RoutingAlgorithm[] algos = ctrl.getRoutingAlgorithms();
-    // algoBox = new JComboBox(algos);
-    // algoBox.addActionListener(new ActionListener() {
-    //
-    // @Override
-    // public void actionPerformed(final ActionEvent e) {
-    // final RoutingAlgorithm routing = (RoutingAlgorithm)
-    // algoBox.getSelectedItem();
-    // if(routing != ctrl.getRoutingAlgorithm()) {
-    // ctrl.setRoutingAlgorithm(routing);
-    // }
-    // }
-    //
-    // });
-    // algoBox.setMaximumSize(algoBox.getPreferredSize());
-    // addHor(new JLabel("Routing:"), algoBox);
+    final RoutingAlgorithm[] algos = Controller.getRoutingAlgorithms();
+    if(algos.length != 1) {
+      algoBox = new JComboBox(algos);
+      algoBox.addActionListener(new ActionListener() {
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+          final RoutingAlgorithm routing = (RoutingAlgorithm)
+              algoBox.getSelectedItem();
+          if(routing != ctrl.getRoutingAlgorithm()) {
+            ctrl.setRoutingAlgorithm(routing);
+          }
+        }
+
+      });
+      algoBox.setMaximumSize(algoBox.getPreferredSize());
+      addHor(new JLabel("Routing:"), algoBox);
+    } else {
+      algoBox = null;
+    }
     // station selection
     final BusStationName[] stations = getStations(ctrl);
+    indexMap = new int[ctrl.maxId() + 1];
     for(int i = 0; i < stations.length; ++i) {
-      indexMap.put(stations[i].station, i);
+      if(stations[i].station == null) {
+        continue;
+      }
+      indexMap[stations[i].station.getId()] = i;
     }
     box = new JComboBox(stations);
     box.addActionListener(new ActionListener() {
@@ -280,7 +290,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   @Override
   public void selectBusStation(final BusStation station) {
-    box.setSelectedIndex(indexMap.get(station));
+    box.setSelectedIndex(station != null ? indexMap[station.getId()] : 0);
   }
 
   @Override
@@ -288,12 +298,19 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     if(time == null) {
       bt.setEnabled(false);
       now.setSelected(true);
+      final Calendar cal = Calendar.getInstance();
+      btLabel.setText(BusTime.fromCalendar(cal).pretty(isBlinkSecond(cal)));
       return;
     }
     bt.setEnabled(true);
     now.setSelected(false);
     bt.setValue(MIDNIGHT.minutesTo(time));
     btLabel.setText(time.pretty());
+  }
+
+  @Override
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    btLabel.setText(time.pretty(blink));
   }
 
   @Override
@@ -312,7 +329,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     final int mth = ctrl.getMaxTimeHours();
     tw.setValue(mth);
     twLabel.setText(BusTime.minutesToString(mth * BusTime.MINUTES_PER_HOUR));
-    // algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
+    if(algoBox != null) {
+      algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
+    }
   }
 
 }

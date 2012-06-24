@@ -1,14 +1,18 @@
 package infovis.ctrl;
 
 import infovis.data.BusStation;
+import infovis.data.BusStationEnumerator;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
-import infovis.routing.FastRouteFinder;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.JFrame;
 
@@ -18,7 +22,7 @@ import javax.swing.JFrame;
  * @author Joschi <josua.krause@googlemail.com>
  *
  */
-public final class Controller {
+public final class Controller implements BusStationEnumerator {
 
   /**
    * The list of active visualizations.
@@ -50,6 +54,9 @@ public final class Controller {
    */
   private int curChangeTime = 1;
 
+  /** Timer for real-time view. */
+  private final Timer timer = new Timer(true);
+
   /**
    * Creates a new controller.
    * 
@@ -59,6 +66,39 @@ public final class Controller {
   public Controller(final BusStationManager manager, final JFrame frame) {
     this.manager = manager;
     this.frame = frame;
+    startTimer();
+  }
+
+  /**
+   * Starts a timer that periodically refreshes the time when
+   * {@link #isStartTimeNow()} returns <code>true</code>. The refresh happens
+   * exact at the beginning of a minute.
+   */
+  protected void startTimer() {
+    final Calendar calendar = Calendar.getInstance();
+    calendar.set(Calendar.MILLISECOND, 0);
+    calendar.set(Calendar.SECOND, 0);
+    final TimerTask task = new TimerTask() {
+
+      private int minute = calendar.get(Calendar.MINUTE);
+
+      @Override
+      public void run() {
+        if(isStartTimeNow()) {
+          final Calendar now = Calendar.getInstance();
+          final int min = now.get(Calendar.MINUTE);
+          overwriteDisplayedTime(BusTime.fromCalendar(now), BusTime.isBlinkSecond(now));
+          if(min != minute) {
+            // we may lose a user update here
+            // but very rare (only if the user clicks _very_ fast)
+            setTime(curStartTime);
+            minute = min;
+          }
+        }
+      }
+
+    };
+    timer.scheduleAtFixedRate(task, calendar.getTime(), BusTime.MILLISECONDS_PER_SECOND);
   }
 
   /**
@@ -103,8 +143,6 @@ public final class Controller {
    */
   private static final RoutingAlgorithm[] ALGOS = new RoutingAlgorithm[] {
     new RouteFinder(),
-
-    new FastRouteFinder(),
   };
 
   /**
@@ -144,9 +182,14 @@ public final class Controller {
 
   /**
    * Quits the application.
+   * 
+   * @param disposed if the thread was already disposed
    */
-  public void quit() {
-    frame.dispose();
+  public void quit(final boolean disposed) {
+    if(!disposed) {
+      frame.dispose();
+    }
+    timer.cancel();
   }
 
   /**
@@ -199,11 +242,23 @@ public final class Controller {
    */
   public void setTime(final BusTime start) {
     curStartTime = start;
-    refreshNowNoter();
     for(final BusVisualization v : vis) {
       v.setStartTime(start);
     }
     setTitle(null);
+  }
+
+  /**
+   * Overwrites the displayed time with the given value. The time must not
+   * affect the actual start time.
+   * 
+   * @param time The new value.
+   * @param blink Whether the colon should be displayed.
+   */
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    for(final BusVisualization v : vis) {
+      v.overwriteDisplayedTime(time, blink);
+    }
   }
 
   /**
@@ -220,57 +275,6 @@ public final class Controller {
    */
   public void setNow() {
     setTime(null);
-  }
-
-  /**
-   * When the start time is selected as now this thread refreshes the plan every
-   * minute.
-   */
-  private final Thread nowNoter = new Thread() {
-
-    {
-      setDaemon(true);
-      start();
-    }
-
-    private BusTime last;
-
-    @Override
-    public void run() {
-      while(!isInterrupted()) {
-        try {
-          synchronized(this) {
-            if(isStartTimeNow()) {
-              wait(1000); // maybe set to 100 to be more responsive
-            } else {
-              wait();
-            }
-          }
-        } catch(final InterruptedException e) {
-          interrupt();
-          continue;
-        }
-        final BusTime cur = BusTime.now();
-        if(isStartTimeNow() && last != cur) {
-          // we may loose an user update here
-          // but very rare (only if the user clicks _very_ fast)
-          setTime(curStartTime);
-          last = cur;
-        }
-      }
-    }
-
-  };
-
-  /**
-   * Signals that the start time may be selected as now.
-   */
-  private void refreshNowNoter() {
-    if(isStartTimeNow()) {
-      synchronized(nowNoter) {
-        nowNoter.notifyAll();
-      }
-    }
   }
 
   /**
@@ -328,26 +332,19 @@ public final class Controller {
     vis.remove(v);
   }
 
-  /**
-   * Getter.
-   * 
-   * @return All bus stations.
-   */
-  public Iterable<BusStation> getStations() {
+  @Override
+  public Collection<BusStation> getStations() {
     return manager.getStations();
   }
 
-  /**
-   * Getter.
-   * 
-   * @return All bus stations.
-   */
-  public BusStation[] getAllStations() {
-    final List<BusStation> res = new ArrayList<BusStation>();
-    for(final BusStation s : manager.getStations()) {
-      res.add(s);
-    }
-    return res.toArray(new BusStation[res.size()]);
+  @Override
+  public int maxId() {
+    return manager.maxId();
+  }
+
+  @Override
+  public BusStation getForId(final int id) {
+    return manager.getForId(id);
   }
 
   /**
@@ -357,6 +354,15 @@ public final class Controller {
     for(final BusVisualization v : vis) {
       v.focusStation();
     }
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The bus station manager.
+   */
+  public BusStationManager getBusStationManager() {
+    return manager;
   }
 
 }

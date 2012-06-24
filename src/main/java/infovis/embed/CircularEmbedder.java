@@ -1,7 +1,7 @@
 package infovis.embed;
 
-import static infovis.VecUtil.*;
-import infovis.embed.pol.Interpolator;
+import static infovis.util.VecUtil.*;
+import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
 
@@ -10,7 +10,7 @@ import java.awt.geom.Point2D;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class CircularEmbedder extends AbstractEmbedder {
+public final class CircularEmbedder extends AbstractEmbedder {
 
   /**
    * The weighter.

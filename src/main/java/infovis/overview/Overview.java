@@ -27,7 +27,7 @@ import org.apache.batik.swing.JSVGCanvas;
  * 
  * @author Marc Spicker
  */
-public class Overview extends JSVGCanvas implements BusVisualization {
+public final class Overview extends JSVGCanvas implements BusVisualization {
 
   /**
    * Serial ID.
@@ -47,7 +47,7 @@ public class Overview extends JSVGCanvas implements BusVisualization {
    * @param height The height.
    */
   public Overview(final Controller ctrl, final int width, final int height) {
-    setURI(new File(ctrl.getResourcePath() + "abstractKN.svg").toURI().toString());
+    setURI(new File(ctrl.getResourcePath() + "abstract.svg").toURI().toString());
     setPreferredSize(new Dimension(width, height));
     setDisableInteractions(true);
     selectableText = false;
@@ -82,8 +82,7 @@ public class Overview extends JSVGCanvas implements BusVisualization {
 
   @Override
   public void focusStation() {
-    // TODO Auto-generated method stub
-
+    // TODO focus station
   }
 
   @Override
@@ -126,6 +125,11 @@ public class Overview extends JSVGCanvas implements BusVisualization {
 
   @Override
   public void undefinedChange(final Controller ctrl) {
+    // no-op
+  }
+
+  @Override
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
     // no-op
   }
 

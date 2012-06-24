@@ -1,12 +1,9 @@
 package infovis.data;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * A {@link BusStation} contains informations about bus stations in the traffic
@@ -25,13 +22,9 @@ public final class BusStation implements Comparable<BusStation> {
   /** A sorted list of all bus edges starting with the earliest edge (00:00). */
   private final List<BusEdge> edges;
 
-  /** The bus manager. */
-  private final BusStationManager manager;
-
   /**
    * Creates a bus station.
    * 
-   * @param manager The manager.
    * @param name The name.
    * @param id The id, has to be non-negative.
    * @param x The x position.
@@ -40,10 +33,9 @@ public final class BusStation implements Comparable<BusStation> {
    * @param abstractY The y position on the abstract map.
    * @param edges sorted list of edges
    */
-  BusStation(final BusStationManager manager, final String name, final int id,
+  BusStation(final String name, final int id,
       final double x, final double y, final double abstractX, final double abstractY,
       final List<BusEdge> edges) {
-    this.manager = manager;
     this.name = name;
     this.id = id;
     this.x = x;
@@ -69,6 +61,15 @@ public final class BusStation implements Comparable<BusStation> {
    */
   public int getId() {
     return id;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Returns all edges associated with this bus station.
+   */
+  public Collection<BusEdge> getEdges() {
+    return Collections.unmodifiableList(edges);
   }
 
   /**
@@ -130,7 +131,7 @@ public final class BusStation implements Comparable<BusStation> {
       return 0;
     }
 
-    int low = 0, high = edges.size() - 1;
+    int low = 0, high = size - 1;
     while(low <= high) {
       final int mid = (low + high) >>> 1;
     final BusEdge midVal = edges.get(mid);
@@ -140,82 +141,7 @@ public final class BusStation implements Comparable<BusStation> {
       high = mid - 1;
     }
     }
-    return low % edges.size();
-  }
-
-  /**
-   * A neighbor is a bus station with lines that connect to the given station.
-   * 
-   * @author Joschi <josua.krause@googlemail.com>
-   */
-  public static final class Neighbor {
-
-    /**
-     * The neighboring station.
-     */
-    public final BusStation station;
-
-    /**
-     * The lines that connect to the neighbor.
-     */
-    public final BusLine[] lines;
-
-    /**
-     * Creates a new neighbor.
-     * 
-     * @param station The station.
-     * @param lines The lines.
-     */
-    public Neighbor(final BusStation station, final BusLine[] lines) {
-      this.station = station;
-      this.lines = lines;
-    }
-
-  }
-
-  /**
-   * The cached neighbors of this node.
-   */
-  private Neighbor[] neighbors;
-
-  /**
-   * Returns all neighbors of this node.
-   * 
-   * @return The neighbors.
-   */
-  public Neighbor[] getNeighbors() {
-    if(neighbors == null) {
-      final Map<BusStation, Set<BusLine>> acc = new HashMap<BusStation, Set<BusLine>>();
-      for(final BusEdge edge : edges) {
-        final BusStation to = edge.getTo();
-        final BusLine line = edge.getLine();
-        if(!acc.containsKey(to)) {
-          acc.put(to, new HashSet<BusLine>());
-        }
-        acc.get(to).add(line);
-      }
-      final Neighbor[] res = new Neighbor[acc.size()];
-      int i = 0;
-      for(final Entry<BusStation, Set<BusLine>> e : acc.entrySet()) {
-        final Set<BusLine> lines = e.getValue();
-        res[i++] = new Neighbor(e.getKey(), lines.toArray(new BusLine[lines.size()]));
-      }
-      neighbors = res;
-    }
-    return neighbors;
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return The maximum degree of this station.
-   */
-  public int getMaxDegree() {
-    int max = 0;
-    for(final Neighbor edge : getNeighbors()) {
-      max = Math.max(max, edge.lines.length);
-    }
-    return max;
+    return low % size;
   }
 
   /**
@@ -283,15 +209,6 @@ public final class BusStation implements Comparable<BusStation> {
     return abstractY;
   }
 
-  /**
-   * Getter.
-   * 
-   * @return this station's {@link BusStationManager}
-   */
-  public BusStationManager getManager() {
-    return manager;
-  }
-
   @Override
   public boolean equals(final Object obj) {
     return obj instanceof BusStation && id == ((BusStation) obj).id;
@@ -311,4 +228,5 @@ public final class BusStation implements Comparable<BusStation> {
   public int compareTo(final BusStation o) {
     return id - o.id;
   }
+
 }

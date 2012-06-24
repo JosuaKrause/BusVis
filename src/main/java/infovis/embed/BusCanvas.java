@@ -99,7 +99,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   protected final StationDistance dist;
 
   /**
-   * Whether to use a pring embedder.
+   * Whether to use a spring embedder.
    */
   private static final boolean USE_SPRING_EMBEDDER = false;
 
@@ -167,7 +167,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
       @Override
       public void actionPerformed(final ActionEvent e) {
-        ctrl.quit();
+        ctrl.quit(false);
       }
 
     });
@@ -209,6 +209,11 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   @Override
   public void undefinedChange(final Controller ctrl) {
     dist.changeUndefined();
+  }
+
+  @Override
+  public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    // no-op
   }
 
 }
