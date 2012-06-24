@@ -161,7 +161,7 @@ public final class BusEdge implements Comparable<BusEdge> {
    * Checks if this edge is on the same tour of the same line as the given edge.
    * 
    * @param other edge
-   * @return <code>true</code> if the edges are an the same tour,
+   * @return <code>true</code> if the edges are on the same tour,
    *         <code>false</code> otherwise
    */
   public boolean sameTour(final BusEdge other) {

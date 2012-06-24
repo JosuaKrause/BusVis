@@ -183,15 +183,9 @@ public final class EdgeMatrix {
     matrix = new UndirectedEdge[maxId][];
     for(int i = 1; i <= maxId; ++i) {
       final BusStation higher = bse.getForId(i);
-      if(higher == null) {
-        continue;
-      }
       final UndirectedEdge[] tmp = matrix[i - 1] = new UndirectedEdge[i];
       for(int j = 0; j < i; ++j) {
         final BusStation lower = bse.getForId(j);
-        if(lower == null) {
-          continue;
-        }
         final BusLine[] lines = calcLines(lower, higher);
         if(lines.length > 0) {
           updateLinesAndDegree(lower.getId(), higher.getId(), lines.length);
@@ -290,6 +284,11 @@ public final class EdgeMatrix {
       }
       for(final BusEdge bd : edges) {
         final UndirectedEdge ue = getFor(bd.getFrom(), bd.getTo());
+        // we walked here
+        if(BusLine.WALK.equals(bd.getLine())) {
+          // TODO add a way to highlight walking paths...
+          continue;
+        }
         ue.addHighlighted(bd.getLine());
       }
     }
