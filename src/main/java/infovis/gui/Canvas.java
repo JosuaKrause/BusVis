@@ -249,6 +249,37 @@ public class Canvas extends JComponent implements Refreshable {
       return inCanvasSpace;
     }
 
+    /**
+     * The cache for the visible rectangle in component coordinates.
+     */
+    private Rectangle2D visComp;
+
+    @Override
+    public Rectangle2D getVisibleComponent() {
+      if(visComp == null) {
+        visComp = getVisibleRect();
+      }
+      return visComp;
+    }
+
+    /**
+     * The cache for the visible rectangle in canvas coordinates.
+     */
+    private Rectangle2D visCanvas;
+
+    @Override
+    public Rectangle2D getVisibleCanvas() {
+      if(visCanvas == null) {
+        final Rectangle2D comp = getVisibleComponent();
+        final Point2D topLeft = toCanvasCoordinates(
+            new Point2D.Double(comp.getMinX(), comp.getMinY()));
+        final double width = toCanvasLength(comp.getWidth());
+        final double height = toCanvasLength(comp.getHeight());
+        visCanvas = new Rectangle2D.Double(topLeft.getX(), topLeft.getY(), width, height);
+      }
+      return visCanvas;
+    }
+
   }
 
   @Override

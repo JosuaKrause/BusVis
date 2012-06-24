@@ -360,9 +360,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
   @Override
   public void drawEdges(final Graphics2D g, final Context ctx, final SpringNode n) {
+    final Rectangle2D visible = ctx.getVisibleCanvas();
     final BusStation station = map.get(n);
     final RoutingResult route = getRoute(station);
     if(route != null && route.isNotReachable()) return;
+
     final double x1 = n.getX();
     final double y1 = n.getY();
     for(final UndirectedEdge e : matrix.getEdgesFor(station)) {
@@ -376,7 +378,15 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
       final double x2 = node.getX();
       final double y2 = node.getY();
+      final Line2D drawLine = new Line2D.Double(x1, y1, x2, y2);
       final int degree = e.getLineDegree();
+      final BasicStroke stroke =
+          new BasicStroke(degree, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL);
+      final Rectangle2D bbox = stroke.createStrokedShape(drawLine).getBounds2D();
+      if(!visible.intersects(bbox)) {
+        continue;
+      }
+
       final Graphics2D g2 = (Graphics2D) g.create();
       if(from != null) {
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
@@ -387,7 +397,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
           g2.setStroke(new BasicStroke(degree - counter,
               BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
           g2.setColor(line.getColor());
-          g2.draw(new Line2D.Double(x1, y1, x2, y2));
+          g2.draw(drawLine);
           ++counter;
         }
         g2.dispose();
@@ -395,7 +405,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
           g.setStroke(new BasicStroke(degree - counter,
               BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
           g.setColor(line.getColor());
-          g.draw(new Line2D.Double(x1, y1, x2, y2));
+          g.draw(drawLine);
           ++counter;
         }
       }
@@ -407,11 +417,16 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation station = map.get(n);
     final RoutingResult route = getRoute(station);
     if(route != null && route.isNotReachable()) return;
+
+    final Shape shape = nodeClickArea(n, true);
+    final BasicStroke stroke = new BasicStroke(.5f);
+    final Rectangle2D bbox = stroke.createStrokedShape(shape).getBounds2D();
+    if(!ctx.getVisibleCanvas().intersects(bbox)) return;
+
     final Graphics2D g2 = (Graphics2D) g.create();
     g2.setColor(!station.equals(from) ? Color.WHITE : Color.RED);
-    final Shape shape = nodeClickArea(n, true);
     g2.fill(shape);
-    g2.setStroke(new BasicStroke(.5f));
+    g2.setStroke(stroke);
     g2.setColor(Color.BLACK);
     g2.draw(shape);
     g2.dispose();
@@ -421,25 +436,36 @@ public final class StationDistance implements Weighter, NodeDrawer {
   public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n) {
     final BusStation station = map.get(n);
     if(matrix.getDegree(station) == 2) return;
-    final double d = ctx.toComponentLength(1);
-    if(d < 1) {
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) (d * d)));
-    }
+
     final Rectangle2D node = nodeClickArea(n, true).getBounds2D();
     final Point2D pos = ctx.toComponentCoordinates(
         new Point2D.Double(node.getMaxX(), node.getMinY()));
     final double x = pos.getX();
     final double y = pos.getY();
-    g.translate(x, y);
+
     final FontMetrics fm = g.getFontMetrics();
     final String label = station.getName();
     final Rectangle2D bbox = fm.getStringBounds(label, g);
+    // translate the rectangle
+    bbox.setRect(x + bbox.getMinX(), y + bbox.getMinY(), bbox.getWidth(),
+        bbox.getHeight());
+
+    if(!ctx.getVisibleComponent().intersects(bbox)) return;
+
+    final double z = ctx.toComponentLength(1);
+    final float d = (float) (z * z);
+
     final Graphics2D g2 = (Graphics2D) g.create();
-    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-        0.3f * (float) (d < 1 ? d * d : 1)));
+    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f * (d < 1 ? d
+        : 1)));
     g2.setColor(Color.WHITE);
     g2.fill(bbox);
     g2.dispose();
+
+    g.translate(x, y);
+    if(d < 1) {
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, d));
+    }
     g.setColor(Color.BLACK);
     g.drawString(station.getName(), 0, 0);
   }
