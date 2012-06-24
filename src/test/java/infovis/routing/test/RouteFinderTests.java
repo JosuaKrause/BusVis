@@ -8,10 +8,13 @@ import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.routing.RouteFinder;
+import infovis.routing.RoutingAlgorithm;
+import infovis.routing.RoutingResult;
 
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,6 +27,8 @@ import org.junit.Test;
  * @author Leo Woerteler
  */
 public class RouteFinderTests {
+  /** Bus time for 12:00 AM. */
+  private static final BusTime NOON = new BusTime(12, 00);
 
   /**
    * Checks if the line is changed when advantageous.
@@ -243,7 +248,7 @@ public class RouteFinderTests {
         break;
       }
       System.out.println(a);
-      RouteFinder.findRoutesFrom(man, a, set, new BusTime(12, 0), 5,
+      RouteFinder.findRoutesFrom(man, a, set, NOON, 5,
           man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, 0);
     }
 
@@ -251,4 +256,31 @@ public class RouteFinderTests {
     assertFalse("Test took longer than " + (count * 0.1) + "s", fail.get());
   }
 
+  /**
+   * Tests that walking can only lead to a speed-up.
+   * 
+   * @throws Exception exception
+   */
+  @Test
+  public void walkingTest() throws Exception {
+    final BusStationManager man = BusDataBuilder.load("src/main/resources");
+    final int mth = man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
+    final RoutingAlgorithm router = new RouteFinder();
+    for(final BusStation s : man.getStations()) {
+      final RoutingResult[] without = router.findRoutes(man, s, null, NOON, 3, mth, 0);
+      final RoutingResult[] with = router.findRoutes(man, s, null, NOON, 3, mth,
+          10 * BusTime.SECONDS_PER_MINUTE);
+      for(int i = 0; i <= man.maxId(); i++) {
+        if(i != s.getId() && !without[i].isNotReachable()) {
+          assertFalse("no route from " + s + " to " + i, with[i].isNotReachable());
+          final Comparator<BusTime> rel = NOON.createRelativeComparator();
+          final int res = rel.compare(with[i].getEndTime(), without[i].getEndTime());
+          assertTrue(res <= 0);
+          if(res < 0) {
+            System.out.println(without[i] + "\n" + with[i] + "\n");
+          }
+        }
+      }
+    }
+  }
 }
