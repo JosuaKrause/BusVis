@@ -39,15 +39,27 @@ public final class BusEdge implements Comparable<BusEdge> {
    * @param end The arrival time.
    */
   BusEdge(final BusLine line, final int tourNr, final BusStation from,
-      final BusStation to,
-      final BusTime start,
-      final BusTime end) {
+      final BusStation to, final BusTime start, final BusTime end) {
     this.line = line;
     this.tourNr = tourNr;
     this.start = start;
     this.end = end;
     this.from = from;
     this.to = to;
+  }
+
+  /**
+   * Creates a bus edge that's walked.
+   * 
+   * @param from The starting point.
+   * @param to The destination.
+   * @param start The departure time.
+   * @param end The arrival time.
+   * @return new bus edge
+   */
+  public static BusEdge walking(final BusStation from, final BusStation to,
+      final BusTime start, final BusTime end) {
+    return new BusEdge(BusLine.WALK, 0, from, to, start, end);
   }
 
   /**

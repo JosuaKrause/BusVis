@@ -58,8 +58,7 @@ public final class RoutingPerformanceTest {
         final long time = System.currentTimeMillis();
         for(final BusStation a : man.getStations()) {
           RouteFinder.findRoutesFrom(man, a, set, new BusTime(12, 0), 5,
-              man.getMaxTimeHours()
-              * BusTime.MINUTES_PER_HOUR);
+              man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, 0);
           ++count;
         }
         final double fullTime = System.currentTimeMillis() - time;
@@ -81,8 +80,8 @@ public final class RoutingPerformanceTest {
           new FileOutputStream("res.txt")));
       for(final BusStation a : stations) {
         dos.writeByte(a.getId());
-        final BusEdge[][] routes = RouteFinder.findRoutesFrom(man, a,
-            set, new BusTime(12, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
+        final BusEdge[][] routes = RouteFinder.findRoutesFrom(man, a, set,
+            new BusTime(12, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, 0);
         for(final BusStation to : stations) {
           dos.writeByte(to.getId());
           final BusEdge[] route = routes[to.getId()];
@@ -98,8 +97,8 @@ public final class RoutingPerformanceTest {
           new FileInputStream("res.txt")));
       for(int station; (station = in.read()) != -1;) {
         final BusStation a = man.getForId(station);
-        final BusEdge[][] routes = RouteFinder.findRoutesFrom(man, a,
-            set, new BusTime(12, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
+        final BusEdge[][] routes = RouteFinder.findRoutesFrom(man, a, set,
+            new BusTime(12, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, 0);
         for(int toId; (toId = in.read()) < 128;) {
           final BusStation to = man.getForId(toId);
           final int duration = in.readInt();

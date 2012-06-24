@@ -1,6 +1,7 @@
 package infovis.routing;
 
 import infovis.data.BusEdge;
+import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusStationEnumerator;
 import infovis.data.BusTime;
@@ -28,7 +29,8 @@ public final class RouteFinder implements RoutingAlgorithm {
       final BusStation station, final BitSet dests, final BusTime start, final int wait,
       final int maxDuration, final int maxWalk) throws InterruptedException {
     final int sid = station.getId();
-    final BusEdge[][] map = findRoutesFrom(bse, station, dests, start, wait, maxDuration);
+    final BusEdge[][] map = findRoutesFrom(bse, station, dests, start, wait, maxDuration,
+        maxWalk);
     final RoutingResult[] res = new RoutingResult[bse.maxId() + 1];
     for(int id = 0; id < res.length; ++id) {
       final BusStation to = bse.getForId(id);
@@ -59,13 +61,14 @@ public final class RouteFinder implements RoutingAlgorithm {
    * @param start start time
    * @param wait waiting time when changing lines
    * @param maxDuration maximum allowed duration of a route
+   * @param maxWalk maximum allowed walking time
    * @return map from station id to shortest route
    * @throws InterruptedException if the current thread was interrupted during
    *           the computation
    */
   public static BusEdge[][] findRoutesFrom(
       final BusStationEnumerator bse, final BusStation station, final BitSet dests,
-      final BusTime start, final int wait, final int maxDuration)
+      final BusTime start, final int wait, final int maxDuration, final int maxWalk)
           throws InterruptedException {
     // set of stations yet to be found
     final BitSet notFound = dests == null ? new BitSet() : (BitSet) dests.clone();
@@ -117,6 +120,28 @@ public final class RouteFinder implements RoutingAlgorithm {
 
         queue.add(current.extendedBy(e));
       }
+
+      if(last.getLine() != BusLine.WALK) {
+        for(final BusStation st : bse.getStations()) {
+          if(!current.contains(st) && bestRoutes[st.getId()] == null) {
+            final int secs = dest.walkingSeconds(st);
+            if(secs < 0 || secs > maxWalk) {
+              continue;
+            }
+
+            final BusTime mid = last.getEnd(), end = mid.later(
+                (secs + BusTime.SECONDS_PER_MINUTE - 1) / BusTime.SECONDS_PER_MINUTE);
+            final BusEdge e = BusEdge.walking(dest, st, mid, end);
+
+            if(current.timePlus(e) > maxDuration) {
+              // violates general invariants
+              continue;
+            }
+
+            queue.add(current.extendedBy(e));
+          }
+        }
+      }
     }
 
     final BusEdge[][] res = new BusEdge[bse.maxId() + 1][];
@@ -139,16 +164,17 @@ public final class RouteFinder implements RoutingAlgorithm {
    * @param start start time
    * @param wait waiting time when changing bus lines
    * @param maxDuration maximum allowed travel time
+   * @param maxWalk maximum allowed walking time
    * @return shortest route if found, <code>null</code> otherwise
    * @throws InterruptedException if the current thread was interrupted
    */
   public static BusEdge[] findRoute(final BusStationEnumerator bse,
       final BusStation station, final BusStation dest,
-      final BusTime start, final int wait, final int maxDuration)
+      final BusTime start, final int wait, final int maxDuration, final int maxWalk)
           throws InterruptedException {
     final BitSet set = new BitSet();
     set.set(dest.getId());
-    return findRoutesFrom(bse, station, set, start, wait, maxDuration)[dest.getId()];
+    return findRoutesFrom(bse, station, set, start, wait, maxDuration, maxWalk)[dest.getId()];
   }
 
   @Override

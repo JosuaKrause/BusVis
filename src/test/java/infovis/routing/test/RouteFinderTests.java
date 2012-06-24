@@ -45,7 +45,7 @@ public class RouteFinderTests {
     final BusStationManager man = builder.finish();
 
     final BusEdge[] route = RouteFinder.findRoute(man, a, c, new BusTime(0, 0), 2,
-        man.getMaxTimeHours() * 60);
+        man.getMaxTimeHours() * 60, 0);
 
     assertEquals(Arrays.asList(ab, bc), Arrays.asList(route));
   }
@@ -81,7 +81,7 @@ public class RouteFinderTests {
     final BusStationManager man = builder.finish();
 
     final BusEdge[] route = RouteFinder.findRoute(man, a, c, new BusTime(0, 0),
-        5, man.getMaxTimeHours() * 60);
+        5, man.getMaxTimeHours() * 60, 0);
 
     assertEquals(Arrays.asList(ab, bc), Arrays.asList(route));
 
@@ -90,7 +90,7 @@ public class RouteFinderTests {
     times.put(b, new BusTime(0, 1));
     times.put(c, new BusTime(0, 3));
     final BusEdge[][] map = RouteFinder.findRoutesFrom(man, a, null,
-        new BusTime(0, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
+        new BusTime(0, 0), 5, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, 0);
     for(int id = 0; id < map.length; ++id) {
       if(map[id] == null) {
         continue;
@@ -129,14 +129,14 @@ public class RouteFinderTests {
     final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
 
     final BusEdge[] routeTo = RouteFinder.findRoute(manager, c, e, new BusTime(2, 0), 0,
-        mth);
+        mth, 0);
     final int[] ids = { 2, 0, 3, 4};
     int i = 0;
     assertEquals(ids[i++], routeTo[0].getFrom().getId());
     for(final BusEdge edge : routeTo) {
       assertEquals(ids[i++], edge.getTo().getId());
     }
-    assertNull(RouteFinder.findRoute(manager, e, c, new BusTime(2, 0), 0, mth));
+    assertNull(RouteFinder.findRoute(manager, e, c, new BusTime(2, 0), 0, mth, 0));
   }
 
   /**
@@ -169,16 +169,18 @@ public class RouteFinderTests {
     final BusStationManager manager = builder.finish();
     final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
     assertEquals(4,
-        getLastEndMinute(RouteFinder.findRoute(manager, e, h, new BusTime(0, 0), 0, mth)));
+        getLastEndMinute(RouteFinder.findRoute(manager, e, h, new BusTime(0, 0), 0, mth,
+            0)));
     assertEquals(5,
-        getLastEndMinute(RouteFinder.findRoute(manager, e, h, new BusTime(0, 0), 1, mth)));
-    assertNull(RouteFinder.findRoute(manager, e, h, new BusTime(0, 0), 0, 0));
+        getLastEndMinute(RouteFinder.findRoute(manager, e, h, new BusTime(0, 0), 1, mth,
+            0)));
+    assertNull(RouteFinder.findRoute(manager, e, h, new BusTime(0, 0), 0, 0, 0));
     assertEquals(4,
         getLastEndMinute(RouteFinder.findRoute(manager, e, h, new BusTime(0, 0), 0,
-            BusTime.MINUTES_PER_HOUR)));
+            BusTime.MINUTES_PER_HOUR, 0)));
     assertEquals(5,
         getLastEndMinute(RouteFinder.findRoute(manager, e, h, new BusTime(0, 0), 1,
-            BusTime.HOURS_PER_DAY * BusTime.MINUTES_PER_HOUR)));
+            BusTime.HOURS_PER_DAY * BusTime.MINUTES_PER_HOUR, 0)));
   }
 
   /**
@@ -242,7 +244,7 @@ public class RouteFinderTests {
       }
       System.out.println(a);
       RouteFinder.findRoutesFrom(man, a, set, new BusTime(12, 0), 5,
-          man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
+          man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR, 0);
     }
 
     t.interrupt();
