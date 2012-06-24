@@ -147,6 +147,7 @@ public final class RouteFinder implements RoutingAlgorithm {
               continue;
             }
 
+            // FIXME rounding errors
             final BusTime mid = last.getEnd(), end = mid.later(
                 (secs + BusTime.SECONDS_PER_MINUTE - 1) / BusTime.SECONDS_PER_MINUTE);
             final BusEdge e = BusEdge.walking(dest, st, mid, end);

@@ -276,11 +276,29 @@ public class RouteFinderTests {
           final Comparator<BusTime> rel = NOON.createRelativeComparator();
           final int res = rel.compare(with[i].getEndTime(), without[i].getEndTime());
           assertTrue(res <= 0);
-          if(res < 0) {
-            System.out.println(without[i] + "\n" + with[i] + "\n");
-          }
         }
       }
     }
+  }
+
+  /**
+   * Tests walking from Sternenplatz (106) to Spanierstraße (107).
+   * 
+   * @throws Exception Exception.
+   */
+  @Test
+  public void walking() throws Exception {
+    final BusStationManager man = BusDataBuilder.load("src/main/resources");
+    final RouteFinder rf = new RouteFinder();
+    final BitSet bs = new BitSet();
+    bs.set(107);
+    final RoutingResult[] routes = rf.findRoutes(man, man.getForId(106), bs,
+        BusTime.MIDNIGHT, 1, man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR,
+        man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
+
+    final RoutingResult res = routes[107];
+    assertNotNull(res);
+    assertEquals(2, res.minutes());
+    assertSame(res.getEdges().iterator().next().getLine(), BusLine.WALK);
   }
 }
