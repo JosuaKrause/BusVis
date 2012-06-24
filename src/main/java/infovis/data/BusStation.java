@@ -19,6 +19,26 @@ public final class BusStation implements Comparable<BusStation> {
   /** The (non-negative) unique id of the bus station. */
   private final int id;
 
+  /**
+   * The default x coordinate for this bus station.
+   */
+  private final double x;
+
+  /**
+   * The default y coordinate for this bus station.
+   */
+  private final double y;
+
+  /**
+   * The x coordinate for this bus station on the abstract map.
+   */
+  private final double abstractX;
+
+  /**
+   * The y coordinate for this bus station on the abstract map.
+   */
+  private final double abstractY;
+
   /** A sorted list of all bus edges starting with the earliest edge (00:00). */
   private final List<BusEdge> edges;
 
@@ -150,16 +170,6 @@ public final class BusStation implements Comparable<BusStation> {
   }
 
   /**
-   * The default x coordinate for this bus station.
-   */
-  private final double x;
-
-  /**
-   * The default y coordinate for this bus station.
-   */
-  private final double y;
-
-  /**
    * Getter.
    * 
    * @return The default x coordinate for this bus station.
@@ -187,16 +197,6 @@ public final class BusStation implements Comparable<BusStation> {
     final int oid = other.getId();
     return walkingDists.size() <= oid ? -1 : walkingDists.get(oid);
   }
-
-  /**
-   * The x coordinate for this bus station on the abstract map.
-   */
-  private final double abstractX;
-
-  /**
-   * The y coordinate for this bus station on the abstract map.
-   */
-  private final double abstractY;
 
   /**
    * Getter.

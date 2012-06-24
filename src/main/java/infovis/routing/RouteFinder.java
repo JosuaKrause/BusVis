@@ -26,7 +26,7 @@ public final class RouteFinder implements RoutingAlgorithm {
   @Override
   public RoutingResult[] findRoutes(final BusStationEnumerator bse,
       final BusStation station, final BitSet dests, final BusTime start, final int wait,
-      final int maxDuration) throws InterruptedException {
+      final int maxDuration, final int maxWalk) throws InterruptedException {
     final int sid = station.getId();
     final BusEdge[][] map = findRoutesFrom(bse, station, dests, start, wait, maxDuration);
     final RoutingResult[] res = new RoutingResult[bse.maxId() + 1];
