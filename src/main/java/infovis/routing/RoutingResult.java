@@ -171,28 +171,35 @@ public final class RoutingResult {
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append(getClass().getSimpleName()).append("[\n").append("  from=").append(
-        from.getName()).append(",\n  to=").append(to.getName()).append(",\n  steps=[\n" +
-            "    start at ").append(from.getName()).append(" at ");
-    BusTime curTime = startTime;
-    sb.append(curTime.pretty()).append(",\n");
-    for(final BusEdge e : getEdges()) {
-      final int wait = curTime.minutesTo(e.getStart());
-      if(wait > 0) {
-        sb.append("    wait for ").append(BusTime.minutesToString(wait)).append(",\n");
-      }
-      if(BusLine.WALK.equals(e.getLine())) {
-        sb.append("    walk ");
-      } else {
-        sb.append("    take bus line ").append(e.getLine().getName()).append(" for ");
-      }
-      sb.append(BusTime.minutesToString(e.travelMinutes())).append(" to ").append(
-          e.getTo().getName()).append(",\n");
-      curTime = e.getEnd();
-    }
-    sb.append("  ],\n  time=").append(BusTime.minutesToString(minutes())).append("\n]");
-    return sb.toString();
-  }
+    final StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append('[');
+    sb.append("\n  from=").append(from.getName()).append(",\n  to=").append(to.getName());
 
+    if(isNotReachable()) return sb.append(", state=NOT_REACHABLE]").toString();
+
+    sb.append(",\n  steps=[\n    Start at ").append(from.getName());
+    if(!from.equals(to)) {
+      BusEdge prev = null;
+      for(final BusEdge curr : edges) {
+        if(prev == null || !prev.sameTour(curr)) {
+          final int wait = (prev == null ? startTime : prev.getEnd()).minutesTo(curr.getStart());
+          if(prev != null) {
+            sb.append(prev.getTo().getName());
+          }
+
+          if(curr.getLine() == BusLine.WALK) {
+            sb.append(",\n    walk ").append(
+                BusTime.minutesToString(curr.travelMinutes())
+                ).append(" to ");
+          } else {
+            sb.append(",\n    wait for ").append(wait).append(" minutes, take bus line "
+                ).append(curr.getLine().getName()).append(" to ");
+          }
+        }
+        prev = curr;
+      }
+      sb.append(prev.getTo().getName());
+    }
+    return sb.append("\n  ],\n  time=").append(
+        BusTime.minutesToString(minutes)).append("\n]").toString();
+  }
 }

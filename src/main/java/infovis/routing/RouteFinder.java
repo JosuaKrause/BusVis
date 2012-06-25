@@ -143,7 +143,7 @@ public final class RouteFinder implements RoutingAlgorithm {
         for(final BusStation st : bse.getStations()) {
           if(!current.contains(st) && bestRoutes[st.getId()] == null) {
             final int secs = dest.walkingSeconds(st);
-            if(secs < 0 || secs > maxWalk * BusTime.SECONDS_PER_MINUTE) {
+            if(secs < 0 || secs > maxWalkSecs) {
               continue;
             }
 
