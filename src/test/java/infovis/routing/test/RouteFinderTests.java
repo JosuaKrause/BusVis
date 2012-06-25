@@ -301,4 +301,14 @@ public class RouteFinderTests {
     assertSame(res.getEdges().iterator().next().getLine(), BusLine.WALK);
   }
 
+  //  @Test
+  //  public void walkingLimit() throws Exception {
+  //    final BusStationManager man = BusDataBuilder.load("src/main/resources");
+  //    final BusStation start = man.getForId(107);
+  //    final RouteFinder rf = new RouteFinder();
+  //    final BitSet bs = new BitSet();
+  //    bs.set(63);
+  //
+  //    System.out.println(rf.findRoutes(man, start, bs, BusTime.MIDNIGHT, 3, 24 * 60, 10)[63]);
+  //  }
 }
