@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -28,13 +27,13 @@ public final class BusDataBuilder {
   /** Maps the external bus station ids to the internal ones. */
   private final Map<Integer, Integer> idMap = new HashMap<Integer, Integer>();
   /** Bus stations. */
-  private final Map<Integer, BusStation> stations = new HashMap<Integer, BusStation>();
+  private final List<BusStation> stations = new ArrayList<BusStation>();
   /** Map from station IDs to the bus edges originating at this station. */
-  private final Map<Integer, List<BusEdge>> edges = new HashMap<Integer, List<BusEdge>>();
+  private final List<List<BusEdge>> edges = new ArrayList<List<BusEdge>>();
+  /** Walking distances. */
+  private final List<List<Integer>> walkingDists = new ArrayList<List<Integer>>();
   /** The path to the resources. */
   private final String path;
-  /** The currently maximal id. */
-  private int id;
 
   /**
    * Constructor taking the path of the CSV files.
@@ -68,6 +67,11 @@ public final class BusDataBuilder {
       }
       builder.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[3]) * 10000,
           -parseDouble(stop[2]) * 10000, abstractX, abstractY);
+    }
+
+    final CSVReader walk = readerFor(new File(root, "walking-dists.csv"));
+    for(String[] line; (line = walk.readNext()) != null;) {
+      builder.setWalkingDistance(parseInt(line[0]), parseInt(line[1]), parseInt(line[2]));
     }
 
     final Map<String, Color> colors = new HashMap<String, Color>();
@@ -152,13 +156,15 @@ public final class BusDataBuilder {
     if(idMap.containsKey(id)) throw new IllegalArgumentException("id: " + id
         + " already in use");
     // keep bus station ids dense
-    final int realId = this.id++;
+    final int realId = stations.size();
     idMap.put(id, realId);
     final List<BusEdge> edgeList = new ArrayList<BusEdge>();
-    edges.put(realId, edgeList);
+    edges.add(edgeList);
+    final List<Integer> walking = new ArrayList<Integer>();
+    walkingDists.add(walking);
     final BusStation bus = new BusStation(name, realId, x, y, abstractX, abstractY,
-        edgeList);
-    stations.put(realId, bus);
+        edgeList, walking);
+    stations.add(bus);
     return bus;
   }
 
@@ -208,6 +214,51 @@ public final class BusDataBuilder {
   }
 
   /**
+   * Sets the walking distance between two bus stations.
+   * 
+   * @param a first station
+   * @param b second station
+   * @param secs walking time in seconds
+   */
+  public void setWalkingDistance(final BusStation a, final BusStation b, final int secs) {
+    final int id1 = a.getId(), id2 = b.getId();
+    set(walkingDists.get(id1), id2, secs, -1);
+    set(walkingDists.get(id2), id1, secs, -1);
+  }
+
+  /**
+   * Sets the walking distance between two bus stations.
+   * 
+   * @param id1 first station's ID
+   * @param id2 second station's ID
+   * @param secs walking time in seconds
+   */
+  public void setWalkingDistance(final int id1, final int id2, final int secs) {
+    setWalkingDistance(getStation(id1), getStation(id2), secs);
+  }
+
+  /**
+   * Sets the value at a specific position in a list. If the list is too short,
+   * it is extended by the given default element.
+   * 
+   * @param <T> type of the list's elements
+   * @param list the list
+   * @param pos position
+   * @param val value to be set
+   * @param def default element
+   */
+  private static <T> void set(final List<T> list, final int pos, final T val, final T def) {
+    while(list.size() < pos) {
+      list.add(def);
+    }
+    if(list.size() == pos) {
+      list.add(val);
+    } else {
+      list.set(pos, val);
+    }
+  }
+
+  /**
    * Gets the station from the stations map.
    * 
    * @param id station ID
@@ -220,16 +271,17 @@ public final class BusDataBuilder {
     return station;
   }
 
+
   /**
    * Finishes the building process and returns the bus station manager.
    * 
    * @return bus station manager
    */
   public BusStationManager finish() {
-    for(final Entry<Integer, List<BusEdge>> e : edges.entrySet()) {
-      Collections.sort(e.getValue());
+    for(final List<BusEdge> e : edges) {
+      Collections.sort(e);
     }
-    return new BusStationManager(stations.values(), path);
+    return new BusStationManager(stations, path);
   }
 
 }

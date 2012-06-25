@@ -1,6 +1,7 @@
 package infovis.gui;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * The paint context provides information of the state of drawing. Methods for
@@ -53,5 +54,19 @@ public interface Context {
    * @return Whether this context is currently in canvas coordinates.
    */
   boolean inCanvasCoordinates();
+
+  /**
+   * Getter.
+   * 
+   * @return The visible rectangle in component coordinates.
+   */
+  Rectangle2D getVisibleComponent();
+
+  /**
+   * Getter.
+   * 
+   * @return The visible rectangle in canvas coordinates.
+   */
+  Rectangle2D getVisibleCanvas();
 
 }
