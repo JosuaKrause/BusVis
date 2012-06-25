@@ -445,6 +445,10 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final RoutingResult route = getRoute(station);
     if(route != null && route.isNotReachable()) return;
 
+    if(hovered) {
+      System.out.println(route);
+    }
+
     final Shape shape = nodeClickArea(n, true);
     final BasicStroke stroke = new BasicStroke(.5f);
     final Rectangle2D bbox = stroke.createStrokedShape(shape).getBounds2D();
