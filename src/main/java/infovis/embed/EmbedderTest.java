@@ -32,6 +32,7 @@ public final class EmbedderTest implements NodeDrawer, Weighter {
    * 
    * @param args Ignored.
    */
+  @SuppressWarnings("deprecation")
   public static void main(final String[] args) {
     final EmbedderTest test = new EmbedderTest();
     final SpringEmbedder embed = new SpringEmbedder(test, test);

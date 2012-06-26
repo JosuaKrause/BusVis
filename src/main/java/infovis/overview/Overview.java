@@ -6,6 +6,7 @@ import infovis.data.BusDataBuilder;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.embed.Embedders;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -111,6 +112,11 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   public void selectBusStation(final BusStation station) {
     selectedStation = station;
     repaint();
+  }
+
+  @Override
+  public void setEmbedder(final Embedders embed) {
+    // no-op
   }
 
   @Override
