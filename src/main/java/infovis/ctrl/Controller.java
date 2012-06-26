@@ -4,6 +4,7 @@ import infovis.data.BusStation;
 import infovis.data.BusStationEnumerator;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.embed.Embedders;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 
@@ -44,6 +45,9 @@ public final class Controller implements BusStationEnumerator {
 
   /** Current maximum walking time. */
   private volatile int currWalkTime = 5;
+
+  /** Current positioning technique. */
+  private Embedders embed = Embedders.CIRCULAR;
 
   /** Timer for real-time view. */
   private final Timer timer = new Timer(true);
@@ -130,10 +134,30 @@ public final class Controller implements BusStationEnumerator {
   }
 
   /**
+   * All positioning techniques.
+   */
+  private static final Embedders[] EMBEDDERS = new Embedders[] {
+    Embedders.CIRCULAR,
+
+    // Embedders.SPRING,
+  };
+
+  /**
+   * Getter.
+   * 
+   * @return All registered positioning techniques.
+   */
+  public static Embedders[] getEmbedders() {
+    return EMBEDDERS;
+  }
+
+  /**
    * All routing algorithms.
    */
   private static final RoutingAlgorithm[] ALGOS = new RoutingAlgorithm[] {
     new RouteFinder(),
+
+    // new FastRouteFinder(),
   };
 
   /**
@@ -300,6 +324,28 @@ public final class Controller implements BusStationEnumerator {
   }
 
   /**
+   * Sets the positioning technique.
+   * 
+   * @param embed The technique.
+   */
+  public void setEmbedder(final Embedders embed) {
+    if(this.embed == embed) return;
+    this.embed = embed;
+    for(final BusVisualization v : vis) {
+      v.setEmbedder(embed);
+    }
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The currently used positioning technique.
+   */
+  public Embedders getEmbedder() {
+    return embed;
+  }
+
+  /**
    * Adds a bus visualization.
    * 
    * @param v The visualization.
@@ -308,6 +354,7 @@ public final class Controller implements BusStationEnumerator {
     if(v == null) throw new NullPointerException("v");
     if(vis.contains(v)) throw new IllegalStateException("visualization already added");
     vis.add(v);
+    v.setEmbedder(embed);
     v.setChangeTime(curChangeTime);
     v.setStartTime(curStartTime);
     v.selectBusStation(curSelection);

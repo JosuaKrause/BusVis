@@ -34,11 +34,6 @@ public class Canvas extends JComponent implements Refreshable {
   private static final long serialVersionUID = 5148536262867772166L;
 
   /**
-   * The painter.
-   */
-  private final Painter painter;
-
-  /**
    * The x offset.
    */
   private double offX;
@@ -54,15 +49,21 @@ public class Canvas extends JComponent implements Refreshable {
   private double zoom = 1;
 
   /**
+   * The painter.
+   */
+  protected Painter painter;
+
+  /**
    * Creates a canvas for the given painter.
    * 
-   * @param painter The painter.
+   * @param p The painter.
    * @param width The initial width of the component.
    * @param height The initial height of the component.
    */
-  public Canvas(final Painter painter, final int width, final int height) {
+  public Canvas(final Painter p, final int width, final int height) {
+    if(p == null) throw new NullPointerException("p");
     setPreferredSize(new Dimension(width, height));
-    this.painter = painter;
+    painter = p;
     final MouseAdapter mouse = new MouseAdapter() {
 
       private boolean drag;
@@ -369,6 +370,16 @@ public class Canvas extends JComponent implements Refreshable {
    */
   public double getOffsetY() {
     return offY;
+  }
+
+  /**
+   * Sets the painter.
+   * 
+   * @param p The new painter.
+   */
+  public void setPainter(final Painter p) {
+    if(p == null) throw new NullPointerException("p");
+    painter = p;
   }
 
   /**

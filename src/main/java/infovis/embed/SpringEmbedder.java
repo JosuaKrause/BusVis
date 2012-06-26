@@ -18,7 +18,9 @@ public final class SpringEmbedder extends AbstractEmbedder {
    * 
    * @param weighter The weighter.
    * @param drawer The drawer.
+   * @deprecated The use of this positioner is now deprecated.
    */
+  @Deprecated
   public SpringEmbedder(final Weighter weighter, final NodeDrawer drawer) {
     super(drawer);
     this.weighter = weighter;

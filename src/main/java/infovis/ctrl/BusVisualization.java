@@ -2,6 +2,7 @@ package infovis.ctrl;
 
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.embed.Embedders;
 
 /**
  * A bus visualization.
@@ -52,5 +53,12 @@ public interface BusVisualization {
    * @param blink Whether the colon should be displayed.
    */
   void overwriteDisplayedTime(BusTime time, boolean blink);
+
+  /**
+   * Sets the currently used embedder technique.
+   * 
+   * @param embed The embedder technique.
+   */
+  void setEmbedder(Embedders embed);
 
 }

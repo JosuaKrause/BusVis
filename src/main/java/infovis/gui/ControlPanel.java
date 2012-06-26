@@ -5,6 +5,7 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.embed.Embedders;
 import infovis.routing.RoutingAlgorithm;
 
 import java.awt.Component;
@@ -71,6 +72,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   /** The algorithm box. */
   protected final JComboBox algoBox;
+
+  /** The technique box. */
+  protected final JComboBox embedBox;
 
   /**
    * A thin wrapper for the bus station name. Also allows the <code>null</code>
@@ -155,6 +159,27 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       addHor(new JLabel("Routing:"), algoBox);
     } else {
       algoBox = null;
+    }
+    // embedder selection
+    final Embedders[] embeds = Controller.getEmbedders();
+    if(embeds.length != 1) {
+      embedBox = new JComboBox(embeds);
+      embedBox.addActionListener(new ActionListener() {
+
+        @Override
+        public void actionPerformed(final ActionEvent ae) {
+          final Embedders e = (Embedders) embedBox.getSelectedItem();
+          if(e != ctrl.getEmbedder()) {
+            ctrl.setEmbedder(e);
+          }
+        }
+
+      });
+      final Dimension size = embedBox.getPreferredSize();
+      embedBox.setMaximumSize(new Dimension(200, size.height));
+      addHor(new JLabel("Positioning:"), embedBox);
+    } else {
+      embedBox = null;
     }
     // station selection
     final BusStationName[] stations = getStations(ctrl);
@@ -314,8 +339,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   }
 
   @Override
-  public void focusStation() {
-    // already covered by select bus station
+  public void setEmbedder(final Embedders embed) {
+    if(embedBox != null) {
+      embedBox.setSelectedItem(embed);
+    }
   }
 
   @Override
@@ -331,6 +358,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     if(algoBox != null) {
       algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
     }
+  }
+
+  @Override
+  public void focusStation() {
+    // already covered by select bus station
   }
 
 }
