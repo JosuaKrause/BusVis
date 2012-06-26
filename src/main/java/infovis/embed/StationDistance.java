@@ -440,29 +440,31 @@ public final class StationDistance implements Weighter, NodeDrawer {
 
   @Override
   public void drawNode(final Graphics2D g, final Context ctx, final SpringNode n,
-      final boolean hovered) {
+      final boolean secondarySelected) {
     final BusStation station = map.get(n);
     final RoutingResult route = getRoute(station);
     if(route != null && route.isNotReachable()) return;
 
-    if(hovered) {
+    if(secondarySelected) {
       System.out.println(route);
     }
 
     final Shape shape = nodeClickArea(n, true);
     final BasicStroke stroke = new BasicStroke(.5f);
     final Rectangle2D bbox = stroke.createStrokedShape(shape).getBounds2D();
-    if(!ctx.getVisibleCanvas().intersects(bbox)) return;
 
-    final Graphics2D g2 = (Graphics2D) g.create();
-    g2.setColor(!station.equals(from) ?
-        (hovered && from != null ? Color.BLUE : Color.WHITE) : Color.RED);
-    g2.fill(shape);
-    g2.setStroke(stroke);
-    g2.setColor(Color.BLACK);
-    g2.draw(shape);
-    g2.dispose();
-    if(hovered) {
+    if(ctx.getVisibleCanvas().intersects(bbox)) {
+      final Graphics2D g2 = (Graphics2D) g.create();
+      g2.setColor(!station.equals(from) ?
+          (secondarySelected && from != null ? Color.BLUE : Color.WHITE) : Color.RED);
+      g2.fill(shape);
+      g2.setStroke(stroke);
+      g2.setColor(Color.BLACK);
+      g2.draw(shape);
+      g2.dispose();
+    }
+
+    if(secondarySelected) {
       final Collection<BusEdge> edges = route.getEdges();
       if(edges == null) return;
       final int size = edges.size();

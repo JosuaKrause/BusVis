@@ -6,12 +6,15 @@ import infovis.gui.Refreshable;
 
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import javax.swing.SwingUtilities;
 
 /**
  * An abstract embedding visualization.
@@ -126,7 +129,7 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     }
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawNode(g, ctx, n, hovered.contains(n));
+      drawer.drawNode(g, ctx, n, secSel.contains(n));
       g.dispose();
     }
   }
@@ -140,24 +143,9 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     }
   }
 
-  /**
-   * A list of all currently hovered nodes.
-   */
-  private final Set<SpringNode> hovered = new HashSet<SpringNode>();
-
   @Override
   public void moveMouse(final Point2D cur) {
     drawer.moveMouse(cur);
-    hovered.clear();
-    for(final SpringNode n : drawer.nodes()) {
-      final Shape s = drawer.nodeClickArea(n, true);
-      if(s.contains(cur)) {
-        hovered.add(n);
-      }
-    }
-    if(!hovered.isEmpty()) {
-      refreshAll();
-    }
   }
 
   /**
@@ -213,8 +201,26 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     return !selected.isEmpty();
   }
 
+  /**
+   * A list of all secondary selected nodes.
+   */
+  private final Set<SpringNode> secSel = new HashSet<SpringNode>();
+
   @Override
-  public boolean click(final Point2D p) {
+  public boolean click(final Point2D p, final MouseEvent e) {
+    if(SwingUtilities.isRightMouseButton(e)) {
+      secSel.clear();
+      for(final SpringNode n : drawer.nodes()) {
+        final Shape s = drawer.nodeClickArea(n, true);
+        if(s.contains(p)) {
+          secSel.add(n);
+        }
+      }
+      if(!secSel.isEmpty()) {
+        refreshAll();
+      }
+      return true;
+    }
     if(doesDrag()) return false;
     for(final SpringNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);

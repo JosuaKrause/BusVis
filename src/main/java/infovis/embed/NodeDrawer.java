@@ -20,9 +20,9 @@ public interface NodeDrawer {
    * @param g The device.
    * @param ctx The canvas context.
    * @param n The node.
-   * @param hovered If the node is currently hovered.
+   * @param secondarySelected If the node is secondary selected.
    */
-  void drawNode(Graphics2D g, Context ctx, SpringNode n, boolean hovered);
+  void drawNode(Graphics2D g, Context ctx, SpringNode n, boolean secondarySelected);
 
   /**
    * Draws the edges of the given node. The graphics device must be translated

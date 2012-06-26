@@ -87,7 +87,7 @@ public class Canvas extends JComponent implements Refreshable {
           return;
         }
         final Point2D c = getForScreen(p);
-        if(painter.click(c)) {
+        if(painter.click(c, e)) {
           Canvas.this.repaint();
           return;
         }

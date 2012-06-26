@@ -2,6 +2,7 @@ package infovis.gui;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -61,7 +62,7 @@ public final class Test extends PainterAdapter {
   private boolean left;
 
   @Override
-  public boolean click(final Point2D p) {
+  public boolean click(final Point2D p, final MouseEvent e) {
     if(RIGHT_EYE.contains(p)) {
       right = !right;
       return true;

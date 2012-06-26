@@ -1,6 +1,7 @@
 package infovis.gui;
 
 import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -22,7 +23,7 @@ public class PainterAdapter implements Painter {
   }
 
   @Override
-  public boolean click(final Point2D p) {
+  public boolean click(final Point2D p, final MouseEvent e) {
     // the event is not consumed
     return false;
   }
