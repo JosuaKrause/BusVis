@@ -2,6 +2,7 @@ package infovis.embed;
 
 import static infovis.util.VecUtil.*;
 import infovis.ctrl.Controller;
+import infovis.data.BusEdge;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
@@ -23,6 +24,9 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -636,6 +640,26 @@ public final class StationDistance implements Weighter, NodeDrawer {
       }
     }
     return bbox;
+  }
+
+  @Override
+  public Collection<WeightedEdge> edgesTo(final SpringNode to) {
+    final BusStation station = map.get(to);
+    final RoutingResult r = getRoute(station);
+    if(r.isStartNode() || r.isNotReachable()) return Collections.emptyList();
+    final Collection<BusEdge> e = r.getEdges();
+    final WeightedEdge[] edges = new WeightedEdge[e.size()];
+    BusTime start = getTime();
+    SpringNode cur = getReferenceNode();
+    int i = 0;
+    for(final BusEdge be : e) {
+      final BusTime end = be.getEnd();
+      final SpringNode next = getNode(be.getTo());
+      edges[i++] = new WeightedEdge(cur, next, factor * start.minutesTo(end));
+      start = end;
+      cur = next;
+    }
+    return Arrays.asList(edges);
   }
 
 }

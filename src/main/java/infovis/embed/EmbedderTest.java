@@ -14,6 +14,8 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -224,6 +226,11 @@ public final class EmbedderTest implements NodeDrawer, Weighter {
   @Override
   public boolean inAnimation() {
     return false;
+  }
+
+  @Override
+  public Collection<WeightedEdge> edgesTo(final SpringNode to) {
+    return Collections.EMPTY_LIST;
   }
 
   @Override
