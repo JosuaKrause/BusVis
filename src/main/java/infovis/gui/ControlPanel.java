@@ -5,6 +5,8 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.embed.Embedders;
+import infovis.routing.RoutingAlgorithm;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -12,9 +14,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -33,60 +34,47 @@ import javax.swing.event.ChangeListener;
  */
 public final class ControlPanel extends JPanel implements BusVisualization {
 
-  /**
-   * SVUID.
-   */
+  /** SVUID. */
   private static final long serialVersionUID = 1644268841480928696L;
 
-  /**
-   * The station box.
-   */
+  /** The station box. */
   protected final JComboBox box;
 
-  /**
-   * The bus time slider.
-   */
+  /** The bus time slider. */
   protected final JSlider bt;
 
-  /**
-   * The bus time label.
-   */
+  /** The bus time label. */
   private final JLabel btLabel;
 
-  /**
-   * The check box to select now as start time.
-   */
+  /** The check box to select now as start time. */
   protected final JCheckBox now;
 
-  /**
-   * The change time slider.
-   */
+  /** The change time slider. */
   protected final JSlider ct;
 
-  /**
-   * The change time label.
-   */
+  /** The change time label. */
   private final JLabel ctLabel;
 
-  /**
-   * The time window slider.
-   */
+  /** The time window slider. */
   protected final JSlider tw;
 
-  /**
-   * The time window label.
-   */
+  /** The walk time window label. */
+  private final JLabel twwLabel;
+
+  /** The walk time window slider. */
+  protected final JSlider tww;
+
+  /** The time window label. */
   private final JLabel twLabel;
 
-  /**
-   * Maps bus stations to indices in the combo box.
-   */
-  private final Map<BusStation, Integer> indexMap = new HashMap<BusStation, Integer>();
+  /** Maps bus station ids to indices in the combo box. */
+  private final int[] indexMap;
 
-  // /**
-  // * The algorithm box.
-  // */
-  // protected final JComboBox algoBox;
+  /** The algorithm box. */
+  protected final JComboBox algoBox;
+
+  /** The technique box. */
+  protected final JComboBox embedBox;
 
   /**
    * A thin wrapper for the bus station name. Also allows the <code>null</code>
@@ -96,10 +84,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    */
   private static final class BusStationName {
 
-    /**
-     * The associated bus station.
-     */
+    /** The associated bus station. */
     public final BusStation station;
+
+    /** The name of the station. */
+    private final String name;
 
     /**
      * Creates a bus station name object.
@@ -111,16 +100,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       name = station != null ? station.getName() : "(no selection)";
     }
 
-    /**
-     * The name of the station.
-     */
-    private final String name;
-
     @Override
     public String toString() {
       return name;
     }
-
   }
 
   /**
@@ -130,12 +113,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * @return All bus station names.
    */
   private static BusStationName[] getStations(final Controller ctrl) {
-    final BusStation[] arr = ctrl.getAllStations();
+    final Collection<BusStation> s = ctrl.getStations();
+    final BusStation[] arr = s.toArray(new BusStation[s.size()]);
     Arrays.sort(arr, new Comparator<BusStation>() {
 
       @Override
-      public int compare(final BusStation b0, final BusStation b1) {
-        return b0.getName().compareTo(b1.getName());
+      public int compare(final BusStation a, final BusStation b) {
+        return a.getName().compareTo(b.getName());
       }
 
     });
@@ -156,26 +140,55 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     final Component space = Box.createRigidArea(new Dimension(5, 5));
     // routing selection
-    // final RoutingAlgorithm[] algos = ctrl.getRoutingAlgorithms();
-    // algoBox = new JComboBox(algos);
-    // algoBox.addActionListener(new ActionListener() {
-    //
-    // @Override
-    // public void actionPerformed(final ActionEvent e) {
-    // final RoutingAlgorithm routing = (RoutingAlgorithm)
-    // algoBox.getSelectedItem();
-    // if(routing != ctrl.getRoutingAlgorithm()) {
-    // ctrl.setRoutingAlgorithm(routing);
-    // }
-    // }
-    //
-    // });
-    // algoBox.setMaximumSize(algoBox.getPreferredSize());
-    // addHor(new JLabel("Routing:"), algoBox);
+    final RoutingAlgorithm[] algos = Controller.getRoutingAlgorithms();
+    if(algos.length != 1) {
+      algoBox = new JComboBox(algos);
+      algoBox.addActionListener(new ActionListener() {
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+          final RoutingAlgorithm routing = (RoutingAlgorithm)
+              algoBox.getSelectedItem();
+          if(routing != ctrl.getRoutingAlgorithm()) {
+            ctrl.setRoutingAlgorithm(routing);
+          }
+        }
+
+      });
+      algoBox.setMaximumSize(algoBox.getPreferredSize());
+      addHor(new JLabel("Routing:"), algoBox);
+    } else {
+      algoBox = null;
+    }
+    // embedder selection
+    final Embedders[] embeds = Controller.getEmbedders();
+    if(embeds.length != 1) {
+      embedBox = new JComboBox(embeds);
+      embedBox.addActionListener(new ActionListener() {
+
+        @Override
+        public void actionPerformed(final ActionEvent ae) {
+          final Embedders e = (Embedders) embedBox.getSelectedItem();
+          if(e != ctrl.getEmbedder()) {
+            ctrl.setEmbedder(e);
+          }
+        }
+
+      });
+      final Dimension size = embedBox.getPreferredSize();
+      embedBox.setMaximumSize(new Dimension(200, size.height));
+      addHor(new JLabel("Positioning:"), embedBox);
+    } else {
+      embedBox = null;
+    }
     // station selection
     final BusStationName[] stations = getStations(ctrl);
+    indexMap = new int[ctrl.maxId() + 1];
     for(int i = 0; i < stations.length; ++i) {
-      indexMap.put(stations[i].station, i);
+      if(stations[i].station == null) {
+        continue;
+      }
+      indexMap[stations[i].station.getId()] = i;
     }
     box = new JComboBox(stations);
     box.addActionListener(new ActionListener() {
@@ -192,10 +205,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     });
     box.setMaximumSize(box.getPreferredSize());
     addHor(new JLabel("Stations:"), box);
+
     // start time
     bt = new JSlider(0, MIDNIGHT.minutesTo(MIDNIGHT.later(-1)));
     bt.addChangeListener(new ChangeListener() {
-
       @Override
       public void stateChanged(final ChangeEvent e) {
         final int min = bt.getValue();
@@ -204,12 +217,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
           ctrl.setTime(MIDNIGHT.later(min));
         }
       }
-
     });
+
     btLabel = new JLabel();
     now = new JCheckBox("now");
     now.addChangeListener(new ChangeListener() {
-
       @Override
       public void stateChanged(final ChangeEvent e) {
         final boolean b = ctrl.isStartTimeNow();
@@ -223,13 +235,12 @@ public final class ControlPanel extends JPanel implements BusVisualization {
           }
         }
       }
-
     });
     addHor(new JLabel("Start Time:"), bt, btLabel, now, space);
+
     // change time
     ct = new JSlider(-10, 60);
     ct.addChangeListener(new ChangeListener() {
-
       @Override
       public void stateChanged(final ChangeEvent e) {
         final int min = ct.getValue();
@@ -237,14 +248,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
           ctrl.setChangeTime(min);
         }
       }
-
     });
     ctLabel = new JLabel();
     addHor(new JLabel("Change Time:"), ct, ctLabel, space);
+
     // time window
     tw = new JSlider(0, 24);
     tw.addChangeListener(new ChangeListener() {
-
       @Override
       public void stateChanged(final ChangeEvent arg0) {
         final int v = tw.getValue();
@@ -254,8 +264,26 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       }
 
     });
+
     twLabel = new JLabel();
     addHor(new JLabel("Max Wait:"), tw, twLabel, space);
+
+    // walk time window
+    tww = new JSlider(0, 2 * BusTime.MINUTES_PER_HOUR);
+    tww.addChangeListener(new ChangeListener() {
+      @Override
+      public void stateChanged(final ChangeEvent arg0) {
+        final int v = tww.getValue();
+        if(ctrl.getWalkTime() != v) {
+          ctrl.setWalkTime(v);
+        }
+      }
+
+    });
+
+    twwLabel = new JLabel();
+    addHor(new JLabel("Max Walk:"), tww, twwLabel, space);
+
     // end of layout
     add(Box.createVerticalGlue());
     ctrl.addBusVisualization(this);
@@ -281,7 +309,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   @Override
   public void selectBusStation(final BusStation station) {
-    box.setSelectedIndex(indexMap.get(station));
+    box.setSelectedIndex(station != null ? indexMap[station.getId()] : 0);
   }
 
   @Override
@@ -311,8 +339,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   }
 
   @Override
-  public void focusStation() {
-    // already covered by select bus station
+  public void setEmbedder(final Embedders embed) {
+    if(embedBox != null) {
+      embedBox.setSelectedItem(embed);
+    }
   }
 
   @Override
@@ -320,7 +350,19 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     final int mth = ctrl.getMaxTimeHours();
     tw.setValue(mth);
     twLabel.setText(BusTime.minutesToString(mth * BusTime.MINUTES_PER_HOUR));
-    // algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
+
+    final int walkTime = ctrl.getWalkTime();
+    tww.setValue(walkTime);
+    twwLabel.setText(BusTime.minutesToString(walkTime));
+
+    if(algoBox != null) {
+      algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
+    }
+  }
+
+  @Override
+  public void focusStation() {
+    // already covered by select bus station
   }
 
 }

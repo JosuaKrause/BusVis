@@ -9,7 +9,6 @@ import infovis.routing.RoutingManager;
 import infovis.routing.RoutingManager.CallBack;
 import infovis.routing.RoutingResult;
 
-import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
@@ -85,20 +84,19 @@ public class RoutingManagerTests {
     final BusStationManager man = BusDataBuilder.load("src/main/resources/");
     final RoutingManager rm = RoutingManager.newInstance();
     final Semaphore sem = new Semaphore(0);
-    final AtomicReference<Collection<RoutingResult>> ref =
-        new AtomicReference<Collection<RoutingResult>>();
+    final AtomicReference<RoutingResult[]> ref = new AtomicReference<RoutingResult[]>();
 
-    rm.findRoutes(man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60,
-        new RouteFinder(), new CallBack<Collection<RoutingResult>>() {
-      @Override
-      public void callBack(final Collection<RoutingResult> result) {
-        ref.set(result);
-        sem.release();
-      }
-    });
+    rm.findRoutes(man, man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60, 0,
+        new RouteFinder(), new CallBack<RoutingResult[]>() {
+          @Override
+          public void callBack(final RoutingResult[] result) {
+            ref.set(result);
+            sem.release();
+          }
+        });
 
     sem.acquire();
-    assertEquals(122, ref.get().size());
+    assertEquals(man.maxId() + 1, ref.get().length);
   }
 
   /**
@@ -112,19 +110,18 @@ public class RoutingManagerTests {
     final CountDownLatch cd = new CountDownLatch(2);
     final AtomicBoolean ref = new AtomicBoolean(false);
     final RoutingManager rm = RoutingManager.newInstance();
-    rm.registerTask(new Callable<Collection<RoutingResult>>() {
+    rm.registerTask(new Callable<RoutingResult[]>() {
       @Override
-      public Collection<RoutingResult> call() throws InterruptedException {
+      public RoutingResult[] call() throws InterruptedException {
         cd.countDown();
-        final Collection<RoutingResult> routes = new RouteFinder().findRoutes(
-            man.getForId(1), null, new BusTime(12, 00),
-            1, 24 * 60);
+        final RoutingResult[] routes = new RouteFinder().findRoutes(man,
+            man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60, 0);
         ref.getAndSet(true); // should not exit normally
         return routes;
       }
-    }, new CallBack<Collection<RoutingResult>>() {
+    }, new CallBack<RoutingResult[]>() {
       @Override
-      public void callBack(final Collection<RoutingResult> result) {
+      public void callBack(final RoutingResult[] result) {
         throw new IllegalStateException("should not come here");
       }
     });

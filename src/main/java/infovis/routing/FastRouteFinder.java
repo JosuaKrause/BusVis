@@ -3,11 +3,14 @@ package infovis.routing;
 import infovis.data.BusEdge;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
+import infovis.data.BusStationEnumerator;
 import infovis.data.BusTime;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -20,12 +23,16 @@ import java.util.Queue;
  * A fast but in rare cases incorrect routing algorithm.
  * 
  * @author Joschi <josua.krause@googlemail.com>
+ * @deprecated Replaced by {@link RouteFinder}. This class is not maintained
+ *             anymore. No optimizations and no adaption to interface changes.
  */
+@Deprecated
 public final class FastRouteFinder implements RoutingAlgorithm {
 
   /**
    * Finds the shortest route to the given station.
    * 
+   * @param bse The bus station enumerator.
    * @param from The start station.
    * @param dest The destination.
    * @param start The start time.
@@ -34,11 +41,12 @@ public final class FastRouteFinder implements RoutingAlgorithm {
    * @return The shortest route to the destination or <code>null</code> if there
    *         exists no route to the given destination.
    */
-  public static Deque<BusEdge> routeTo(final BusStation from, final BusStation dest,
+  public static Deque<BusEdge> routeTo(final BusStationEnumerator bse,
+      final BusStation from, final BusStation dest,
       final BusTime start,
       final int changeTime, final int maxTime) {
     final Map<Integer, Route> routes = new HashMap<Integer, Route>();
-    iniRoutes(from, routes, start);
+    iniRoutes(bse, routes, start);
     if(!findRoutes(from, routes, dest, start, changeTime, maxTime)) return null;
     return convertRoutes(routes.get(dest.getId()));
   }
@@ -46,17 +54,17 @@ public final class FastRouteFinder implements RoutingAlgorithm {
   /**
    * Finds shortest routes to all bus stations.
    * 
+   * @param bse The bus station enumerator.
    * @param from The start bus station.
    * @param start The start time.
    * @param changeTime The time to change lines.
    * @param maxTime The maximum time in minutes.
    * @return The reach-ability of all bus stations.
    */
-  public static Collection<RoutingResult> routes(final BusStation from,
-      final BusTime start,
-      final int changeTime, final int maxTime) {
+  public static Collection<RoutingResult> routes(final BusStationEnumerator bse,
+      final BusStation from, final BusTime start, final int changeTime, final int maxTime) {
     final Map<Integer, Route> routes = new HashMap<Integer, Route>();
-    iniRoutes(from, routes, start);
+    iniRoutes(bse, routes, start);
     findRoutes(from, routes, null, start, changeTime, maxTime);
     return convert(start, from, routes.values());
   }
@@ -217,23 +225,34 @@ public final class FastRouteFinder implements RoutingAlgorithm {
   /**
    * Initializes the route objects.
    * 
-   * @param from The start bus station.
+   * @param bse The bus station enumerator.
    * @param routes The route map.
    * @param start The start time.
    */
-  private static void iniRoutes(final BusStation from, final Map<Integer, Route> routes,
+  private static void iniRoutes(final BusStationEnumerator bse,
+      final Map<Integer, Route> routes,
       final BusTime start) {
-    for(final BusStation station : from.getManager().getStations()) {
+    for(final BusStation station : bse.getStations()) {
       routes.put(station.getId(), new Route(station, start));
     }
   }
 
   @Override
-  public Collection<RoutingResult> findRoutes(final BusStation station,
-      final BitSet dests,
-      final BusTime start, final int wait, final int maxDuration)
+  public RoutingResult[] findRoutes(final BusStationEnumerator bse,
+      final BusStation station, final BitSet dests, final BusTime start, final int wait,
+      final int maxDuration, final int maxWalk)
           throws InterruptedException {
-    return routes(station, start, wait, maxDuration);
+    final Collection<RoutingResult> res = routes(bse, station, start, wait, maxDuration);
+    final RoutingResult[] arr = res.toArray(new RoutingResult[res.size()]);
+    Arrays.sort(arr, new Comparator<RoutingResult>() {
+
+      @Override
+      public int compare(final RoutingResult a, final RoutingResult b) {
+        return a.getEnd().getId() - b.getEnd().getId();
+      }
+
+    });
+    return arr;
   }
 
   @Override

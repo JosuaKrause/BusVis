@@ -8,7 +8,7 @@ import java.util.Comparator;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class BusEdge implements Comparable<BusEdge> {
+public final class BusEdge implements Comparable<BusEdge> {
 
   /** Bus line. */
   private final BusLine line;
@@ -39,15 +39,27 @@ public class BusEdge implements Comparable<BusEdge> {
    * @param end The arrival time.
    */
   BusEdge(final BusLine line, final int tourNr, final BusStation from,
-      final BusStation to,
-      final BusTime start,
-      final BusTime end) {
+      final BusStation to, final BusTime start, final BusTime end) {
     this.line = line;
     this.tourNr = tourNr;
     this.start = start;
     this.end = end;
     this.from = from;
     this.to = to;
+  }
+
+  /**
+   * Creates a bus edge that's walked.
+   * 
+   * @param from The starting point.
+   * @param to The destination.
+   * @param start The departure time.
+   * @param end The arrival time.
+   * @return new bus edge
+   */
+  public static BusEdge walking(final BusStation from, final BusStation to,
+      final BusTime start, final BusTime end) {
+    return new BusEdge(BusLine.WALK, 0, from, to, start, end);
   }
 
   /**
@@ -149,10 +161,11 @@ public class BusEdge implements Comparable<BusEdge> {
    * Checks if this edge is on the same tour of the same line as the given edge.
    * 
    * @param other edge
-   * @return <code>true</code> if the edges are an the same tour,
+   * @return <code>true</code> if the edges are on the same tour,
    *         <code>false</code> otherwise
    */
   public boolean sameTour(final BusEdge other) {
     return line.equals(other.line) && tourNr == other.tourNr;
   }
+
 }

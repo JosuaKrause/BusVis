@@ -6,7 +6,7 @@ package infovis.embed;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class SpringEmbedder extends AbstractEmbedder {
+public final class SpringEmbedder extends AbstractEmbedder {
 
   /**
    * The weighter, defining edges between nodes.
@@ -18,7 +18,9 @@ public class SpringEmbedder extends AbstractEmbedder {
    * 
    * @param weighter The weighter.
    * @param drawer The drawer.
+   * @deprecated The use of this positioner is now deprecated.
    */
+  @Deprecated
   public SpringEmbedder(final Weighter weighter, final NodeDrawer drawer) {
     super(drawer);
     this.weighter = weighter;

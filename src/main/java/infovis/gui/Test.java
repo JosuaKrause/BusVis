@@ -15,7 +15,7 @@ import javax.swing.WindowConstants;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class Test extends PainterAdapter {
+public final class Test extends PainterAdapter {
 
   /**
    * Starts the test application.
@@ -79,7 +79,7 @@ public class Test extends PainterAdapter {
   }
 
   @Override
-  public void draw(final Graphics2D gfx) {
+  public void draw(final Graphics2D gfx, final Context ctx) {
     gfx.setColor(right ? Color.RED : Color.BLUE);
     gfx.fill(RIGHT_EYE);
     gfx.setColor(Color.BLACK);
@@ -88,7 +88,7 @@ public class Test extends PainterAdapter {
   }
 
   @Override
-  public void drawHUD(final Graphics2D gfx) {
+  public void drawHUD(final Graphics2D gfx, final Context ctx) {
     gfx.setColor(left ? Color.RED : Color.BLUE);
     gfx.fill(LEFT_EYE);
     gfx.setColor(Color.BLACK);

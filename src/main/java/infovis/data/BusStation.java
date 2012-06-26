@@ -1,12 +1,9 @@
 package infovis.data;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * A {@link BusStation} contains informations about bus stations in the traffic
@@ -22,16 +19,35 @@ public final class BusStation implements Comparable<BusStation> {
   /** The (non-negative) unique id of the bus station. */
   private final int id;
 
+  /**
+   * The default x coordinate for this bus station.
+   */
+  private final double x;
+
+  /**
+   * The default y coordinate for this bus station.
+   */
+  private final double y;
+
+  /**
+   * The x coordinate for this bus station on the abstract map.
+   */
+  private final double abstractX;
+
+  /**
+   * The y coordinate for this bus station on the abstract map.
+   */
+  private final double abstractY;
+
   /** A sorted list of all bus edges starting with the earliest edge (00:00). */
   private final List<BusEdge> edges;
 
-  /** The bus manager. */
-  private final BusStationManager manager;
+  /** Walking distances to the other stations. */
+  private final List<Integer> walkingDists;
 
   /**
    * Creates a bus station.
    * 
-   * @param manager The manager.
    * @param name The name.
    * @param id The id, has to be non-negative.
    * @param x The x position.
@@ -39,11 +55,11 @@ public final class BusStation implements Comparable<BusStation> {
    * @param abstractX The x position on the abstract map.
    * @param abstractY The y position on the abstract map.
    * @param edges sorted list of edges
+   * @param walkingDists walking distances
    */
-  BusStation(final BusStationManager manager, final String name, final int id,
+  BusStation(final String name, final int id,
       final double x, final double y, final double abstractX, final double abstractY,
-      final List<BusEdge> edges) {
-    this.manager = manager;
+      final List<BusEdge> edges, final List<Integer> walkingDists) {
     this.name = name;
     this.id = id;
     this.x = x;
@@ -51,6 +67,7 @@ public final class BusStation implements Comparable<BusStation> {
     this.abstractX = abstractX;
     this.abstractY = abstractY;
     this.edges = edges;
+    this.walkingDists = walkingDists;
   }
 
   /**
@@ -69,6 +86,15 @@ public final class BusStation implements Comparable<BusStation> {
    */
   public int getId() {
     return id;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Returns all edges associated with this bus station.
+   */
+  public Collection<BusEdge> getEdges() {
+    return Collections.unmodifiableList(edges);
   }
 
   /**
@@ -130,7 +156,7 @@ public final class BusStation implements Comparable<BusStation> {
       return 0;
     }
 
-    int low = 0, high = edges.size() - 1;
+    int low = 0, high = size - 1;
     while(low <= high) {
       final int mid = (low + high) >>> 1;
     final BusEdge midVal = edges.get(mid);
@@ -140,93 +166,8 @@ public final class BusStation implements Comparable<BusStation> {
       high = mid - 1;
     }
     }
-    return low % edges.size();
+    return low % size;
   }
-
-  /**
-   * A neighbor is a bus station with lines that connect to the given station.
-   * 
-   * @author Joschi <josua.krause@googlemail.com>
-   */
-  public static final class Neighbor {
-
-    /**
-     * The neighboring station.
-     */
-    public final BusStation station;
-
-    /**
-     * The lines that connect to the neighbor.
-     */
-    public final BusLine[] lines;
-
-    /**
-     * Creates a new neighbor.
-     * 
-     * @param station The station.
-     * @param lines The lines.
-     */
-    public Neighbor(final BusStation station, final BusLine[] lines) {
-      this.station = station;
-      this.lines = lines;
-    }
-
-  }
-
-  /**
-   * The cached neighbors of this node.
-   */
-  private Neighbor[] neighbors;
-
-  /**
-   * Returns all neighbors of this node.
-   * 
-   * @return The neighbors.
-   */
-  public Neighbor[] getNeighbors() {
-    if(neighbors == null) {
-      final Map<BusStation, Set<BusLine>> acc = new HashMap<BusStation, Set<BusLine>>();
-      for(final BusEdge edge : edges) {
-        final BusStation to = edge.getTo();
-        final BusLine line = edge.getLine();
-        if(!acc.containsKey(to)) {
-          acc.put(to, new HashSet<BusLine>());
-        }
-        acc.get(to).add(line);
-      }
-      final Neighbor[] res = new Neighbor[acc.size()];
-      int i = 0;
-      for(final Entry<BusStation, Set<BusLine>> e : acc.entrySet()) {
-        final Set<BusLine> lines = e.getValue();
-        res[i++] = new Neighbor(e.getKey(), lines.toArray(new BusLine[lines.size()]));
-      }
-      neighbors = res;
-    }
-    return neighbors;
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return The maximum degree of this station.
-   */
-  public int getMaxDegree() {
-    int max = 0;
-    for(final Neighbor edge : getNeighbors()) {
-      max = Math.max(max, edge.lines.length);
-    }
-    return max;
-  }
-
-  /**
-   * The default x coordinate for this bus station.
-   */
-  private final double x;
-
-  /**
-   * The default y coordinate for this bus station.
-   */
-  private final double y;
 
   /**
    * Getter.
@@ -247,14 +188,15 @@ public final class BusStation implements Comparable<BusStation> {
   }
 
   /**
-   * The x coordinate for this bus station on the abstract map.
+   * Number of seconds it takes to walk from this station to the given one.
+   * 
+   * @param other other station
+   * @return distance in seconds if known, {@code -1} otherwise
    */
-  private final double abstractX;
-
-  /**
-   * The y coordinate for this bus station on the abstract map.
-   */
-  private final double abstractY;
+  public int walkingSeconds(final BusStation other) {
+    final int oid = other.getId();
+    return walkingDists.size() <= oid ? -1 : walkingDists.get(oid);
+  }
 
   /**
    * Getter.
@@ -283,15 +225,6 @@ public final class BusStation implements Comparable<BusStation> {
     return abstractY;
   }
 
-  /**
-   * Getter.
-   * 
-   * @return this station's {@link BusStationManager}
-   */
-  public BusStationManager getManager() {
-    return manager;
-  }
-
   @Override
   public boolean equals(final Object obj) {
     return obj instanceof BusStation && id == ((BusStation) obj).id;
@@ -311,4 +244,5 @@ public final class BusStation implements Comparable<BusStation> {
   public int compareTo(final BusStation o) {
     return id - o.id;
   }
+
 }

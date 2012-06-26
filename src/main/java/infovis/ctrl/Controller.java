@@ -1,14 +1,16 @@
 package infovis.ctrl;
 
 import infovis.data.BusStation;
+import infovis.data.BusStationEnumerator;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
-import infovis.routing.FastRouteFinder;
+import infovis.embed.Embedders;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,37 +23,31 @@ import javax.swing.JFrame;
  * @author Joschi <josua.krause@googlemail.com>
  *
  */
-public final class Controller {
+public final class Controller implements BusStationEnumerator {
 
-  /**
-   * The list of active visualizations.
-   */
+  /** The list of active visualizations. */
   private final List<BusVisualization> vis = new ArrayList<BusVisualization>();
 
-  /**
-   * The bus station manager.
-   */
+  /** The bus station manager. */
   private final BusStationManager manager;
 
-  /**
-   * The frame.
-   */
+  /** The frame. */
   private final JFrame frame;
 
-  /**
-   * The currently selected bus station.
-   */
+  /** The currently selected bus station. */
   private BusStation curSelection;
 
-  /**
-   * The current start time.
-   */
+  /** The current start time. */
   protected volatile BusTime curStartTime = BusTime.now();
 
-  /**
-   * The current change time.
-   */
-  private int curChangeTime = 1;
+  /** The current change time. */
+  private volatile int curChangeTime = 3;
+
+  /** Current maximum walking time. */
+  private volatile int currWalkTime = 5;
+
+  /** Current positioning technique. */
+  private Embedders embed = EMBEDDERS[0];
 
   /** Timer for real-time view. */
   private final Timer timer = new Timer(true);
@@ -138,12 +134,32 @@ public final class Controller {
   }
 
   /**
+   * All positioning techniques.
+   */
+  private static final Embedders[] EMBEDDERS = new Embedders[] {
+    Embedders.CIRCULAR,
+
+    Embedders.EDGE,
+
+    // Embedders.SPRING,
+  };
+
+  /**
+   * Getter.
+   * 
+   * @return All registered positioning techniques.
+   */
+  public static Embedders[] getEmbedders() {
+    return EMBEDDERS;
+  }
+
+  /**
    * All routing algorithms.
    */
   private static final RoutingAlgorithm[] ALGOS = new RoutingAlgorithm[] {
     new RouteFinder(),
 
-    new FastRouteFinder(),
+    // new FastRouteFinder(),
   };
 
   /**
@@ -310,6 +326,28 @@ public final class Controller {
   }
 
   /**
+   * Sets the positioning technique.
+   * 
+   * @param embed The technique.
+   */
+  public void setEmbedder(final Embedders embed) {
+    if(this.embed == embed) return;
+    this.embed = embed;
+    for(final BusVisualization v : vis) {
+      v.setEmbedder(embed);
+    }
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The currently used positioning technique.
+   */
+  public Embedders getEmbedder() {
+    return embed;
+  }
+
+  /**
    * Adds a bus visualization.
    * 
    * @param v The visualization.
@@ -318,6 +356,7 @@ public final class Controller {
     if(v == null) throw new NullPointerException("v");
     if(vis.contains(v)) throw new IllegalStateException("visualization already added");
     vis.add(v);
+    v.setEmbedder(embed);
     v.setChangeTime(curChangeTime);
     v.setStartTime(curStartTime);
     v.selectBusStation(curSelection);
@@ -333,26 +372,19 @@ public final class Controller {
     vis.remove(v);
   }
 
-  /**
-   * Getter.
-   * 
-   * @return All bus stations.
-   */
-  public Iterable<BusStation> getStations() {
+  @Override
+  public Collection<BusStation> getStations() {
     return manager.getStations();
   }
 
-  /**
-   * Getter.
-   * 
-   * @return All bus stations.
-   */
-  public BusStation[] getAllStations() {
-    final List<BusStation> res = new ArrayList<BusStation>();
-    for(final BusStation s : manager.getStations()) {
-      res.add(s);
-    }
-    return res.toArray(new BusStation[res.size()]);
+  @Override
+  public int maxId() {
+    return manager.maxId();
+  }
+
+  @Override
+  public BusStation getForId(final int id) {
+    return manager.getForId(id);
   }
 
   /**
@@ -361,6 +393,36 @@ public final class Controller {
   public void focusStation() {
     for(final BusVisualization v : vis) {
       v.focusStation();
+    }
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The bus station manager.
+   */
+  public BusStationManager getBusStationManager() {
+    return manager;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return current maximum walking time
+   */
+  public int getWalkTime() {
+    return currWalkTime;
+  }
+
+  /**
+   * Setter.
+   * 
+   * @param newWalkTime new maximum walk time
+   */
+  public void setWalkTime(final int newWalkTime) {
+    currWalkTime = newWalkTime;
+    for(final BusVisualization v : vis) {
+      v.undefinedChange(this);
     }
   }
 

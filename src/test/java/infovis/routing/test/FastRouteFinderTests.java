@@ -21,6 +21,7 @@ import org.junit.Test;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
+@SuppressWarnings({ "deprecation", "javadoc"})
 public class FastRouteFinderTests {
 
   /**
@@ -40,7 +41,8 @@ public class FastRouteFinderTests {
 
     final BusStationManager man = builder.finish();
 
-    final Deque<BusEdge> route = FastRouteFinder.routeTo(a, c, new BusTime(0, 0), 2,
+    final Deque<BusEdge> route = FastRouteFinder.routeTo(man, a, c, new BusTime(0, 0),
+        2,
         man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
 
     assertEquals(Arrays.asList(ab, bc), route);
@@ -72,7 +74,8 @@ public class FastRouteFinderTests {
     final BusStationManager manager = builder.finish();
 
     final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
-    final Deque<BusEdge> routeTo = FastRouteFinder.routeTo(c, e, new BusTime(2, 0), 0,
+    final Deque<BusEdge> routeTo = FastRouteFinder.routeTo(manager, c, e, new BusTime(2,
+        0), 0,
         mth);
     final int[] ids = { 2, 0, 3, 4};
     int i = 0;
@@ -80,7 +83,7 @@ public class FastRouteFinderTests {
     for(final BusEdge edge : routeTo) {
       assertEquals(ids[i++], edge.getTo().getId());
     }
-    assertNull(FastRouteFinder.routeTo(e, c, new BusTime(2, 0), 0, mth));
+    assertNull(FastRouteFinder.routeTo(manager, e, c, new BusTime(2, 0), 0, mth));
   }
 
   /**
@@ -113,14 +116,16 @@ public class FastRouteFinderTests {
 
     final int mth = manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR;
     assertEquals(4,
-        getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 0, mth)));
+        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 0, mth)));
     assertEquals(5,
-        getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 1, mth)));
-    assertNull(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 0, 0));
-    assertEquals(4, getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 0,
-        BusTime.MINUTES_PER_HOUR)));
-    assertEquals(5, getLastEndMinute(FastRouteFinder.routeTo(e, h, new BusTime(0, 0), 1,
-        BusTime.HOURS_PER_DAY * BusTime.MINUTES_PER_HOUR)));
+        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 1, mth)));
+    assertNull(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 0, 0));
+    assertEquals(4,
+        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 0,
+            BusTime.MINUTES_PER_HOUR)));
+    assertEquals(5,
+        getLastEndMinute(FastRouteFinder.routeTo(manager, e, h, new BusTime(0, 0), 1,
+            BusTime.HOURS_PER_DAY * BusTime.MINUTES_PER_HOUR)));
   }
 
   /**
@@ -142,59 +147,6 @@ public class FastRouteFinderTests {
   private static int getLastEndMinute(final Deque<BusEdge> route) {
     return getLastEnd(route).getMinute();
   }
-
-  // /**
-  // * Tests if routes without changes are taken if suitable.
-  // *
-  // * <pre>
-  // * , 00:00 ---1--- 00:01.
-  // * / \
-  // * (A) 00:01 ---2---> 00:02 (B) 00:02 ---2---> 00:03 (C)
-  // * \ /
-  // * ` 00:03 ---3--- 00:04´
-  // * </pre>
-  // *
-  // * @throws InterruptedException exception
-  // */
-  // @Test
-  // public void continuous() throws InterruptedException {
-  // final BusDataBuilder builder = new BusDataBuilder(null);
-  // final BusLine s1 = BusDataBuilder.createLine("B1", Color.RED), s2 =
-  // BusDataBuilder.createLine(
-  // "B2", Color.BLUE), s3 = BusDataBuilder.createLine("B3", Color.YELLOW);
-  // final BusStation a = builder.createStation("A", 0, 0, 0, 0, 0), b =
-  // builder.createStation("B", 1, 0, 0, 0, 0), c = builder.createStation("C",
-  // 2, 0, 0, 0, 0);
-  //
-  // builder.addEdge(a, s1, 1, b, new BusTime(0, 0), new BusTime(0, 1));
-  //
-  // final BusEdge ab = builder.addEdge(a, s2, 1, b, new BusTime(0, 1), new
-  // BusTime(0, 2));
-  // final BusEdge bc = builder.addEdge(b, s2, 1, c, new BusTime(0, 2), new
-  // BusTime(0, 3));
-  //
-  // builder.addEdge(b, s3, 1, c, new BusTime(0, 3), new BusTime(0, 4));
-  //
-  // final BusStationManager manager = builder.finish();
-  //
-  // final List<BusEdge> route = RouteFinder.findRoute(a, c, new BusTime(0, 0),
-  // 5, manager.getMaxTimeHours() * 60);
-  //
-  // assertEquals(Arrays.asList(ab, bc), route);
-  //
-  // final Map<BusStation, BusTime> times = new HashMap<BusStation, BusTime>();
-  // times.put(a, null);
-  // times.put(b, new BusTime(0, 1));
-  // times.put(c, new BusTime(0, 3));
-  // final Collection<RoutingResult> res = FastRouteFinder.routes(a, new
-  // BusTime(0, 0), 5,
-  // manager.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR);
-  // for(final RoutingResult r : res) {
-  // final BusStation s = r.getEnd();
-  // assertEquals(times.get(s),
-  // r.isStartNode() || r.isNotReachable() ? null : r.getEndTime());
-  // }
-  // }
 
   /**
    * Finds all shortest routes from all stations at 12:00 AM. This test checks
@@ -236,7 +188,7 @@ public class FastRouteFinderTests {
       }
       System.out.println(a
           + ", "
-          + FastRouteFinder.routes(a, new BusTime(12, 0), 5,
+          + FastRouteFinder.routes(man, a, new BusTime(12, 0), 5,
               man.getMaxTimeHours() * BusTime.MINUTES_PER_HOUR).size());
     }
 

@@ -8,6 +8,7 @@ import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.gui.Canvas;
 import infovis.gui.ControlPanel;
+import infovis.gui.Painter;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -89,19 +90,19 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   private static final long serialVersionUID = 5517376336494016259L;
 
   /**
-   * The spring embedder.
-   */
-  protected final AbstractEmbedder embed;
-
-  /**
    * The distance measure.
    */
   protected final StationDistance dist;
 
   /**
-   * Whether to use a pring embedder.
+   * The embedder.
    */
-  private static final boolean USE_SPRING_EMBEDDER = false;
+  protected AbstractEmbedder embed;
+
+  /**
+   * The embedding technique.
+   */
+  private Embedders embedder;
 
   /**
    * Creates a bus canvas.
@@ -116,11 +117,10 @@ public final class BusCanvas extends Canvas implements BusVisualization {
     final StationDistance dist = new StationDistance(ctrl);
     dist.setMinDist(60.0);
     dist.setFactor(10);
-    final AbstractEmbedder embed = USE_SPRING_EMBEDDER ? new SpringEmbedder(dist, dist)
-    : new CircularEmbedder(dist, dist);
-    final BusCanvas res = new BusCanvas(ctrl, embed, dist, width, height);
+    final Embedders e = Embedders.CIRCULAR;
+    final AbstractEmbedder embed = Embedders.createFor(e, dist, dist);
+    final BusCanvas res = new BusCanvas(ctrl, e, embed, dist, width, height);
     ctrl.addBusVisualization(res);
-    embed.addRefreshable(res);
     res.setBackground(Color.WHITE);
     return res;
   }
@@ -129,17 +129,20 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    * Private constructor.
    * 
    * @param ctrl The controller.
-   * @param embed The embedder.
+   * @param e The embedder enum.
+   * @param embed The corresponding embedder.
    * @param dist The distance measure.
    * @param width The width.
    * @param height The height.
    */
-  private BusCanvas(final Controller ctrl, final AbstractEmbedder embed,
+  private BusCanvas(final Controller ctrl, final Embedders e,
+      final AbstractEmbedder embed,
       final StationDistance dist,
       final int width, final int height) {
     super(embed, width, height);
     this.embed = embed;
     this.dist = dist;
+    embedder = e;
     addAction(KeyEvent.VK_R, new AbstractAction() {
 
       private static final long serialVersionUID = 1648614278684353766L;
@@ -171,6 +174,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
       }
 
     });
+    embed.addRefreshable(this);
   }
 
   @Override
@@ -199,6 +203,37 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   @Override
   public void setChangeTime(final int minutes) {
     dist.setChangeTime(minutes);
+  }
+
+  /**
+   * Sets the currently used embedder.
+   * 
+   * @param embed The embedder.
+   */
+  public void setPainter(final AbstractEmbedder embed) {
+    if(this.embed != null) {
+      this.embed.dispose();
+    }
+    this.embed = embed;
+    embed.addRefreshable(this);
+    super.setPainter(embed);
+    dist.changeUndefined();
+  }
+
+  @Override
+  public void setPainter(final Painter p) {
+    if(p instanceof AbstractEmbedder) {
+      setPainter((AbstractEmbedder) p);
+    }
+    throw new IllegalArgumentException("p must be a "
+        + AbstractEmbedder.class.getSimpleName());
+  }
+
+  @Override
+  public void setEmbedder(final Embedders embedder) {
+    if(this.embedder == embedder) return;
+    this.embedder = embedder;
+    setPainter(Embedders.createFor(embedder, dist, dist));
   }
 
   @Override

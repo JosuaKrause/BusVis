@@ -7,7 +7,10 @@ import java.awt.Color;
  * 
  * @author Leo Woerteler
  */
-public class BusLine {
+public final class BusLine {
+  /** Bus line ued for walked sections of a route. */
+  public static final BusLine WALK = new BusLine("Walk", Color.BLACK);
+
   /** Bus line name. */
   private final String name;
 
@@ -58,4 +61,5 @@ public class BusLine {
   public int hashCode() {
     return name.hashCode();
   }
+
 }

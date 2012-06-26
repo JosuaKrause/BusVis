@@ -18,6 +18,7 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 /**
  * A simple class adding panning and zooming functionality to a
@@ -31,11 +32,6 @@ public class Canvas extends JComponent implements Refreshable {
    * SVUID.
    */
   private static final long serialVersionUID = 5148536262867772166L;
-
-  /**
-   * The painter.
-   */
-  private final Painter painter;
 
   /**
    * The x offset.
@@ -53,15 +49,21 @@ public class Canvas extends JComponent implements Refreshable {
   private double zoom = 1;
 
   /**
+   * The painter.
+   */
+  protected Painter painter;
+
+  /**
    * Creates a canvas for the given painter.
    * 
-   * @param painter The painter.
+   * @param p The painter.
    * @param width The initial width of the component.
    * @param height The initial height of the component.
    */
-  public Canvas(final Painter painter, final int width, final int height) {
+  public Canvas(final Painter p, final int width, final int height) {
+    if(p == null) throw new NullPointerException("p");
     setPreferredSize(new Dimension(width, height));
-    this.painter = painter;
+    painter = p;
     final MouseAdapter mouse = new MouseAdapter() {
 
       private boolean drag;
@@ -89,7 +91,7 @@ public class Canvas extends JComponent implements Refreshable {
           Canvas.this.repaint();
           return;
         }
-        final boolean leftButton = e.getButton() == MouseEvent.BUTTON1;
+        final boolean leftButton = SwingUtilities.isLeftMouseButton(e);
         if(leftButton && painter.acceptDrag(c)) {
           Canvas.this.repaint();
           drag = true;
@@ -201,6 +203,86 @@ public class Canvas extends JComponent implements Refreshable {
     super.setBackground(bg);
   }
 
+  /**
+   * A context for this canvas.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  private final class CanvasContext implements Context {
+
+    /**
+     * Whether this context is in canvas space.
+     */
+    private final boolean inCanvasSpace;
+
+    /**
+     * Creates a context for this canvas.
+     * 
+     * @param inCanvasSpace Whether the normal
+     *          {@link Painter#draw(Graphics2D, Context)} is called.
+     */
+    public CanvasContext(final boolean inCanvasSpace) {
+      this.inCanvasSpace = inCanvasSpace;
+    }
+
+    @Override
+    public Point2D toCanvasCoordinates(final Point2D p) {
+      return getForScreen(p);
+    }
+
+    @Override
+    public double toCanvasLength(final double length) {
+      return inReal(length);
+    }
+
+    @Override
+    public Point2D toComponentCoordinates(final Point2D p) {
+      return new Point2D.Double(getXFromCanvas(p.getX()), getYFromCanvas(p.getY()));
+    }
+
+    @Override
+    public double toComponentLength(final double length) {
+      return fromReal(length);
+    }
+
+    @Override
+    public boolean inCanvasCoordinates() {
+      return inCanvasSpace;
+    }
+
+    /**
+     * The cache for the visible rectangle in component coordinates.
+     */
+    private Rectangle2D visComp;
+
+    @Override
+    public Rectangle2D getVisibleComponent() {
+      if(visComp == null) {
+        visComp = getVisibleRect();
+      }
+      return visComp;
+    }
+
+    /**
+     * The cache for the visible rectangle in canvas coordinates.
+     */
+    private Rectangle2D visCanvas;
+
+    @Override
+    public Rectangle2D getVisibleCanvas() {
+      if(visCanvas == null) {
+        final Rectangle2D comp = getVisibleComponent();
+        final Point2D topLeft = toCanvasCoordinates(
+            new Point2D.Double(comp.getMinX(), comp.getMinY()));
+        final double width = toCanvasLength(comp.getWidth());
+        final double height = toCanvasLength(comp.getHeight());
+        visCanvas = new Rectangle2D.Double(topLeft.getX(), topLeft.getY(), width, height);
+      }
+      return visCanvas;
+    }
+
+  }
+
   @Override
   public void paintComponent(final Graphics g) {
     final Graphics2D g2 = (Graphics2D) g.create();
@@ -215,9 +297,9 @@ public class Canvas extends JComponent implements Refreshable {
     final Graphics2D gfx = (Graphics2D) g2.create();
     gfx.translate(offX, offY);
     gfx.scale(zoom, zoom);
-    painter.draw(gfx);
+    painter.draw(gfx, new CanvasContext(true));
     gfx.dispose();
-    painter.drawHUD(g2);
+    painter.drawHUD(g2, new CanvasContext(false));
     g2.dispose();
   }
 
@@ -288,6 +370,16 @@ public class Canvas extends JComponent implements Refreshable {
    */
   public double getOffsetY() {
     return offY;
+  }
+
+  /**
+   * Sets the painter.
+   * 
+   * @param p The new painter.
+   */
+  public void setPainter(final Painter p) {
+    if(p == null) throw new NullPointerException("p");
+    painter = p;
   }
 
   /**
@@ -391,6 +483,17 @@ public class Canvas extends JComponent implements Refreshable {
   }
 
   /**
+   * Calculates the screen coordinate of the given input in real coordinates.
+   * 
+   * @param s The coordinate in real coordinates. Due to uniform zooming both
+   *          horizontal and vertical coordinates can be converted.
+   * @return In screen coordinates.
+   */
+  protected double fromReal(final double s) {
+    return s * zoom;
+  }
+
+  /**
    * Calculates the real coordinate from the components coordinate.
    * 
    * @param x The components x coordinate.
@@ -411,7 +514,27 @@ public class Canvas extends JComponent implements Refreshable {
   }
 
   /**
-   * Converts a point in component coordinates in canvas coordinates.
+   * Calculates the component coordinate from the real coordinate.
+   * 
+   * @param x The real x coordinate.
+   * @return The component coordinate.
+   */
+  protected double getXFromCanvas(final double x) {
+    return fromReal(x) + offX;
+  }
+
+  /**
+   * Calculates the component coordinate from the real coordinate.
+   * 
+   * @param y The real y coordinate.
+   * @return The component coordinate.
+   */
+  protected double getYFromCanvas(final double y) {
+    return fromReal(y) + offY;
+  }
+
+  /**
+   * Converts a point in component coordinates to canvas coordinates.
    * 
    * @param p The point.
    * @return The point in the canvas coordinates.

@@ -1,17 +1,20 @@
 package infovis.routing;
 
 import infovis.data.BusEdge;
+import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Encapsulates the result of a routing.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class RoutingResult {
+public final class RoutingResult {
 
   /**
    * The start bus station.
@@ -27,11 +30,6 @@ public class RoutingResult {
    * The travel time.
    */
   private final int minutes;
-
-  /**
-   * Whether the destination is not reachable.
-   */
-  private final boolean inr;
 
   /**
    * The edges used by this route.
@@ -53,13 +51,26 @@ public class RoutingResult {
    * @param startTime The start time.
    */
   public RoutingResult(final BusStation from, final BusStation to, final int minutes,
+      final BusEdge[] edges, final BusTime startTime) {
+    this(from, to, minutes, Arrays.asList(edges), startTime);
+  }
+
+  /**
+   * Creates a routing result for a reachable station.
+   * 
+   * @param from The start station.
+   * @param to The end station.
+   * @param minutes The travel time.
+   * @param edges The edges used by this route.
+   * @param startTime The start time.
+   */
+  public RoutingResult(final BusStation from, final BusStation to, final int minutes,
       final Collection<BusEdge> edges, final BusTime startTime) {
     this.from = from;
     this.to = to;
     this.minutes = minutes;
-    this.edges = edges;
+    this.edges = Collections.unmodifiableCollection(edges);
     this.startTime = startTime;
-    inr = false;
   }
 
   /**
@@ -73,7 +84,6 @@ public class RoutingResult {
     this.to = to;
     minutes = from != to ? -1 : 0;
     edges = null;
-    inr = from != to;
     startTime = null;
   }
 
@@ -120,7 +130,7 @@ public class RoutingResult {
    * @return Whether the destination is not reachable.
    */
   public boolean isNotReachable() {
-    return inr;
+    return edges == null && from != to;
   }
 
   /**
@@ -137,7 +147,7 @@ public class RoutingResult {
    * 
    * @return The edges used by this route.
    */
-  public Iterable<BusEdge> getEdges() {
+  public Collection<BusEdge> getEdges() {
     return edges;
   }
 
@@ -159,4 +169,38 @@ public class RoutingResult {
     return startTime.later(minutes());
   }
 
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append('[');
+    sb.append("\n  from=").append(from.getName()).append(",\n  to=").append(to.getName());
+
+    if(isStartNode()) return sb.append("]").toString();
+    if(isNotReachable()) return sb.append(", state=NOT_REACHABLE]").toString();
+
+    sb.append(",\n  steps=[\n    Start at ").append(from.getName());
+    if(!from.equals(to)) {
+      BusEdge prev = null;
+      for(final BusEdge curr : edges) {
+        if(prev == null || !prev.sameTour(curr)) {
+          final int wait = (prev == null ? startTime : prev.getEnd()).minutesTo(curr.getStart());
+          if(prev != null) {
+            sb.append(prev.getTo().getName());
+          }
+
+          if(curr.getLine() == BusLine.WALK) {
+            sb.append(",\n    walk ").append(
+                BusTime.minutesToString(curr.travelMinutes())).append(" to ");
+          } else {
+            sb.append(",\n    wait for ").append(wait).append(" minutes, take bus line ").append(
+                curr.getLine().getName()).append(" for ").append(
+                    BusTime.minutesToString(curr.travelMinutes())).append(" to ");
+          }
+        }
+        prev = curr;
+      }
+      sb.append(prev.getTo().getName());
+    }
+    return sb.append("\n  ],\n  time=").append(BusTime.minutesToString(minutes)).append(
+        "\n]").toString();
+  }
 }

@@ -12,12 +12,14 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+import javax.swing.SwingUtilities;
+
 /**
  * Interactor for the SVG canvas.
  * 
  * @author Marc Spicker
  */
-public class OverviewMouse extends MouseAdapter {
+public final class OverviewMouse extends MouseAdapter {
 
   /**
    * The overview visualization.
@@ -86,7 +88,7 @@ public class OverviewMouse extends MouseAdapter {
     final Point2D p = e.getPoint();
     final Point2D c = getForScreen(p);
     if(click(c)) return;
-    final boolean leftButton = e.getButton() == MouseEvent.BUTTON1;
+    final boolean leftButton = SwingUtilities.isLeftMouseButton(e);
 
     if(leftButton) {
       startx = e.getX();
@@ -109,21 +111,19 @@ public class OverviewMouse extends MouseAdapter {
    * @return Weather a station has been clicked on.
    */
   private boolean click(final Point2D c) {
-    double minDist = Double.MAX_VALUE;
+    double minDist = Double.POSITIVE_INFINITY;
     BusStation closestStation = null;
     for(final BusStation station : ctrl.getStations()) {
-      final double curDist = distanceToStation(c, station);
+      final double curDist = distanceToStationSq(c, station);
       if(curDist < minDist) {
         minDist = curDist;
         closestStation = station;
       }
     }
-
-    if(minDist < STATION_RADIUS) {
-      ctrl.selectStation(closestStation);
-      return true;
-    }
-    return false;
+    if(minDist >= STATION_RADIUS * STATION_RADIUS) return false;
+    ctrl.selectStation(closestStation);
+    ctrl.focusStation();
+    return true;
   }
 
   /**
@@ -133,10 +133,10 @@ public class OverviewMouse extends MouseAdapter {
    * @param station The station.
    * @return Distance between the point and the station.
    */
-  private static double distanceToStation(final Point2D p, final BusStation station) {
+  private static double distanceToStationSq(final Point2D p, final BusStation station) {
     final double dx = p.getX() - station.getAbstractX();
     final double dy = p.getY() - station.getAbstractY();
-    return Math.sqrt(dx * dx + dy * dy);
+    return dx * dx + dy * dy;
   }
 
   @Override
@@ -148,14 +148,12 @@ public class OverviewMouse extends MouseAdapter {
 
   @Override
   public void mouseReleased(final MouseEvent e) {
-    if(drag) {
-      move(e.getX(), e.getY());
-      drag = false;
-    }
+    mouseDragged(e);
+    drag = false;
   }
 
   /**
-   * sets the offset according to the mouse position.
+   * Sets the offset according to the mouse position.
    * 
    * @param x the mouse x position
    * @param y the mouse y position
@@ -195,7 +193,7 @@ public class OverviewMouse extends MouseAdapter {
    * Transforms a input graphics context with the current translation and
    * scaling.
    * 
-   * @param g The inpute graphics context.
+   * @param g The input graphics context.
    */
   public void transformGraphics(final Graphics2D g) {
     g.translate(offX, offY);
@@ -315,29 +313,6 @@ public class OverviewMouse extends MouseAdapter {
       final double factor = rw < rh ? rw : rh;
       zoom(factor);
     }
-  }
-
-  /**
-   * Whether the canvas is moveable, ie it can be panned and zoomed.
-   */
-  private boolean isMoveable = true;
-
-  /**
-   * Sets whether the canvas is moveable, ie whether it can be panned or zoomed.
-   * 
-   * @param isMoveable If it is moveable.
-   */
-  public void setMoveable(final boolean isMoveable) {
-    this.isMoveable = isMoveable;
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return Is <code>true</code>, when the canvas can be panned and zoomed.
-   */
-  public boolean isMoveable() {
-    return isMoveable;
   }
 
   /**

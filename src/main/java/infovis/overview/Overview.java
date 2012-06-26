@@ -6,6 +6,7 @@ import infovis.data.BusDataBuilder;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.embed.Embedders;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -27,7 +28,7 @@ import org.apache.batik.swing.JSVGCanvas;
  * 
  * @author Marc Spicker
  */
-public class Overview extends JSVGCanvas implements BusVisualization {
+public final class Overview extends JSVGCanvas implements BusVisualization {
 
   /**
    * Serial ID.
@@ -47,7 +48,7 @@ public class Overview extends JSVGCanvas implements BusVisualization {
    * @param height The height.
    */
   public Overview(final Controller ctrl, final int width, final int height) {
-    setURI(new File(ctrl.getResourcePath() + "abstractKN.svg").toURI().toString());
+    setURI(new File(ctrl.getResourcePath() + "abstract.svg").toURI().toString());
     setPreferredSize(new Dimension(width, height));
     setDisableInteractions(true);
     selectableText = false;
@@ -82,8 +83,7 @@ public class Overview extends JSVGCanvas implements BusVisualization {
 
   @Override
   public void focusStation() {
-    // TODO Auto-generated method stub
-
+    // TODO focus station
   }
 
   @Override
@@ -112,6 +112,11 @@ public class Overview extends JSVGCanvas implements BusVisualization {
   public void selectBusStation(final BusStation station) {
     selectedStation = station;
     repaint();
+  }
+
+  @Override
+  public void setEmbedder(final Embedders embed) {
+    // no-op
   }
 
   @Override

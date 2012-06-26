@@ -1,6 +1,6 @@
 package infovis.embed;
 
-import infovis.embed.pol.Interpolator;
+import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
 import java.util.Random;
@@ -10,7 +10,7 @@ import java.util.Random;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class SpringNode {
+public final class SpringNode {
 
   /**
    * The current x position.

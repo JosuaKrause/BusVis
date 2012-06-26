@@ -1,7 +1,9 @@
 package infovis.embed;
 
 import infovis.gui.Canvas;
+import infovis.gui.Context;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
@@ -12,6 +14,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -23,13 +26,14 @@ import javax.swing.WindowConstants;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class EmbedderTest implements NodeDrawer, Weighter {
+public final class EmbedderTest implements NodeDrawer, Weighter {
 
   /**
    * Starts the test.
    * 
    * @param args Ignored.
    */
+  @SuppressWarnings("deprecation")
   public static void main(final String[] args) {
     final EmbedderTest test = new EmbedderTest();
     final SpringEmbedder embed = new SpringEmbedder(test, test);
@@ -98,7 +102,7 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void drawNode(final Graphics2D g, final SpringNode n) {
+  public void drawNode(final Graphics2D g, final Context ctx, final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
     g.setColor(Color.RED);
@@ -106,19 +110,20 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void drawLabel(final Graphics2D g, final SpringNode n) {
+  public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n) {
     // no label
   }
 
   @Override
-  public void drawEdges(final Graphics2D g, final SpringNode n) {
+  public void drawEdges(final Graphics2D g, final Context ctx, final SpringNode n) {
     final double x = n.getX();
     final double y = n.getY();
+    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+    g.setColor(Color.BLACK);
     for(final SpringNode o : nodes) {
       if(!areNeighbors(n, o)) {
         continue;
       }
-      g.setColor(new Color(0x10000000, true));
       final double ox = o.getX();
       final double oy = o.getY();
       g.draw(new Line2D.Double(x, y, ox, oy));
@@ -183,7 +188,7 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   }
 
   @Override
-  public void drawBackground(final Graphics2D g) {
+  public void drawBackground(final Graphics2D g, final Context ctx, final boolean dc) {
     // void
   }
 
@@ -220,6 +225,11 @@ public class EmbedderTest implements NodeDrawer, Weighter {
   @Override
   public boolean inAnimation() {
     return false;
+  }
+
+  @Override
+  public List<WeightedEdge> edgesTo(final SpringNode to) {
+    return Collections.emptyList();
   }
 
   @Override
