@@ -339,7 +339,8 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation fr = map.get(f);
     if(fr.equals(from)) return 0;
     final BusStation to = map.get(t);
-    if(to.equals(from)) return factor * getRoute(fr).minutes();
+    if(to.equals(from) && !getRoute(fr).isNotReachable()) return factor
+        * getRoute(fr).minutes();
     return -minDist;
   }
 
