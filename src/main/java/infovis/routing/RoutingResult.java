@@ -174,6 +174,7 @@ public final class RoutingResult {
     final StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append('[');
     sb.append("\n  from=").append(from.getName()).append(",\n  to=").append(to.getName());
 
+    if(isStartNode()) return sb.append("]").toString();
     if(isNotReachable()) return sb.append(", state=NOT_REACHABLE]").toString();
 
     sb.append(",\n  steps=[\n    Start at ").append(from.getName());
@@ -188,18 +189,18 @@ public final class RoutingResult {
 
           if(curr.getLine() == BusLine.WALK) {
             sb.append(",\n    walk ").append(
-                BusTime.minutesToString(curr.travelMinutes())
-                ).append(" to ");
+                BusTime.minutesToString(curr.travelMinutes())).append(" to ");
           } else {
-            sb.append(",\n    wait for ").append(wait).append(" minutes, take bus line "
-                ).append(curr.getLine().getName()).append(" to ");
+            sb.append(",\n    wait for ").append(wait).append(" minutes, take bus line ").append(
+                curr.getLine().getName()).append(" for ").append(
+                    BusTime.minutesToString(curr.travelMinutes())).append(" to ");
           }
         }
         prev = curr;
       }
       sb.append(prev.getTo().getName());
     }
-    return sb.append("\n  ],\n  time=").append(
-        BusTime.minutesToString(minutes)).append("\n]").toString();
+    return sb.append("\n  ],\n  time=").append(BusTime.minutesToString(minutes)).append(
+        "\n]").toString();
   }
 }
