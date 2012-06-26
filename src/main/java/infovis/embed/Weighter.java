@@ -1,7 +1,7 @@
 package infovis.embed;
 
 import java.awt.geom.Point2D;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Defines weights between {@link SpringNode}s in a spring embedder system.
@@ -130,6 +130,6 @@ public interface Weighter {
    * @param to The destination.
    * @return The path from the reference node to the given node.
    */
-  Collection<WeightedEdge> edgesTo(SpringNode to);
+  List<WeightedEdge> edgesTo(SpringNode to);
 
 }

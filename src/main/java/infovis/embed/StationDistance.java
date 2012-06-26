@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -509,7 +510,8 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   @Override
-  public void drawBackground(final Graphics2D g, final Context ctx) {
+  public void drawBackground(final Graphics2D g, final Context ctx, final boolean dc) {
+    if(!dc) return;
     final SpringNode ref = getReferenceNode();
     if(ref == null && !fade) return;
     Point2D center;
@@ -643,7 +645,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
   }
 
   @Override
-  public Collection<WeightedEdge> edgesTo(final SpringNode to) {
+  public List<WeightedEdge> edgesTo(final SpringNode to) {
     final BusStation station = map.get(to);
     final RoutingResult r = getRoute(station);
     if(r.isStartNode() || r.isNotReachable()) return Collections.emptyList();

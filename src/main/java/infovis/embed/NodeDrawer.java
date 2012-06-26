@@ -48,8 +48,9 @@ public interface NodeDrawer {
    * 
    * @param g The graphics context.
    * @param ctx The canvas context.
+   * @param drawCircles Whether to draw circles around the reference node.
    */
-  void drawBackground(Graphics2D g, Context ctx);
+  void drawBackground(Graphics2D g, Context ctx, boolean drawCircles);
 
   /**
    * A shape defining the area, where a click is associated with the given node.

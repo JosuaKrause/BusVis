@@ -27,7 +27,11 @@ public final class CircularEmbedder extends DirectEmbedder {
       final Point2D refP, final Point2D diff) {
     final double w = weighter.weight(n, ref);
     return addVec(setLength(subVec(addVec(pos, diff), refP), w), refP);
+  }
 
+  @Override
+  public boolean drawCircles() {
+    return true;
   }
 
 }

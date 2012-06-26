@@ -108,7 +108,7 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
   @Override
   public void draw(final Graphics2D gfx, final Context ctx) {
     final Graphics2D g2 = (Graphics2D) gfx.create();
-    drawer.drawBackground(g2, ctx);
+    drawer.drawBackground(g2, ctx, drawCircles());
     g2.dispose();
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
@@ -271,6 +271,15 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
   @Override
   public Rectangle2D getBoundingBox() {
     return drawer.getBoundingBox();
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Whether to draw distance circles around the reference node.
+   */
+  public boolean drawCircles() {
+    return false;
   }
 
 }
