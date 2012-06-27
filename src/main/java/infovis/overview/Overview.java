@@ -2,9 +2,7 @@ package infovis.overview;
 
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
-import infovis.data.BusDataBuilder;
 import infovis.data.BusStation;
-import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.embed.Embedders;
 
@@ -15,13 +13,18 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 
-import javax.swing.JFrame;
-import javax.swing.WindowConstants;
-
+import org.apache.batik.bridge.BridgeContext;
+import org.apache.batik.bridge.GVTBuilder;
+import org.apache.batik.bridge.UserAgentAdapter;
+import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
+import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.swing.JSVGCanvas;
+import org.apache.batik.util.XMLResourceDescriptor;
+import org.w3c.dom.svg.SVGDocument;
 
 /**
  * Abstract overview over the bus system in Konstanz.
@@ -41,6 +44,11 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   private final OverviewMouse mouse;
 
   /**
+   * The bounding box of the abstract map of Konstanz.
+   */
+  private final Rectangle2D boundingBox;
+
+  /**
    * Constructor.
    * 
    * @param ctrl The controller.
@@ -48,6 +56,22 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
    * @param height The height.
    */
   public Overview(final Controller ctrl, final int width, final int height) {
+    // calculate bounding box
+    final String parser = XMLResourceDescriptor.getXMLParserClassName();
+    final SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
+    SVGDocument doc = null;
+    try {
+      doc = (SVGDocument) f.createDocument(new File(ctrl.getResourcePath()
+          + "abstract.svg").toURI().toString());
+    } catch(final IOException e) {
+      e.printStackTrace();
+    }
+    final GVTBuilder builder = new GVTBuilder();
+    BridgeContext ctx;
+    ctx = new BridgeContext(new UserAgentAdapter());
+    final GraphicsNode gvtRoot = builder.build(ctx, doc);
+    boundingBox = gvtRoot.getBounds();
+
     setURI(new File(ctrl.getResourcePath() + "abstract.svg").toURI().toString());
     setPreferredSize(new Dimension(width, height));
     setDisableInteractions(true);
@@ -59,31 +83,16 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     ctrl.addBusVisualization(this);
   }
 
-  /**
-   * Test.
-   * 
-   * @param args Ignored.
-   */
-  public static void main(final String[] args) {
-    final JFrame frame = new JFrame("SVG Test");
-    final BusStationManager mgr;
-    try {
-      mgr = BusDataBuilder.load("src/main/resources/");
-    } catch(final IOException e) {
-      e.printStackTrace();
-      return;
-    }
-    final Overview o = new Overview(new Controller(mgr, frame), 800, 600);
-    frame.add(o);
-    frame.pack();
-    frame.setLocationRelativeTo(null);
-    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    frame.setVisible(true);
-  }
-
   @Override
   public void focusStation() {
     // TODO focus station
+  }
+
+  /**
+   * Resets the viewport to the given rectangle.
+   */
+  private void reset() {
+    mouse.reset(boundingBox);
   }
 
   @Override
@@ -110,6 +119,9 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
 
   @Override
   public void selectBusStation(final BusStation station) {
+    if(selectedStation != null && station == null) {
+      reset();
+    }
     selectedStation = station;
     repaint();
   }
