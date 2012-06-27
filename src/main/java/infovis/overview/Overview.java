@@ -56,6 +56,11 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   private boolean firstDraw;
 
   /**
+   * The half-size of the window that is shown when a station is selected.
+   */
+  private final int focusSize = 150;
+
+  /**
    * Constructor.
    * 
    * @param ctrl The controller.
@@ -140,7 +145,13 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   public void selectBusStation(final BusStation station) {
     if(selectedStation != null && station == null) {
       reset();
+    } else if(station != null) {
+      final Rectangle2D focus = new Rectangle2D.Double(
+          station.getAbstractX() - focusSize,
+          station.getAbstractY() - focusSize, 2 * focusSize, 2 * focusSize);
+      mouse.reset(focus);
     }
+
     selectedStation = station;
     repaint();
   }

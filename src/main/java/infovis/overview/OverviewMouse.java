@@ -270,7 +270,7 @@ public final class OverviewMouse extends MouseAdapter {
   /**
    * The margin for the viewport reset. The default is <code>10.0</code>.
    */
-  private double margin = 10.0;
+  private double margin = 0.0;
 
   /**
    * Getter.
