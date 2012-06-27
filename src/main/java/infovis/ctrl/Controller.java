@@ -137,11 +137,11 @@ public final class Controller implements BusStationEnumerator {
    * All positioning techniques.
    */
   private static final Embedders[] EMBEDDERS = new Embedders[] {
-    Embedders.CIRCULAR,
+      // Embedders.EDGE,
 
-    Embedders.EDGE,
+      Embedders.CIRCULAR,
 
-    // Embedders.SPRING,
+      // Embedders.SPRING,
   };
 
   /**
