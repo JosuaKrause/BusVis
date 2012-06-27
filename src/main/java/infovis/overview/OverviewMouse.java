@@ -32,6 +32,16 @@ public final class OverviewMouse extends MouseAdapter {
   private final Controller ctrl;
 
   /**
+   * The minimal zoom factor.
+   */
+  private final double minZoom = 0.2;
+
+  /**
+   * The maximal zoom factor.
+   */
+  private final double maxZoom = 2.75;
+
+  /**
    * Constructor.
    * 
    * @param over The overview visualization.
@@ -224,6 +234,9 @@ public final class OverviewMouse extends MouseAdapter {
     // P = (newOff - mouse) / newZoom
     // newOff = (off - mouse) / zoom * newZoom + mouse
     // newOff = (off - mouse) * factor + mouse
+    final double tmpZoom = zoom * factor;
+    if(tmpZoom > maxZoom || tmpZoom < minZoom) return;
+
     zoom *= factor;
     // does repaint
     setOffset((offX - x) * factor + x, (offY - y) * factor + y);
