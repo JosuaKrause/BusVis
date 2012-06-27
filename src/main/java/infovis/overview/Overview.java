@@ -110,9 +110,9 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
 
         @Override
         public void run() {
-          System.out.println("reset");
           reset();
         }
+
       });
       firstDraw = false;
     }
