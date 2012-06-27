@@ -94,6 +94,8 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    */
   protected final StationDistance dist;
 
+  private final StationDrawer draw;
+
   /**
    * The embedder.
    */
@@ -115,11 +117,12 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   public static BusCanvas createBusCanvas(final Controller ctrl, final int width,
       final int height) {
     final StationDistance dist = new StationDistance(ctrl);
+    final StationDrawer draw = new StationDrawer(dist);
     dist.setMinDist(60.0);
     dist.setFactor(10);
     final Embedders e = Embedders.CIRCULAR;
-    final AbstractEmbedder embed = Embedders.createFor(e, dist, dist);
-    final BusCanvas res = new BusCanvas(ctrl, e, embed, dist, width, height);
+    final AbstractEmbedder embed = Embedders.createFor(e, draw, dist);
+    final BusCanvas res = new BusCanvas(ctrl, e, embed, dist, draw, width, height);
     ctrl.addBusVisualization(res);
     res.setBackground(Color.WHITE);
     return res;
@@ -137,11 +140,12 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    */
   private BusCanvas(final Controller ctrl, final Embedders e,
       final AbstractEmbedder embed,
-      final StationDistance dist,
+      final StationDistance dist, final StationDrawer draw,
       final int width, final int height) {
     super(embed, width, height);
     this.embed = embed;
     this.dist = dist;
+    this.draw = draw;
     embedder = e;
     addAction(KeyEvent.VK_R, new AbstractAction() {
 
@@ -233,7 +237,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   public void setEmbedder(final Embedders embedder) {
     if(this.embedder == embedder) return;
     this.embedder = embedder;
-    setPainter(Embedders.createFor(embedder, dist, dist));
+    setPainter(Embedders.createFor(embedder, draw, dist));
   }
 
   @Override

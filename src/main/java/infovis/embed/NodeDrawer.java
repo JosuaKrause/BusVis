@@ -111,11 +111,6 @@ public interface NodeDrawer {
    */
   Rectangle2D getBoundingBox();
 
-  /**
-   * Sets the animator to be notified when the weights change.
-   * 
-   * @param animator The animator.
-   */
   void setAnimator(Animator animator);
 
 }

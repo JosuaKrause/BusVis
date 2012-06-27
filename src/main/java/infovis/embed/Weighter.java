@@ -132,4 +132,11 @@ public interface Weighter {
    */
   List<WeightedEdge> edgesTo(SpringNode to);
 
+  /**
+   * Sets the animator to be notified when the weights change.
+   * 
+   * @param animator The animator.
+   */
+  void setAnimator(Animator animator);
+
 }
