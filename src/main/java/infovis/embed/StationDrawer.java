@@ -6,6 +6,8 @@ import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.data.EdgeMatrix.UndirectedEdge;
+import infovis.draw.LineRealizer;
+import infovis.draw.StationRealizer;
 import infovis.gui.Context;
 import infovis.routing.RoutingResult;
 import infovis.util.Interpolator;
@@ -32,6 +34,16 @@ public class StationDrawer implements NodeDrawer, Fader {
    * The corresponding station distance.
    */
   private final StationDistance dist;
+
+  /**
+   * The realizer to actually draw the stations.
+   */
+  private final StationRealizer stationRealize;
+
+  /**
+   * The realizer to actually draw the lines.
+   */
+  private final LineRealizer lineRealize;
 
   /**
    * The predicted next bus station.
@@ -67,9 +79,14 @@ public class StationDrawer implements NodeDrawer, Fader {
    * Creates a station drawer.
    * 
    * @param dist The corresponding station distance.
+   * @param stationRealize The realizer to draw the stations.
+   * @param lineRealize The realizer to draw the lines.
    */
-  public StationDrawer(final StationDistance dist) {
+  public StationDrawer(final StationDistance dist, final StationRealizer stationRealize,
+      final LineRealizer lineRealize) {
     this.dist = dist;
+    this.stationRealize = stationRealize;
+    this.lineRealize = lineRealize;
     dist.setFader(this);
   }
 
@@ -126,39 +143,19 @@ public class StationDrawer implements NodeDrawer, Fader {
 
       final double x2 = node.getX();
       final double y2 = node.getY();
-      final Line2D drawLine = new Line2D.Double(x1, y1, x2, y2);
-      final BasicStroke stroke =
-          new BasicStroke(degree, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL);
-      final Rectangle2D bbox = stroke.createStrokedShape(drawLine).getBounds2D();
+      final Line2D line = new Line2D.Double(x1, y1, x2, y2);
+      final Rectangle2D bbox = lineRealize.createLineShape(line, degree, degree).getBounds2D();
       if(!visible.intersects(bbox)) {
         continue;
       }
 
-      final Graphics2D g2 = (Graphics2D) g.create();
-      if(dist.getFrom() != null) {
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
-      }
+      BusLine[] unused;
+      BusLine[] used;
       synchronized(e) {
-        int counter = 0;
-        for(final BusLine line : e.getNonHighlightedLines()) {
-          if(BusLine.WALK.equals(line)) {
-            continue;
-          }
-          g2.setStroke(new BasicStroke(degree - counter,
-              BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
-          g2.setColor(line.getColor());
-          g2.draw(drawLine);
-          ++counter;
-        }
-        g2.dispose();
-        for(final BusLine line : e.getHighlightedLines()) {
-          g.setStroke(new BasicStroke(degree - counter,
-              BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
-          g.setColor(line.getColor());
-          g.draw(drawLine);
-          ++counter;
-        }
+        unused = e.getNonHighlightedLines();
+        used = e.getHighlightedLines();
       }
+      lineRealize.drawLines(g, line, unused, used);
     }
   }
 
@@ -173,13 +170,7 @@ public class StationDrawer implements NodeDrawer, Fader {
     final Rectangle2D bbox = stroke.createStrokedShape(shape).getBounds2D();
     if(!ctx.getVisibleCanvas().intersects(bbox)) return;
 
-    final Graphics2D g2 = (Graphics2D) g.create();
-    g2.setColor(!station.equals(dist.getFrom()) ? Color.WHITE : Color.RED);
-    g2.fill(shape);
-    g2.setStroke(stroke);
-    g2.setColor(Color.BLACK);
-    g2.draw(shape);
-    g2.dispose();
+    stationRealize.drawStation(g, shape, stroke, station.equals(dist.getFrom()));
   }
 
   @Override
@@ -244,7 +235,7 @@ public class StationDrawer implements NodeDrawer, Fader {
     final double r = Math.max(2, dist.getMatrix().getMaxLines(station) / 2);
     final double x = real ? n.getX() : n.getPredictX();
     final double y = real ? n.getY() : n.getPredictY();
-    return new Ellipse2D.Double(x - r, y - r, r * 2, r * 2);
+    return stationRealize.createStationShape(x, y, r);
   }
 
   /**
