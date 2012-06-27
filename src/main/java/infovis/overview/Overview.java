@@ -12,7 +12,9 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.geom.Ellipse2D;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
@@ -61,6 +63,11 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   private final int focusSize = 150;
 
   /**
+   * The sign that shows a selected station on the abstract map.
+   */
+  private final Path2D.Double focusSign;
+
+  /**
    * Constructor.
    * 
    * @param ctrl The controller.
@@ -69,6 +76,13 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
    */
   public Overview(final Controller ctrl, final int width, final int height) {
     firstDraw = true;
+
+    focusSign = new Path2D.Double();
+    focusSign.moveTo(0, 0);
+    focusSign.lineTo(-15, -40);
+    focusSign.curveTo(-5, -30, 5, -30, 15, -40);
+    focusSign.lineTo(0, 0);
+
     // calculate bounding box
     final String parser = XMLResourceDescriptor.getXMLParserClassName();
     final SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
@@ -138,9 +152,13 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
         RenderingHints.VALUE_ANTIALIAS_ON);
     gfx.setColor(Color.RED);
     gfx.setStroke(new BasicStroke(3));
-    final double r = OverviewMouse.STATION_RADIUS;
-    gfx.draw(new Ellipse2D.Double(selectedStation.getAbstractX() - r,
-        selectedStation.getAbstractY() - r, r * 2, r * 2));
+
+    final AffineTransform at = new AffineTransform();
+    at.translate(selectedStation.getAbstractX(),
+        selectedStation.getAbstractY());
+
+    final Shape s = focusSign.createTransformedShape(at);
+    gfx.fill(s);
   }
 
   /**
