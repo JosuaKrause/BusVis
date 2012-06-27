@@ -17,6 +17,8 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.SwingUtilities;
+
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.GVTBuilder;
 import org.apache.batik.bridge.UserAgentAdapter;
@@ -49,6 +51,11 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   private final Rectangle2D boundingBox;
 
   /**
+   * Weather the overview is drawn the first time.
+   */
+  private boolean firstDraw;
+
+  /**
    * Constructor.
    * 
    * @param ctrl The controller.
@@ -56,6 +63,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
    * @param height The height.
    */
   public Overview(final Controller ctrl, final int width, final int height) {
+    firstDraw = true;
     // calculate bounding box
     final String parser = XMLResourceDescriptor.getXMLParserClassName();
     final SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
@@ -91,12 +99,23 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   /**
    * Resets the viewport to the given rectangle.
    */
-  private void reset() {
+  public void reset() {
     mouse.reset(boundingBox);
   }
 
   @Override
   public void paint(final Graphics g) {
+    if(firstDraw) {
+      SwingUtilities.invokeLater(new Runnable() {
+
+        @Override
+        public void run() {
+          System.out.println("reset");
+          reset();
+        }
+      });
+      firstDraw = false;
+    }
     final Graphics2D gfx = (Graphics2D) g;
     final Graphics g2 = gfx.create();
     super.paint(g2);
