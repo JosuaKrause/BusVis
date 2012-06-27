@@ -371,6 +371,9 @@ public final class StationDistance implements Weighter {
     final Collection<BusEdge> e = r.getEdges();
     final WeightedEdge[] edges = new WeightedEdge[e.size()];
     BusTime start = getTime();
+    if(start == null) {
+      start = BusTime.now();
+    }
     SpringNode cur = getReferenceNode();
     int i = 0;
     for(final BusEdge be : e) {
