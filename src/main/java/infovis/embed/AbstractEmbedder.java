@@ -129,6 +129,11 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
       drawer.drawLabel(g, ctx, n);
       g.dispose();
     }
+    if(!drawCircles()) {
+      final Graphics2D g = (Graphics2D) gfx.create();
+      drawer.drawLegend(g, ctx);
+      g.dispose();
+    }
   }
 
   @Override

@@ -94,6 +94,9 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    */
   protected final StationDistance dist;
 
+  /**
+   * The drawer.
+   */
   private final StationDrawer draw;
 
   /**
@@ -135,6 +138,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    * @param e The embedder enum.
    * @param embed The corresponding embedder.
    * @param dist The distance measure.
+   * @param draw The drawer.
    * @param width The width.
    * @param height The height.
    */

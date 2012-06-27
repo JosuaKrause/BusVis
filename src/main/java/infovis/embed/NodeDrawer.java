@@ -111,6 +111,19 @@ public interface NodeDrawer {
    */
   Rectangle2D getBoundingBox();
 
+  /**
+   * Sets the animator associated with this drawer.
+   * 
+   * @param animator The animator.
+   */
   void setAnimator(Animator animator);
+
+  /**
+   * Draws a legend, when circles are not drawn.
+   * 
+   * @param g The graphics context.
+   * @param ctx The canvas context.
+   */
+  void drawLegend(Graphics2D g, Context ctx);
 
 }

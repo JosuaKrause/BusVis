@@ -85,6 +85,9 @@ public final class StationDistance implements Weighter {
    */
   private Animator animator;
 
+  /**
+   * The fader.
+   */
   private Fader fader;
 
   /**
@@ -110,6 +113,11 @@ public final class StationDistance implements Weighter {
     }
   }
 
+  /**
+   * Setter.
+   * 
+   * @param fader The associated fader.
+   */
   public void setFader(final Fader fader) {
     this.fader = fader;
   }
@@ -153,8 +161,7 @@ public final class StationDistance implements Weighter {
     routes = route;
     matrix.refreshHighlights(routes);
     if(from != StationDistance.this.from) {
-      fader.initialize(StationDistance.this.from, System.currentTimeMillis(),
-          Interpolator.NORMAL);
+      fader.initialize(StationDistance.this.from, Interpolator.NORMAL);
     }
     changes = ((time != null && StationDistance.this.time != null) &&
         (StationDistance.this.time != time || StationDistance.this.changeTime != changeTime))
@@ -175,14 +182,30 @@ public final class StationDistance implements Weighter {
     return fader.inFade();
   }
 
+  /**
+   * Getter.
+   * 
+   * @return The controller.
+   */
   public Controller getController() {
     return ctrl;
   }
 
+  /**
+   * Getter.
+   * 
+   * @param n The spring node.
+   * @return The corresponding station.
+   */
   public BusStation getStation(final SpringNode n) {
     return map.get(n);
   }
 
+  /**
+   * Getter.
+   * 
+   * @return The edge matrix.
+   */
   public EdgeMatrix getMatrix() {
     return matrix;
   }
@@ -314,9 +337,9 @@ public final class StationDistance implements Weighter {
   @Override
   public double weight(final SpringNode f, final SpringNode t) {
     if(from == null || t == f) return 0;
-    final BusStation fr = map.get(f);
+    final BusStation fr = getStation(f);
     if(fr.equals(from)) return 0;
-    final BusStation to = map.get(t);
+    final BusStation to = getStation(t);
     if(to.equals(from) && !getRoute(fr).isNotReachable()) return factor
         * getRoute(fr).minutes();
     return -minDist;
@@ -325,9 +348,9 @@ public final class StationDistance implements Weighter {
   @Override
   public boolean hasWeight(final SpringNode f, final SpringNode t) {
     if(from == null || t == f) return false;
-    final BusStation fr = map.get(f);
+    final BusStation fr = getStation(f);
     if(fr.equals(from)) return false;
-    final BusStation to = map.get(t);
+    final BusStation to = getStation(t);
     if(to.equals(from)) return !getRoute(fr).isNotReachable();
     return true;
   }

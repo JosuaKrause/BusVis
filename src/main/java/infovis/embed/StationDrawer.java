@@ -21,8 +21,16 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * Draws the network.
+ * 
+ * @author Joschi <josua.krause@googlemail.com>
+ */
 public class StationDrawer implements NodeDrawer, Fader {
 
+  /**
+   * The corresponding station distance.
+   */
   private final StationDistance dist;
 
   /**
@@ -55,6 +63,11 @@ public class StationDrawer implements NodeDrawer, Fader {
    */
   protected boolean fade;
 
+  /**
+   * Creates a station drawer.
+   * 
+   * @param dist The corresponding station distance.
+   */
   public StationDrawer(final StationDistance dist) {
     this.dist = dist;
     dist.setFader(this);
@@ -66,11 +79,10 @@ public class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public void initialize(final BusStation from, final long currentTimeMillis,
-      final int normal) {
-    fadeOut = from;
+  public void initialize(final BusStation next, final int duration) {
+    fadeOut = next;
     fadingStart = System.currentTimeMillis();
-    fadingEnd = fadingStart + Interpolator.NORMAL;
+    fadingEnd = fadingStart + duration;
     fade = true;
   }
 
@@ -295,6 +307,11 @@ public class StationDrawer implements NodeDrawer, Fader {
       g2.fill(circ);
       g2.dispose();
     }
+  }
+
+  @Override
+  public void drawLegend(final Graphics2D g, final Context ctx) {
+    // TODO draw legend
   }
 
   @Override
