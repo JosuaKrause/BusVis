@@ -141,7 +141,7 @@ public final class EmbedderTest implements NodeDrawer, Weighter {
   private final List<SpringNode> nodes = new ArrayList<SpringNode>();
 
   @Override
-  public Iterable<SpringNode> nodes() {
+  public List<SpringNode> nodes() {
     return nodes;
   }
 
