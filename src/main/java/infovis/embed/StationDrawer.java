@@ -166,6 +166,7 @@ public class StationDrawer implements NodeDrawer, Fader {
     if(route != null && route.isNotReachable()) return;
 
     final Shape shape = nodeClickArea(n, true);
+    if(shape == null) return;
     final BasicStroke stroke = new BasicStroke(.5f);
     final Rectangle2D bbox = stroke.createStrokedShape(shape).getBounds2D();
     if(!ctx.getVisibleCanvas().intersects(bbox)) return;
@@ -178,7 +179,9 @@ public class StationDrawer implements NodeDrawer, Fader {
     final BusStation station = dist.getStation(n);
     if(dist.getMatrix().getDegree(station) == 2) return;
 
-    final Rectangle2D node = nodeClickArea(n, true).getBounds2D();
+    final Shape s = nodeClickArea(n, true);
+    if(s == null) return;
+    final Rectangle2D node = s.getBounds2D();
     final Point2D pos = ctx.toComponentCoordinates(
         new Point2D.Double(node.getMaxX(), node.getMinY()));
     final double x = pos.getX();
@@ -314,7 +317,11 @@ public class StationDrawer implements NodeDrawer, Fader {
       bbox = getCircle(MAX_INTERVAL, pos).getBounds2D();
     } else {
       for(final SpringNode n : nodes()) {
-        final Rectangle2D b = nodeClickArea(n, false).getBounds2D();
+        final Shape shape = nodeClickArea(n, false);
+        if(shape == null) {
+          continue;
+        }
+        final Rectangle2D b = shape.getBounds2D();
         if(bbox == null) {
           bbox = b;
         } else {

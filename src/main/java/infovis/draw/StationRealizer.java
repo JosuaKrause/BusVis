@@ -43,6 +43,8 @@ public interface StationRealizer {
 
     @Override
     public Shape createStationShape(final double x, final double y, final double r) {
+      // JVM-bug #7180110
+      if(Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(r)) return null;
       return new Ellipse2D.Double(x - r, y - r, r * 2, r * 2);
     }
 
