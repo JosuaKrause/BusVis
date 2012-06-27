@@ -426,6 +426,7 @@ public final class StationDistance implements Weighter, NodeDrawer {
     if(route != null && route.isNotReachable()) return;
 
     final Shape shape = nodeClickArea(n, true);
+    if(shape == null) return;
     final BasicStroke stroke = new BasicStroke(.5f);
     final Rectangle2D bbox = stroke.createStrokedShape(shape).getBounds2D();
     if(!ctx.getVisibleCanvas().intersects(bbox)) return;
@@ -444,7 +445,9 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final BusStation station = map.get(n);
     if(matrix.getDegree(station) == 2) return;
 
-    final Rectangle2D node = nodeClickArea(n, true).getBounds2D();
+    final Shape s = nodeClickArea(n, true);
+    if(s == null) return;
+    final Rectangle2D node = s.getBounds2D();
     final Point2D pos = ctx.toComponentCoordinates(
         new Point2D.Double(node.getMaxX(), node.getMinY()));
     final double x = pos.getX();
@@ -501,6 +504,8 @@ public final class StationDistance implements Weighter, NodeDrawer {
     final double r = Math.max(2, matrix.getMaxLines(station) / 2);
     final double x = real ? n.getX() : n.getPredictX();
     final double y = real ? n.getY() : n.getPredictY();
+    // JVM-bug #7180110
+    if(Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(r)) return null;
     return new Ellipse2D.Double(x - r, y - r, r * 2, r * 2);
   }
 
@@ -627,7 +632,11 @@ public final class StationDistance implements Weighter, NodeDrawer {
       bbox = getCircle(StationDistance.MAX_INTERVAL, pos).getBounds2D();
     } else {
       for(final SpringNode n : nodes()) {
-        final Rectangle2D b = nodeClickArea(n, false).getBounds2D();
+        final Shape shape = nodeClickArea(n, false);
+        if(shape == null) {
+          continue;
+        }
+        final Rectangle2D b = shape.getBounds2D();
         if(bbox == null) {
           bbox = b;
         } else {
