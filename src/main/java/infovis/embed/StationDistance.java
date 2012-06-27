@@ -356,7 +356,7 @@ public final class StationDistance implements Weighter {
   }
 
   @Override
-  public Iterable<SpringNode> nodes() {
+  public Collection<SpringNode> nodes() {
     return map.keySet();
   }
 

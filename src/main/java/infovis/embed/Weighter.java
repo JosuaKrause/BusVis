@@ -1,6 +1,7 @@
 package infovis.embed;
 
 import java.awt.geom.Point2D;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -30,11 +31,11 @@ public interface Weighter {
   boolean hasWeight(SpringNode from, SpringNode to);
 
   /**
-   * An iteration over all nodes in the spring embedder system.
+   * A list of all nodes in the spring embedder system.
    * 
-   * @return The iterable.
+   * @return The list.
    */
-  Iterable<SpringNode> nodes();
+  Collection<SpringNode> nodes();
 
   /**
    * Getter.

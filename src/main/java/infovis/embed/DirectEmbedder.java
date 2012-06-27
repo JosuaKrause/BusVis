@@ -4,6 +4,7 @@ import static infovis.util.VecUtil.*;
 import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
+import java.util.Collection;
 
 /**
  * A direct embedder. Positions the nodes each time the weight changes. The
@@ -44,7 +45,9 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
         refP = null;
         diff = null;
       }
-      for(final SpringNode n : weighter.nodes()) {
+      final Collection<SpringNode> nodes = weighter.nodes();
+      changedWeights(nodes);
+      for(final SpringNode n : nodes) {
         final Point2D pos = weighter.getDefaultPosition(n);
         if(n == ref) {
           continue;
@@ -68,6 +71,16 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
       needsRedraw = needsRedraw || n.inAnimation();
     }
     return needsRedraw;
+  }
+
+  /**
+   * Is called when weights have changed.
+   * 
+   * @param nodes The nodes.
+   */
+  protected void changedWeights(
+      @SuppressWarnings("unused") final Collection<SpringNode> nodes) {
+    // nothing to do
   }
 
   /**
