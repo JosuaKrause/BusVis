@@ -132,7 +132,6 @@ public final class OverviewMouse extends MouseAdapter {
     }
     if(minDist >= STATION_RADIUS * STATION_RADIUS) return false;
     ctrl.selectStation(closestStation);
-    ctrl.focusStation();
     return true;
   }
 
@@ -230,16 +229,23 @@ public final class OverviewMouse extends MouseAdapter {
    * @param factor The factor to alter the zoom level.
    */
   public void zoomTo(final double x, final double y, final double factor) {
+    double f = factor;
+    double newZoom = zoom * factor;
+    if(newZoom < minZoom) {
+      newZoom = minZoom;
+      f = newZoom / zoom;
+    } else if(newZoom > maxZoom) {
+      newZoom = maxZoom;
+      f = newZoom / zoom;
+    }
+
     // P = (off - mouse) / zoom
     // P = (newOff - mouse) / newZoom
     // newOff = (off - mouse) / zoom * newZoom + mouse
     // newOff = (off - mouse) * factor + mouse
-    final double tmpZoom = zoom * factor;
-    if(tmpZoom > maxZoom || tmpZoom < minZoom) return;
-
-    zoom *= factor;
+    zoom = newZoom;
     // does repaint
-    setOffset((offX - x) * factor + x, (offY - y) * factor + y);
+    setOffset((offX - x) * f + x, (offY - y) * f + y);
   }
 
   /**

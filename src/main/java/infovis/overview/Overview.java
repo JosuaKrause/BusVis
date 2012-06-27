@@ -98,7 +98,14 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
 
   @Override
   public void focusStation() {
-    // TODO focus station
+    if(selectedStation == null) {
+      reset();
+    } else {
+      final Rectangle2D focus = new Rectangle2D.Double(
+          selectedStation.getAbstractX() - focusSize,
+          selectedStation.getAbstractY() - focusSize, 2 * focusSize, 2 * focusSize);
+      mouse.reset(focus);
+    }
   }
 
   /**
@@ -143,15 +150,6 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
 
   @Override
   public void selectBusStation(final BusStation station) {
-    if(selectedStation != null && station == null) {
-      reset();
-    } else if(station != null) {
-      final Rectangle2D focus = new Rectangle2D.Double(
-          station.getAbstractX() - focusSize,
-          station.getAbstractY() - focusSize, 2 * focusSize, 2 * focusSize);
-      mouse.reset(focus);
-    }
-
     selectedStation = station;
     repaint();
   }
