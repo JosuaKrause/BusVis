@@ -47,7 +47,7 @@ public final class Controller implements BusStationEnumerator {
   private volatile int currWalkTime = 5;
 
   /** Current positioning technique. */
-  private Embedders embed = Embedders.CIRCULAR;
+  private Embedders embed = EMBEDDERS[0];
 
   /** Timer for real-time view. */
   private final Timer timer = new Timer(true);
@@ -137,9 +137,11 @@ public final class Controller implements BusStationEnumerator {
    * All positioning techniques.
    */
   private static final Embedders[] EMBEDDERS = new Embedders[] {
-    Embedders.CIRCULAR,
+      // Embedders.EDGE,
 
-    // Embedders.SPRING,
+      Embedders.CIRCULAR,
+
+      // Embedders.SPRING,
   };
 
   /**
