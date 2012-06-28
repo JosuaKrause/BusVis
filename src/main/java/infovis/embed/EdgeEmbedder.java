@@ -75,8 +75,8 @@ public class EdgeEmbedder extends DirectEmbedder {
     final Point2D dir = subVec(ownDefault, refP);
     final int ccw = Line2D.relativeCCW(x1, y1, x2, y2, px, py);
     Point2D res;
-    final double dist = ccw != 0 ? Line2D.ptLineDist(x1, y1, x2, y2, px, py) : 0;
-    if(ccw == 0 || dist == 0) {
+    final double distSq = ccw != 0 ? Line2D.ptLineDistSq(x1, y1, x2, y2, px, py) : 0;
+    if(ccw == 0 || distSq == 0) {
       res = addVec(otherPos, setLength(dir, w));
     } else {
       Point2D rot;
@@ -85,7 +85,14 @@ public class EdgeEmbedder extends DirectEmbedder {
       } else { // counter clock-wise
         rot = new Point2D.Double(dir.getY(), -dir.getX());
       }
-      res = addVec(otherPos, setLength(rot, w));
+      final double wSq = w * w;
+      if(wSq <= distSq) {
+        res = addVec(otherPos, setLength(rot, w));
+      } else {
+        final double dist = Math.sqrt(distSq);
+        res = addVec(addVec(otherPos, setLength(rot, dist)),
+            setLength(dir, Math.sqrt(wSq - distSq)));
+      }
     }
     // 1 counter clock-wise
     positions.put(n, res);
