@@ -2,29 +2,19 @@ package infovis.embed;
 
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
-import infovis.data.BusDataBuilder;
 import infovis.data.BusStation;
-import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.draw.LineRealizer;
 import infovis.draw.StationRealizer;
 import infovis.gui.Canvas;
-import infovis.gui.ControlPanel;
 import infovis.gui.Painter;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
-import java.io.IOException;
 
 import javax.swing.AbstractAction;
-import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
 /**
  * A canvas showing distances between bus stations.
@@ -32,59 +22,6 @@ import javax.swing.WindowConstants;
  * @author Joschi <josua.krause@googlemail.com>
  */
 public final class BusCanvas extends Canvas implements BusVisualization {
-
-  /**
-   * Starts a sample application.
-   * 
-   * @param args Ignored.
-   */
-  public static void main(final String[] args) {
-    final BusStationManager m;
-    try {
-      m = BusDataBuilder.load("src/main/resources/");
-    } catch(final IOException e) {
-      e.printStackTrace();
-      return;
-    }
-    // ini
-    final JFrame frame = new JFrame("Bus test");
-    final Controller ctrl = new Controller(m, frame);
-    final BusCanvas canvas = createBusCanvas(ctrl, 800, 600);
-    frame.setLayout(new BorderLayout());
-    frame.add(canvas, BorderLayout.CENTER);
-    frame.add(new ControlPanel(ctrl), BorderLayout.EAST);
-    frame.pack();
-    canvas.reset();
-    canvas.addAction(KeyEvent.VK_F, new AbstractAction() {
-
-      private static final long serialVersionUID = 3038019958008049173L;
-
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        frame.setExtendedState(frame.getExtendedState() == Frame.MAXIMIZED_BOTH ? Frame.NORMAL
-            : Frame.MAXIMIZED_BOTH);
-      }
-
-    });
-    frame.addWindowStateListener(new WindowStateListener() {
-
-      @Override
-      public void windowStateChanged(final WindowEvent e) {
-        SwingUtilities.invokeLater(new Runnable() {
-
-          @Override
-          public void run() {
-            canvas.reset();
-          }
-
-        });
-      }
-
-    });
-    frame.setLocationRelativeTo(null);
-    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    frame.setVisible(true);
-  }
 
   /**
    * SVUID.
