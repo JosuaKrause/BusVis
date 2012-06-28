@@ -2,26 +2,34 @@ package infovis.overview;
 
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
-import infovis.data.BusDataBuilder;
 import infovis.data.BusStation;
-import infovis.data.BusStationManager;
 import infovis.data.BusTime;
 import infovis.embed.Embedders;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.geom.Ellipse2D;
+import java.awt.Shape;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 
-import javax.swing.JFrame;
-import javax.swing.WindowConstants;
+import javax.swing.SwingUtilities;
 
+import org.apache.batik.bridge.BridgeContext;
+import org.apache.batik.bridge.GVTBuilder;
+import org.apache.batik.bridge.UserAgentAdapter;
+import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
+import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.swing.JSVGCanvas;
+import org.apache.batik.util.XMLResourceDescriptor;
+import org.w3c.dom.svg.SVGDocument;
 
 /**
  * Abstract overview over the bus system in Konstanz.
@@ -38,7 +46,27 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   /**
    * The mouse listener for this class.
    */
-  private final OverviewMouse mouse;
+  protected final OverviewMouse mouse;
+
+  /**
+   * The bounding box of the abstract map of Konstanz.
+   */
+  protected final Rectangle2D boundingBox;
+
+  /**
+   * Weather the overview is drawn the first time.
+   */
+  private boolean firstDraw;
+
+  /**
+   * The half-size of the window that is shown when a station is selected.
+   */
+  private final int focusSize = 150;
+
+  /**
+   * The sign that shows a selected station on the abstract map.
+   */
+  private final Path2D focusSign;
 
   /**
    * Constructor.
@@ -48,59 +76,103 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
    * @param height The height.
    */
   public Overview(final Controller ctrl, final int width, final int height) {
+    firstDraw = true;
+
+    focusSign = new Path2D.Double();
+    focusSign.moveTo(0, 0);
+    focusSign.lineTo(-15, -40);
+    focusSign.curveTo(-5, -30, 5, -30, 15, -40);
+    focusSign.closePath();
+
+    // calculate bounding box
+    final String parser = XMLResourceDescriptor.getXMLParserClassName();
+    final SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
+    SVGDocument doc = null;
+    try {
+      doc = (SVGDocument) f.createDocument(new File(ctrl.getResourcePath()
+          + "abstract.svg").toURI().toString());
+    } catch(final IOException e) {
+      e.printStackTrace();
+    }
+    final GVTBuilder builder = new GVTBuilder();
+    BridgeContext ctx;
+    ctx = new BridgeContext(new UserAgentAdapter());
+    final GraphicsNode gvtRoot = builder.build(ctx, doc);
+    boundingBox = gvtRoot.getBounds();
+
     setURI(new File(ctrl.getResourcePath() + "abstract.svg").toURI().toString());
     setPreferredSize(new Dimension(width, height));
     setDisableInteractions(true);
     selectableText = false;
+
+    // mouse listener
     mouse = new OverviewMouse(this, ctrl);
     addMouseListener(mouse);
     addMouseWheelListener(mouse);
     addMouseMotionListener(mouse);
-    ctrl.addBusVisualization(this);
-  }
 
-  /**
-   * Test.
-   * 
-   * @param args Ignored.
-   */
-  public static void main(final String[] args) {
-    final JFrame frame = new JFrame("SVG Test");
-    final BusStationManager mgr;
-    try {
-      mgr = BusDataBuilder.load("src/main/resources/");
-    } catch(final IOException e) {
-      e.printStackTrace();
-      return;
-    }
-    final Overview o = new Overview(new Controller(mgr, frame), 800, 600);
-    frame.add(o);
-    frame.pack();
-    frame.setLocationRelativeTo(null);
-    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    frame.setVisible(true);
+    // resize listener
+    addComponentListener(new ComponentAdapter() {
+
+      @Override
+      public void componentResized(final ComponentEvent e) {
+        mouse.visibleRectChanged(boundingBox);
+      }
+
+    });
+
+    ctrl.addBusVisualization(this);
   }
 
   @Override
   public void focusStation() {
-    // TODO focus station
+    if(selectedStation == null) {
+      reset();
+    } else {
+      final Rectangle2D focus = new Rectangle2D.Double(
+          selectedStation.getAbstractX() - focusSize,
+          selectedStation.getAbstractY() - focusSize, 2 * focusSize, 2 * focusSize);
+      mouse.reset(focus);
+    }
+  }
+
+  /**
+   * Resets the viewport to the given rectangle.
+   */
+  public void reset() {
+    mouse.reset(boundingBox);
   }
 
   @Override
   public void paint(final Graphics g) {
-    final Graphics2D gfx = (Graphics2D) g;
-    final Graphics g2 = gfx.create();
+    if(firstDraw) {
+      SwingUtilities.invokeLater(new Runnable() {
+
+        @Override
+        public void run() {
+          reset();
+        }
+
+      });
+      firstDraw = false;
+    }
+    final Graphics g2 = g.create();
     super.paint(g2);
     g2.dispose();
     if(selectedStation == null) return;
-    mouse.transformGraphics(gfx);
+    final Graphics2D gfx = (Graphics2D) g;
     gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
         RenderingHints.VALUE_ANTIALIAS_ON);
+
+    final AffineTransform at = new AffineTransform();
+    at.translate(mouse.getXFromCanvas(selectedStation.getAbstractX()),
+        mouse.getYFromCanvas(selectedStation.getAbstractY()));
+
+    final Shape s = focusSign.createTransformedShape(at);
     gfx.setColor(Color.RED);
-    gfx.setStroke(new BasicStroke(3));
-    final double r = OverviewMouse.STATION_RADIUS;
-    gfx.draw(new Ellipse2D.Double(selectedStation.getAbstractX() - r,
-        selectedStation.getAbstractY() - r, r * 2, r * 2));
+    gfx.fill(s);
+    gfx.setColor(Color.BLACK);
+    gfx.draw(s);
   }
 
   /**
@@ -112,6 +184,15 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   public void selectBusStation(final BusStation station) {
     selectedStation = station;
     repaint();
+  }
+
+  /**
+   * Returns the bounding box of the SVG image.
+   * 
+   * @return Bounding box of the SVG image.
+   */
+  public Rectangle2D getSVGBoundingRect() {
+    return boundingBox;
   }
 
   @Override
