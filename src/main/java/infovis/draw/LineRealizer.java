@@ -19,7 +19,9 @@ public interface LineRealizer {
    * The shape of the line between bus stations.
    * 
    * @param line The actual line.
-   * @param number The currently drawn bus line.
+   * @param number The currently drawn bus line. If the number is negative the
+   *          overall shape (click area and bounding box computation) should be
+   *          returned.
    * @param maxNumber The number of bus lines that will be drawn.
    * @return The shape of the bus line.
    */
@@ -44,8 +46,8 @@ public interface LineRealizer {
 
     @Override
     public Shape createLineShape(final Line2D line, final int number, final int maxNumber) {
-      return new BasicStroke(maxNumber - number, BasicStroke.CAP_ROUND,
-          BasicStroke.JOIN_BEVEL).createStrokedShape(line);
+      return new BasicStroke(number < 0 ? maxNumber : maxNumber - number,
+          BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL).createStrokedShape(line);
     }
 
     @Override

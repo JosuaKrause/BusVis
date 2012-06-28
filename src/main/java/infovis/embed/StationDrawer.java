@@ -144,7 +144,7 @@ public class StationDrawer implements NodeDrawer, Fader {
       final double x2 = node.getX();
       final double y2 = node.getY();
       final Line2D line = new Line2D.Double(x1, y1, x2, y2);
-      final Rectangle2D bbox = lineRealize.createLineShape(line, degree, degree).getBounds2D();
+      final Rectangle2D bbox = lineRealize.createLineShape(line, -1, degree).getBounds2D();
       if(!visible.intersects(bbox)) {
         continue;
       }
