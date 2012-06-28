@@ -6,6 +6,8 @@ import infovis.data.BusDataBuilder;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.draw.LineRealizer;
+import infovis.draw.StationRealizer;
 import infovis.gui.Canvas;
 import infovis.gui.ControlPanel;
 import infovis.gui.Painter;
@@ -95,6 +97,11 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   protected final StationDistance dist;
 
   /**
+   * The drawer.
+   */
+  private final StationDrawer draw;
+
+  /**
    * The embedder.
    */
   protected AbstractEmbedder embed;
@@ -115,11 +122,13 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   public static BusCanvas createBusCanvas(final Controller ctrl, final int width,
       final int height) {
     final StationDistance dist = new StationDistance(ctrl);
+    final StationDrawer draw = new StationDrawer(dist,
+        StationRealizer.STANDARD, LineRealizer.STANDARD);
     dist.setMinDist(60.0);
     dist.setFactor(10);
     final Embedders e = Embedders.CIRCULAR;
-    final AbstractEmbedder embed = Embedders.createFor(e, dist, dist);
-    final BusCanvas res = new BusCanvas(ctrl, e, embed, dist, width, height);
+    final AbstractEmbedder embed = Embedders.createFor(e, draw, dist);
+    final BusCanvas res = new BusCanvas(ctrl, e, embed, dist, draw, width, height);
     ctrl.addBusVisualization(res);
     res.setBackground(Color.WHITE);
     return res;
@@ -132,16 +141,18 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    * @param e The embedder enum.
    * @param embed The corresponding embedder.
    * @param dist The distance measure.
+   * @param draw The drawer.
    * @param width The width.
    * @param height The height.
    */
   private BusCanvas(final Controller ctrl, final Embedders e,
       final AbstractEmbedder embed,
-      final StationDistance dist,
+      final StationDistance dist, final StationDrawer draw,
       final int width, final int height) {
     super(embed, width, height);
     this.embed = embed;
     this.dist = dist;
+    this.draw = draw;
     embedder = e;
     addAction(KeyEvent.VK_R, new AbstractAction() {
 
@@ -233,7 +244,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   public void setEmbedder(final Embedders embedder) {
     if(this.embedder == embedder) return;
     this.embedder = embedder;
-    setPainter(Embedders.createFor(embedder, dist, dist));
+    setPainter(Embedders.createFor(embedder, draw, dist));
   }
 
   @Override
