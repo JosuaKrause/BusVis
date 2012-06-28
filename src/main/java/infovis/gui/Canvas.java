@@ -49,6 +49,16 @@ public class Canvas extends JComponent implements Refreshable {
   private double zoom = 1;
 
   /**
+   * The minimal zoom value.
+   */
+  private double minZoom = -1;
+
+  /**
+   * The maximal zoom value.
+   */
+  private double maxZoom = -1;
+
+  /**
    * The painter.
    */
   protected Painter painter;
@@ -335,13 +345,23 @@ public class Canvas extends JComponent implements Refreshable {
    * @param factor The factor to alter the zoom level.
    */
   public void zoomTo(final double x, final double y, final double factor) {
+    double f = factor;
+    double newZoom = zoom * factor;
+    if(newZoom < minZoom && minZoom > 0) {
+      newZoom = minZoom;
+      f = newZoom / zoom;
+    } else if(newZoom > maxZoom && maxZoom > 0) {
+      newZoom = maxZoom;
+      f = newZoom / zoom;
+    }
+
     // P = (off - mouse) / zoom
     // P = (newOff - mouse) / newZoom
     // newOff = (off - mouse) / zoom * newZoom + mouse
     // newOff = (off - mouse) * factor + mouse
-    zoom *= factor;
+    zoom = newZoom;
     // does repaint
-    setOffset((offX - x) * factor + x, (offY - y) * factor + y);
+    setOffset((offX - x) * f + x, (offY - y) * f + y);
   }
 
   /**
@@ -548,4 +568,39 @@ public class Canvas extends JComponent implements Refreshable {
     repaint();
   }
 
+  /**
+   * Returns the minimal zoom value.
+   * 
+   * @return The minimal zoom value.
+   */
+  public double getMinZoom() {
+    return minZoom;
+  }
+
+  /**
+   * Sets the current minimal zoom value.
+   * 
+   * @param zoom The new minimal zoom value.
+   */
+  public void setMinZoom(final double zoom) {
+    minZoom = zoom;
+  }
+
+  /**
+   * Returns the maximal zoom value.
+   * 
+   * @return The maximal zoom value.
+   */
+  public double getMaxZoom() {
+    return maxZoom;
+  }
+
+  /**
+   * Sets the current maximal zoom value.
+   * 
+   * @param zoom The new maximal zoom value.
+   */
+  public void setMaxZoom(final double zoom) {
+    maxZoom = zoom;
+  }
 }

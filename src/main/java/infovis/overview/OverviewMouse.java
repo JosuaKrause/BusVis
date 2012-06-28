@@ -32,6 +32,17 @@ public final class OverviewMouse extends MouseAdapter {
   private final Controller ctrl;
 
   /**
+   * The minimal zoom factor. Gets determined dynamically when the abstract view
+   * completely shown.
+   */
+  private double minZoom = -1;
+
+  /**
+   * The maximal zoom factor.
+   */
+  private final double maxZoom = 2.5;
+
+  /**
    * Constructor.
    * 
    * @param over The overview visualization.
@@ -122,7 +133,6 @@ public final class OverviewMouse extends MouseAdapter {
     }
     if(minDist >= STATION_RADIUS * STATION_RADIUS) return false;
     ctrl.selectStation(closestStation);
-    ctrl.focusStation();
     return true;
   }
 
@@ -176,7 +186,46 @@ public final class OverviewMouse extends MouseAdapter {
   public void setOffset(final double x, final double y) {
     offX = x;
     offY = y;
+    final Rectangle2D svgBB = over.getSVGBoundingRect();
+    final Rectangle2D visBB = getVisibleCanvas();
+
+    // snap back
+    if(!svgBB.contains(visBB)) {
+      double transX = 0;
+      double transY = 0;
+
+      if(visBB.getMaxX() > svgBB.getMaxX()) {
+        // too far right
+        transX -= visBB.getMaxX() - svgBB.getMaxX();
+      } else if(visBB.getMinX() < svgBB.getMinX()) {
+        // too far left
+        transX += svgBB.getMinX() - visBB.getMinX();
+      }
+      if(visBB.getMaxY() > svgBB.getMaxY()) {
+        // too far down
+        transY -= visBB.getMaxY() - svgBB.getMaxY();
+      } else if(visBB.getMinY() < svgBB.getMinY()) {
+        // too far up
+        transY += svgBB.getMinY() - visBB.getMinY();
+      }
+
+      offX -= fromReal(transX);
+      offY -= fromReal(transY);
+    }
     updateTransformation();
+  }
+
+  /**
+   * Returns the visible rectangle in canvas coordinates.
+   * 
+   * @return The visible rectangle in canvas coordinates.
+   */
+  public Rectangle2D getVisibleCanvas() {
+    final Rectangle2D rect = over.getVisibleRect();
+    final Point2D topLeft = getForScreen(new Point2D.Double(rect.getMinX(),
+        rect.getMinY()));
+    return new Rectangle2D.Double(topLeft.getX(), topLeft.getY(),
+        inReal(rect.getWidth()), inReal(rect.getHeight()));
   }
 
   /**
@@ -220,13 +269,23 @@ public final class OverviewMouse extends MouseAdapter {
    * @param factor The factor to alter the zoom level.
    */
   public void zoomTo(final double x, final double y, final double factor) {
+    double f = factor;
+    double newZoom = zoom * factor;
+    if(newZoom < minZoom) {
+      newZoom = minZoom;
+      f = newZoom / zoom;
+    } else if(newZoom > maxZoom) {
+      newZoom = maxZoom;
+      f = newZoom / zoom;
+    }
+
     // P = (off - mouse) / zoom
     // P = (newOff - mouse) / newZoom
     // newOff = (off - mouse) / zoom * newZoom + mouse
     // newOff = (off - mouse) * factor + mouse
-    zoom *= factor;
+    zoom = newZoom;
     // does repaint
-    setOffset((offX - x) * factor + x, (offY - y) * factor + y);
+    setOffset((offX - x) * f + x, (offY - y) * f + y);
   }
 
   /**
@@ -270,7 +329,7 @@ public final class OverviewMouse extends MouseAdapter {
   /**
    * The margin for the viewport reset. The default is <code>10.0</code>.
    */
-  private double margin = 10.0;
+  private double margin = 0.0;
 
   /**
    * Getter.
@@ -310,9 +369,22 @@ public final class OverviewMouse extends MouseAdapter {
           + (nh - bbox.getHeight()) / 2 - bbox.getMinY());
       final double rw = nw / bbox.getWidth();
       final double rh = nh / bbox.getHeight();
-      final double factor = rw < rh ? rw : rh;
+      final double factor = rw > rh ? rw : rh;
+      if(minZoom == -1) {
+        minZoom = factor;
+      }
       zoom(factor);
     }
+  }
+
+  /**
+   * Resets the visible rect and re-determindes the minimal zoom value.
+   * 
+   * @param newBB The new visible rect.
+   */
+  public void visibleRectChanged(final Rectangle2D newBB) {
+    minZoom = -1;
+    reset(newBB);
   }
 
   /**
@@ -324,6 +396,17 @@ public final class OverviewMouse extends MouseAdapter {
    */
   protected double inReal(final double s) {
     return s / zoom;
+  }
+
+  /**
+   * Calculates the screen coordinate of the given input in real coordinates.
+   * 
+   * @param s The coordinate in real coordinates. Due to uniform zooming both
+   *          horizontal and vertical coordinates can be converted.
+   * @return In screen coordinates.
+   */
+  protected double fromReal(final double s) {
+    return s * zoom;
   }
 
   /**
@@ -347,6 +430,26 @@ public final class OverviewMouse extends MouseAdapter {
   }
 
   /**
+   * Calculates the component coordinate from the real coordinate.
+   * 
+   * @param x The real x coordinate.
+   * @return The component coordinate.
+   */
+  protected double getXFromCanvas(final double x) {
+    return fromReal(x) + offX;
+  }
+
+  /**
+   * Calculates the component coordinate from the real coordinate.
+   * 
+   * @param y The real y coordinate.
+   * @return The component coordinate.
+   */
+  protected double getYFromCanvas(final double y) {
+    return fromReal(y) + offY;
+  }
+
+  /**
    * Converts a point in component coordinates in canvas coordinates.
    * 
    * @param p The point.
@@ -355,4 +458,5 @@ public final class OverviewMouse extends MouseAdapter {
   protected Point2D getForScreen(final Point2D p) {
     return new Point2D.Double(getXForScreen(p.getX()), getYForScreen(p.getY()));
   }
+
 }
