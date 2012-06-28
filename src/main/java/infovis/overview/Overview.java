@@ -6,13 +6,14 @@ import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.embed.Embedders;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
@@ -45,12 +46,12 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   /**
    * The mouse listener for this class.
    */
-  private final OverviewMouse mouse;
+  protected final OverviewMouse mouse;
 
   /**
    * The bounding box of the abstract map of Konstanz.
    */
-  private final Rectangle2D boundingBox;
+  protected final Rectangle2D boundingBox;
 
   /**
    * Weather the overview is drawn the first time.
@@ -103,10 +104,23 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     setPreferredSize(new Dimension(width, height));
     setDisableInteractions(true);
     selectableText = false;
+
+    // mouse listener
     mouse = new OverviewMouse(this, ctrl);
     addMouseListener(mouse);
     addMouseWheelListener(mouse);
     addMouseMotionListener(mouse);
+
+    // resize listener
+    addComponentListener(new ComponentAdapter() {
+
+      @Override
+      public void componentResized(final ComponentEvent e) {
+        mouse.visibleRectChanged(boundingBox);
+      }
+
+    });
+
     ctrl.addBusVisualization(this);
   }
 
@@ -150,15 +164,16 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     mouse.transformGraphics(gfx);
     gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
         RenderingHints.VALUE_ANTIALIAS_ON);
-    gfx.setColor(Color.RED);
-    gfx.setStroke(new BasicStroke(3));
 
     final AffineTransform at = new AffineTransform();
     at.translate(selectedStation.getAbstractX(),
         selectedStation.getAbstractY());
 
     final Shape s = focusSign.createTransformedShape(at);
+    gfx.setColor(Color.RED);
     gfx.fill(s);
+    gfx.setColor(Color.BLACK);
+    gfx.draw(s);
   }
 
   /**
@@ -170,6 +185,15 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   public void selectBusStation(final BusStation station) {
     selectedStation = station;
     repaint();
+  }
+
+  /**
+   * Returns the bounding box of the SVG image.
+   * 
+   * @return Bounding box of the SVG image.
+   */
+  public Rectangle2D getSVGBoundingRect() {
+    return boundingBox;
   }
 
   @Override
