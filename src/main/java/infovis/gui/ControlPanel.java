@@ -12,6 +12,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -224,11 +226,35 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     startHours = new JSpinner(hours);
     startHours.setMaximumSize(new Dimension(60, 40));
     startHours.setPreferredSize(new Dimension(60, 40));
+    startHours.addMouseWheelListener(new MouseWheelListener() {
+
+      @Override
+      public void mouseWheelMoved(final MouseWheelEvent e) {
+        if(e.getWheelRotation() < 0) {
+          startHours.setValue(startHours.getNextValue());
+        } else {
+          startHours.setValue(startHours.getPreviousValue());
+        }
+      }
+
+    });
 
     final CyclicNumberModel minutes = new CyclicNumberModel(0, 0, 59);
     startMinutes = new JSpinner(minutes);
     startMinutes.setMaximumSize(new Dimension(60, 40));
     startMinutes.setPreferredSize(new Dimension(60, 40));
+    startMinutes.addMouseWheelListener(new MouseWheelListener() {
+
+      @Override
+      public void mouseWheelMoved(final MouseWheelEvent e) {
+        if(e.getWheelRotation() < 0) {
+          startMinutes.setValue(startMinutes.getNextValue());
+        } else {
+          startMinutes.setValue(startMinutes.getPreviousValue());
+        }
+      }
+
+    });
 
     startHours.addChangeListener(new ChangeListener() {
 
@@ -249,9 +275,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
         final BusTime startTime = getStartTime();
         if(ctrl.getTime().equals(startTime)) return;
         if(lastStartMin == 59 && startMinutes.getValue().equals(0)) {
-          startHours.setValue((Integer) startHours.getValue() + 1);
+          startHours.setValue(startHours.getNextValue());
         } else if(lastStartMin == 0 && startMinutes.getValue().equals(59)) {
-          startHours.setValue((Integer) startHours.getValue() - 1);
+          startHours.setValue(startHours.getPreviousValue());
         }
         ctrl.setTime(getStartTime());
         lastStartMin = startTime.getMinute();
@@ -350,9 +376,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       @Override
       public void stateChanged(final ChangeEvent e) {
         if(lastWalkMin == 59 && timeWalkMinutes.getValue().equals(0)) {
-          timeWalkHours.setValue((Integer) timeWalkHours.getValue() + 1);
+          timeWalkHours.setValue(timeWalkHours.getNextValue());
         } else if(lastWalkMin == 60 && timeWalkMinutes.getValue().equals(59)) {
-          timeWalkHours.setValue((Integer) timeWalkHours.getValue() - 1);
+          timeWalkHours.setValue(timeWalkHours.getPreviousValue());
         }
         final int walkTime = getWalkTime();
         if(!(ctrl.getWalkTime() == walkTime)) {
