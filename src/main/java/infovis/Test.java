@@ -36,7 +36,7 @@ public class Test extends PainterAdapter {
   /** Weight of the whole route's length. */
   private static final double ROUTE_WEIGHT = 1;
   /** Weight of each edges length. */
-  private static final double EDGE_WEIGHT = 1;
+  private static final double EDGE_WEIGHT = 0.5;
   /** Focused station. */
   private static final int FOCUSED = 106;
   /** Scale factor. */
@@ -91,14 +91,13 @@ public class Test extends PainterAdapter {
 
     final Pair<double[][], double[][]> distsPair = travelDists(routes, n);
     final double[][] dists = distsPair.getFirst(), weights = distsPair.getSecond();
-    new StressMinimization(dists, optimized, weights).iterate(0, 0, 4);
+    System.out.println(StressMinimization.majorize(optimized, dists, weights, 3, 0, 0));
 
-    // final double scaleMedian = medianLength(geographical) /
-    // medianLength(optimized);
-    // for(int i = 0; i < optimized[0].length; i++) {
-    // optimized[0][i] *= scaleMedian;
-    // optimized[1][i] *= scaleMedian;
-    // }
+    final double scaleMedian = medianLength(geographical) / medianLength(optimized);
+    for(int i = 0; i < optimized[0].length; i++) {
+      optimized[0][i] *= scaleMedian;
+      optimized[1][i] *= scaleMedian;
+    }
     center(optimized, FOCUSED);
 
     final List<Ellipse2D> points = new ArrayList<Ellipse2D>(), points2 = new ArrayList<Ellipse2D>();
