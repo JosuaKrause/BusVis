@@ -47,7 +47,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /** The bus start time minutes. */
   protected final JSpinner startMinutes;
 
-  /** The last start minute time (used for changing the hours) */
+  /** The last start minute time (used for changing the hours). */
   protected int lastStartMin = -1;
 
   /** The bus time label. */
@@ -222,9 +222,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     // start time
     final CyclicNumberModel hours = new CyclicNumberModel(0, 0, 23);
     startHours = new JSpinner(hours);
+    startHours.setMaximumSize(new Dimension(60, 40));
+    startHours.setPreferredSize(new Dimension(60, 40));
 
     final CyclicNumberModel minutes = new CyclicNumberModel(0, 0, 59);
     startMinutes = new JSpinner(minutes);
+    startMinutes.setMaximumSize(new Dimension(60, 40));
+    startMinutes.setPreferredSize(new Dimension(60, 40));
 
     startHours.addChangeListener(new ChangeListener() {
 
@@ -278,6 +282,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     final SpinnerNumberModel cMinutes = new SpinnerNumberModel(0, -5, 60, 1);
     changeMinutes = new JSpinner(cMinutes);
+    changeMinutes.setMaximumSize(new Dimension(60, 40));
+    changeMinutes.setPreferredSize(new Dimension(60, 40));
 
     changeMinutes.addChangeListener(new ChangeListener() {
 
@@ -297,6 +303,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     // time window
     final SpinnerNumberModel tWindow = new SpinnerNumberModel(0, 0, 24, 1);
     timeWindow = new JSpinner(tWindow);
+    timeWindow.setMaximumSize(new Dimension(60, 40));
+    timeWindow.setPreferredSize(new Dimension(60, 40));
 
     timeWindow.addChangeListener(new ChangeListener() {
 
@@ -317,9 +325,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     final CyclicNumberModel walkHours = new CyclicNumberModel(0, 0, 23);
     timeWalkHours = new JSpinner(walkHours);
+    timeWalkHours.setMaximumSize(new Dimension(60, 40));
+    timeWalkHours.setPreferredSize(new Dimension(60, 40));
 
     final CyclicNumberModel walkMinutes = new CyclicNumberModel(0, 0, 59);
     timeWalkMinutes = new JSpinner(walkMinutes);
+    timeWalkMinutes.setMaximumSize(new Dimension(60, 40));
+    timeWalkMinutes.setPreferredSize(new Dimension(60, 40));
 
     timeWalkHours.addChangeListener(new ChangeListener() {
 
