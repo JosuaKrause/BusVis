@@ -24,6 +24,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -40,8 +42,14 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /** The station box. */
   protected final JComboBox box;
 
-  /** The bus time slider. */
-  protected final JSlider bt;
+  /** The bus start time hours. */
+  protected final JSpinner startHours;
+
+  /** The bus start time minutes. */
+  protected final JSpinner startMinutes;
+
+  /** The last start minute time (used for changing the hours) */
+  protected int lastStartMin = -1;
 
   /** The bus time label. */
   private final JLabel btLabel;
@@ -49,8 +57,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /** The check box to select now as start time. */
   protected final JCheckBox now;
 
-  /** The change time slider. */
-  protected final JSlider ct;
+  /** Bus change time. */
+  final JSpinner changeMinutes;
 
   /** The change time label. */
   private final JLabel ctLabel;
@@ -207,16 +215,35 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     addHor(new JLabel("Stations:"), box);
 
     // start time
-    bt = new JSlider(0, MIDNIGHT.minutesTo(MIDNIGHT.later(-1)));
-    bt.addChangeListener(new ChangeListener() {
+    final CyclicNumberModel hours = new CyclicNumberModel(0, 0, 23);
+    startHours = new JSpinner(hours);
+
+    final CyclicNumberModel minutes = new CyclicNumberModel(0, 0, 59);
+    startMinutes = new JSpinner(minutes);
+
+    startHours.addChangeListener(new ChangeListener() {
+
       @Override
       public void stateChanged(final ChangeEvent e) {
-        final int min = bt.getValue();
-        final int to = MIDNIGHT.minutesTo(ctrl.getTime());
-        if(min != to) {
-          ctrl.setTime(MIDNIGHT.later(min));
-        }
+        ctrl.setTime(getStartTime());
       }
+
+    });
+
+    startMinutes.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(final ChangeEvent e) {
+        if(lastStartMin == 59 && startMinutes.getValue().equals(0)) {
+          startHours.setValue((Integer) startHours.getValue() + 1);
+        } else if(lastStartMin == 0 && startMinutes.getValue().equals(59)) {
+          startHours.setValue((Integer) startHours.getValue() - 1);
+        }
+        final BusTime startTime = getStartTime();
+        ctrl.setTime(startTime);
+        lastStartMin = startTime.getMinute();
+      }
+
     });
 
     btLabel = new JLabel();
@@ -231,26 +258,32 @@ public final class ControlPanel extends JPanel implements BusVisualization {
           }
         } else {
           if(b) {
-            ctrl.setTime(MIDNIGHT.later(bt.getValue()));
+            ctrl.setTime(getStartTime());
           }
         }
       }
     });
-    addHor(new JLabel("Start Time:"), bt, btLabel, now, space);
+    addHor(new JLabel("Start Time:"), startHours, startMinutes, btLabel, now, space);
 
     // change time
-    ct = new JSlider(-10, 60);
-    ct.addChangeListener(new ChangeListener() {
+
+    final SpinnerNumberModel cMinutes = new SpinnerNumberModel(0, -5, 60, 1);
+    changeMinutes = new JSpinner(cMinutes);
+
+    changeMinutes.addChangeListener(new ChangeListener() {
+
       @Override
       public void stateChanged(final ChangeEvent e) {
-        final int min = ct.getValue();
-        if(min != ctrl.getChangeTime()) {
-          ctrl.setChangeTime(min);
+        final int changeTime = getChangeTime();
+        if(changeTime != ctrl.getChangeTime()) {
+          ctrl.setChangeTime(getChangeTime());
         }
       }
+
     });
+
     ctLabel = new JLabel();
-    addHor(new JLabel("Change Time:"), ct, ctLabel, space);
+    addHor(new JLabel("Change Time:"), changeMinutes, ctLabel, space);
 
     // time window
     tw = new JSlider(0, 24);
@@ -290,6 +323,68 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   }
 
   /**
+   * A cyclic number spinner for a JSpinner.
+   * 
+   * @author Marc Spicker
+   */
+  private class CyclicNumberModel extends SpinnerNumberModel {
+
+    /**
+     * Serial version ID.
+     */
+    private static final long serialVersionUID = 3042013777179841232L;
+
+    /**
+     * Constructor.
+     * 
+     * @param value Initial value.
+     * @param min Minimum.
+     * @param max Maximum.
+     */
+    public CyclicNumberModel(final int value, final int min, final int max) {
+      super(value, min, max, 1);
+    }
+
+    @Override
+    public Object getNextValue() {
+      if(super.getValue().equals(super.getMaximum())) return super.getMinimum();
+      return super.getNextValue();
+    }
+
+    @Override
+    public Object getPreviousValue() {
+      if(super.getValue().equals(super.getMinimum())) return super.getMaximum();
+      return super.getPreviousValue();
+    }
+
+    @Override
+    public Object getValue() {
+      return super.getValue();
+    }
+
+  }
+
+  /**
+   * Returns the start time that is currently entered in the two spinners.
+   * 
+   * @return The current bus starting time.
+   */
+  protected BusTime getStartTime() {
+    final int hour = ((Integer) startHours.getValue()).intValue();
+    final int minute = ((Integer) startMinutes.getValue()).intValue();
+    return new BusTime(hour, minute);
+  }
+
+  /**
+   * Returns the change time that is currently entered in the two spinners.
+   * 
+   * @return The current bus change time.
+   */
+  protected int getChangeTime() {
+    return ((Integer) changeMinutes.getValue()).intValue();
+  }
+
+  /**
    * Adds a number of components to the panel.
    * 
    * @param comps The components to add.
@@ -315,15 +410,19 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   @Override
   public void setStartTime(final BusTime time) {
     if(time == null) {
-      bt.setEnabled(false);
+      startHours.setEnabled(false);
+      startMinutes.setEnabled(false);
       now.setSelected(true);
       final Calendar cal = Calendar.getInstance();
       btLabel.setText(BusTime.fromCalendar(cal).pretty(isBlinkSecond(cal)));
       return;
     }
-    bt.setEnabled(true);
+    startHours.setEnabled(true);
+    startMinutes.setEnabled(true);
     now.setSelected(false);
-    bt.setValue(MIDNIGHT.minutesTo(time));
+    startHours.setValue(time.getHour());
+    startMinutes.setValue(time.getMinute());
+    // bt.setValue(MIDNIGHT.minutesTo(time));
     btLabel.setText(time.pretty());
   }
 
@@ -334,7 +433,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   @Override
   public void setChangeTime(final int minutes) {
-    ct.setValue(minutes);
+    changeMinutes.setValue(minutes);
     ctLabel.setText(BusTime.minutesToString(minutes));
   }
 
