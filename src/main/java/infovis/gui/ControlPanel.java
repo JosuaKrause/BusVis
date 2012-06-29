@@ -23,7 +23,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
@@ -58,19 +57,25 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   protected final JCheckBox now;
 
   /** Bus change time. */
-  final JSpinner changeMinutes;
+  protected final JSpinner changeMinutes;
 
   /** The change time label. */
   private final JLabel ctLabel;
 
-  /** The time window slider. */
-  protected final JSlider tw;
+  /** The time window spinner. */
+  protected final JSpinner timeWindow;
 
   /** The walk time window label. */
   private final JLabel twwLabel;
 
-  /** The walk time window slider. */
-  protected final JSlider tww;
+  /** Walk time in hours. */
+  protected final JSpinner timeWalkHours;
+
+  /** Walk time in minutes. */
+  protected final JSpinner timeWalkMinutes;
+
+  /** Minutes for the last walk. */
+  protected int lastWalkMin = -1;
 
   /** The time window label. */
   private final JLabel twLabel;
@@ -225,7 +230,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
       @Override
       public void stateChanged(final ChangeEvent e) {
-        ctrl.setTime(getStartTime());
+        final BusTime startTime = getStartTime();
+        if(!ctrl.getTime().equals(startTime)) {
+          ctrl.setTime(startTime);
+        }
       }
 
     });
@@ -234,13 +242,14 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
       @Override
       public void stateChanged(final ChangeEvent e) {
+        final BusTime startTime = getStartTime();
+        if(ctrl.getTime().equals(startTime)) return;
         if(lastStartMin == 59 && startMinutes.getValue().equals(0)) {
           startHours.setValue((Integer) startHours.getValue() + 1);
         } else if(lastStartMin == 0 && startMinutes.getValue().equals(59)) {
           startHours.setValue((Integer) startHours.getValue() - 1);
         }
-        final BusTime startTime = getStartTime();
-        ctrl.setTime(startTime);
+        ctrl.setTime(getStartTime());
         lastStartMin = startTime.getMinute();
       }
 
@@ -286,36 +295,64 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     addHor(new JLabel("Change Time:"), changeMinutes, ctLabel, space);
 
     // time window
-    tw = new JSlider(0, 24);
-    tw.addChangeListener(new ChangeListener() {
+    final SpinnerNumberModel tWindow = new SpinnerNumberModel(0, 0, 24, 1);
+    timeWindow = new JSpinner(tWindow);
+
+    timeWindow.addChangeListener(new ChangeListener() {
+
       @Override
-      public void stateChanged(final ChangeEvent arg0) {
-        final int v = tw.getValue();
-        if(ctrl.getMaxTimeHours() != v) {
-          ctrl.setMaxTimeHours(v);
+      public void stateChanged(final ChangeEvent e) {
+        final int time = (Integer) timeWindow.getValue();
+        if(ctrl.getMaxTimeHours() != time) {
+          ctrl.setMaxTimeHours(time);
         }
       }
 
     });
 
     twLabel = new JLabel();
-    addHor(new JLabel("Max Wait:"), tw, twLabel, space);
+    addHor(new JLabel("Max Wait:"), timeWindow, twLabel, space);
 
     // walk time window
-    tww = new JSlider(0, 2 * BusTime.MINUTES_PER_HOUR);
-    tww.addChangeListener(new ChangeListener() {
+
+    final CyclicNumberModel walkHours = new CyclicNumberModel(0, 0, 23);
+    timeWalkHours = new JSpinner(walkHours);
+
+    final CyclicNumberModel walkMinutes = new CyclicNumberModel(0, 0, 59);
+    timeWalkMinutes = new JSpinner(walkMinutes);
+
+    timeWalkHours.addChangeListener(new ChangeListener() {
+
       @Override
-      public void stateChanged(final ChangeEvent arg0) {
-        final int v = tww.getValue();
-        if(ctrl.getWalkTime() != v) {
-          ctrl.setWalkTime(v);
+      public void stateChanged(final ChangeEvent e) {
+        final int walkTime = getWalkTime();
+        if(!(ctrl.getWalkTime() == walkTime)) {
+          ctrl.setWalkTime(getWalkTime());
         }
       }
 
     });
 
+    timeWalkMinutes.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(final ChangeEvent e) {
+        if(lastWalkMin == 59 && timeWalkMinutes.getValue().equals(0)) {
+          timeWalkHours.setValue((Integer) timeWalkHours.getValue() + 1);
+        } else if(lastWalkMin == 60 && timeWalkMinutes.getValue().equals(59)) {
+          timeWalkHours.setValue((Integer) timeWalkHours.getValue() - 1);
+        }
+        final int walkTime = getWalkTime();
+        if(!(ctrl.getWalkTime() == walkTime)) {
+          ctrl.setWalkTime(getWalkTime());
+        }
+        lastWalkMin = walkTime;
+      }
+
+    });
+
     twwLabel = new JLabel();
-    addHor(new JLabel("Max Walk:"), tww, twwLabel, space);
+    addHor(new JLabel("Max Walk:"), timeWalkHours, timeWalkMinutes, twwLabel, space);
 
     // end of layout
     add(Box.createVerticalGlue());
@@ -376,6 +413,17 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   }
 
   /**
+   * Returns the walk time that is currently entered in the two spinners.
+   * 
+   * @return The current walk time.
+   */
+  protected int getWalkTime() {
+    final int hour = ((Integer) timeWalkHours.getValue()).intValue();
+    final int minute = ((Integer) timeWalkMinutes.getValue()).intValue();
+    return hour * 60 + minute;
+  }
+
+  /**
    * Returns the change time that is currently entered in the two spinners.
    * 
    * @return The current bus change time.
@@ -422,7 +470,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     now.setSelected(false);
     startHours.setValue(time.getHour());
     startMinutes.setValue(time.getMinute());
-    // bt.setValue(MIDNIGHT.minutesTo(time));
     btLabel.setText(time.pretty());
   }
 
@@ -447,11 +494,12 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   @Override
   public void undefinedChange(final Controller ctrl) {
     final int mth = ctrl.getMaxTimeHours();
-    tw.setValue(mth);
+    timeWindow.setValue(mth);
     twLabel.setText(BusTime.minutesToString(mth * BusTime.MINUTES_PER_HOUR));
 
     final int walkTime = ctrl.getWalkTime();
-    tww.setValue(walkTime);
+    timeWalkHours.setValue(walkTime / 60);
+    timeWalkMinutes.setValue(walkTime % 60);
     twwLabel.setText(BusTime.minutesToString(walkTime));
 
     if(algoBox != null) {
