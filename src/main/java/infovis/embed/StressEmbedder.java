@@ -20,9 +20,11 @@ import mdsj.StressMinimization;
  */
 public class StressEmbedder extends DirectEmbedder {
   /** Weight of the whole route's length. */
-  private static final double ROUTE_WEIGHT = 1;
+  private static final double ROUTE_WEIGHT = 0.01;
   /** Weight of each edges length. */
-  private static final double EDGE_WEIGHT = 0.8;
+  private static final double EDGE_WEIGHT = 1;
+  /** Number of iterations of the majorization algorithm. */
+  private static final int ITERATIONS = 75;
 
   /** Default positions. */
   private final Points defaults;
@@ -86,7 +88,19 @@ public class StressEmbedder extends DirectEmbedder {
       }
     }
 
-    final Points pos = defaults.majorize(refID, dists, weights);
+    final Points pos = defaults.copy();
+    for(final SpringNode nd : nodes) {
+      // initialize the majorization with the positions from the radial layout
+      final int id = nd.getId();
+      final Point2D p = pos.getPoint(id);
+      final double w = weighter.weight(nd, ref);
+      final Point2D init = addVec(setLength(subVec(addVec(p, diff), refP), w), refP);
+      if(!(Double.isNaN(init.getX()) || Double.isNaN(init.getY()))) {
+        pos.setPoint(id, init);
+      }
+    }
+    pos.majorize(refID, dists, weights, ITERATIONS);
+
     final Point2D offset = subVec(pos.getPoint(refID), refP);
     for(final SpringNode node : nodes) {
       final int id = node.getId();
@@ -208,27 +222,23 @@ public class StressEmbedder extends DirectEmbedder {
     }
 
     /**
-     * Optimized the layout of the given points according to the given distances
+     * Optimizes the layout of the given points according to the given distances
      * and weights.
      * 
      * @param mid centered point
      * @param dists distances
      * @param weights weights
-     * @return optimized points
+     * @param iter number of iterations
      */
-    Points majorize(final int mid, final double[][] dists, final double[][] weights) {
+    void majorize(final int mid, final double[][] dists, final double[][] weights,
+        final int iter) {
       final double[][] ds = ArrayUtil.copy(dists), ws = ArrayUtil.copy(weights);
-      final Points optimized = new Points(positions[0].length);
-      for(int i = 0; i < positions.length; i++) {
-        optimized.positions[i] = positions[i].clone();
-      }
 
-      optimized.swapPoints(0, mid);
+      swapPoints(0, mid);
       swap2(ds, 0, mid);
       swap2(ws, 0, mid);
-      StressMinimization.majorize(optimized.positions, ds, ws, 100);
-      optimized.swapPoints(0, mid);
-      return optimized;
+      StressMinimization.majorize(positions, ds, ws, iter);
+      swapPoints(0, mid);
     }
 
     /**
@@ -259,6 +269,19 @@ public class StressEmbedder extends DirectEmbedder {
       positions[1][a] = positions[1][b];
       positions[0][b] = x;
       positions[1][b] = y;
+    }
+
+    /**
+     * Creates a copy of these points.
+     * 
+     * @return deep-copy of this object
+     */
+    Points copy() {
+      final Points copy = new Points(positions[0].length);
+      for(int i = 0; i < positions.length; i++) {
+        copy.positions[i] = positions[i].clone();
+      }
+      return copy;
     }
   }
 }
