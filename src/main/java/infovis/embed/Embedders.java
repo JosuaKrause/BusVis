@@ -13,6 +13,9 @@ public enum Embedders {
   /** Edge based technique. */
   EDGE("Edge Based Positioning"),
 
+  /** Stress based technique. */
+  STRESS("Stress Based Positioning"),
+
   /**
    * Spring embedding technique.
    * 
@@ -58,6 +61,8 @@ public enum Embedders {
         return new EdgeEmbedder(weighter, drawer);
       case CIRCULAR:
         return new CircularEmbedder(weighter, drawer);
+      case STRESS:
+        return new StressEmbedder(weighter, drawer);
       case SPRING:
         return new SpringEmbedder(weighter, drawer);
     }

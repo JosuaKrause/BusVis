@@ -123,7 +123,7 @@ public class StationDrawer implements NodeDrawer, Fader {
     final Rectangle2D visible = ctx.getVisibleCanvas();
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
-    if(route != null && route.isNotReachable()) return;
+    if(route != null && !route.isReachable()) return;
 
     final double x1 = n.getX();
     final double y1 = n.getY();
@@ -137,7 +137,7 @@ public class StationDrawer implements NodeDrawer, Fader {
 
       final SpringNode node = dist.getNode(neighbor);
       final RoutingResult otherRoute = dist.getRoute(neighbor);
-      if(otherRoute != null && otherRoute.isNotReachable()) {
+      if(otherRoute != null && !otherRoute.isReachable()) {
         continue;
       }
 
@@ -163,7 +163,7 @@ public class StationDrawer implements NodeDrawer, Fader {
   public void drawNode(final Graphics2D g, final Context ctx, final SpringNode n) {
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
-    if(route != null && route.isNotReachable()) return;
+    if(route != null && !route.isReachable()) return;
 
     final Shape shape = nodeClickArea(n, true);
     if(shape == null) return;
@@ -339,7 +339,7 @@ public class StationDrawer implements NodeDrawer, Fader {
     String distance;
     if(from != null && from != station) {
       final RoutingResult route = dist.getRoute(station);
-      if(!route.isNotReachable()) {
+      if(route.isReachable()) {
         distance = " (" + BusTime.minutesToString(route.minutes()) + ")";
       } else {
         distance = " (not reachable)";
