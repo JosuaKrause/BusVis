@@ -129,6 +129,11 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
       drawer.drawLabel(g, ctx, n);
       g.dispose();
     }
+    if(!drawCircles()) {
+      final Graphics2D g = (Graphics2D) gfx.create();
+      drawer.drawLegend(g, ctx);
+      g.dispose();
+    }
   }
 
   @Override
@@ -182,6 +187,9 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     selected.clear();
     for(final SpringNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
+      if(s == null) {
+        continue;
+      }
       if(s.contains(p)) {
         selected.add(new SelectedNode(n));
       }
@@ -194,6 +202,9 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     if(doesDrag()) return false;
     for(final SpringNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
+      if(s == null) {
+        continue;
+      }
       if(s.contains(p)) {
         drawer.selectNode(n);
         return true;
@@ -216,6 +227,9 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     String str = null;
     for(final SpringNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
+      if(s == null) {
+        continue;
+      }
       if(s.contains(p)) {
         final String text = drawer.getTooltipText(n);
         if(text != null) {

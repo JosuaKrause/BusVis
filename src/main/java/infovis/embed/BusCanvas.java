@@ -2,27 +2,19 @@ package infovis.embed;
 
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
-import infovis.data.BusDataBuilder;
 import infovis.data.BusStation;
-import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.draw.LineRealizer;
+import infovis.draw.StationRealizer;
 import infovis.gui.Canvas;
-import infovis.gui.ControlPanel;
 import infovis.gui.Painter;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
-import java.io.IOException;
 
 import javax.swing.AbstractAction;
-import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
 /**
  * A canvas showing distances between bus stations.
@@ -30,59 +22,6 @@ import javax.swing.WindowConstants;
  * @author Joschi <josua.krause@googlemail.com>
  */
 public final class BusCanvas extends Canvas implements BusVisualization {
-
-  /**
-   * Starts a sample application.
-   * 
-   * @param args Ignored.
-   */
-  public static void main(final String[] args) {
-    final BusStationManager m;
-    try {
-      m = BusDataBuilder.load("src/main/resources/");
-    } catch(final IOException e) {
-      e.printStackTrace();
-      return;
-    }
-    // ini
-    final JFrame frame = new JFrame("Bus test");
-    final Controller ctrl = new Controller(m, frame);
-    final BusCanvas canvas = createBusCanvas(ctrl, 800, 600);
-    frame.setLayout(new BorderLayout());
-    frame.add(canvas, BorderLayout.CENTER);
-    frame.add(new ControlPanel(ctrl), BorderLayout.EAST);
-    frame.pack();
-    canvas.reset();
-    canvas.addAction(KeyEvent.VK_F, new AbstractAction() {
-
-      private static final long serialVersionUID = 3038019958008049173L;
-
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        frame.setExtendedState(frame.getExtendedState() == Frame.MAXIMIZED_BOTH ? Frame.NORMAL
-            : Frame.MAXIMIZED_BOTH);
-      }
-
-    });
-    frame.addWindowStateListener(new WindowStateListener() {
-
-      @Override
-      public void windowStateChanged(final WindowEvent e) {
-        SwingUtilities.invokeLater(new Runnable() {
-
-          @Override
-          public void run() {
-            canvas.reset();
-          }
-
-        });
-      }
-
-    });
-    frame.setLocationRelativeTo(null);
-    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    frame.setVisible(true);
-  }
 
   /**
    * SVUID.
@@ -93,6 +32,11 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    * The distance measure.
    */
   protected final StationDistance dist;
+
+  /**
+   * The drawer.
+   */
+  private final StationDrawer draw;
 
   /**
    * The embedder.
@@ -115,11 +59,13 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   public static BusCanvas createBusCanvas(final Controller ctrl, final int width,
       final int height) {
     final StationDistance dist = new StationDistance(ctrl);
+    final StationDrawer draw = new StationDrawer(dist,
+        StationRealizer.STANDARD, LineRealizer.STANDARD);
     dist.setMinDist(60.0);
     dist.setFactor(10);
     final Embedders e = Embedders.CIRCULAR;
-    final AbstractEmbedder embed = Embedders.createFor(e, dist, dist);
-    final BusCanvas res = new BusCanvas(ctrl, e, embed, dist, width, height);
+    final AbstractEmbedder embed = Embedders.createFor(e, draw, dist);
+    final BusCanvas res = new BusCanvas(ctrl, e, embed, dist, draw, width, height);
     ctrl.addBusVisualization(res);
     res.setBackground(Color.WHITE);
     return res;
@@ -132,16 +78,18 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    * @param e The embedder enum.
    * @param embed The corresponding embedder.
    * @param dist The distance measure.
+   * @param draw The drawer.
    * @param width The width.
    * @param height The height.
    */
   private BusCanvas(final Controller ctrl, final Embedders e,
       final AbstractEmbedder embed,
-      final StationDistance dist,
+      final StationDistance dist, final StationDrawer draw,
       final int width, final int height) {
     super(embed, width, height);
     this.embed = embed;
     this.dist = dist;
+    this.draw = draw;
     embedder = e;
     addAction(KeyEvent.VK_R, new AbstractAction() {
 
@@ -233,7 +181,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   public void setEmbedder(final Embedders embedder) {
     if(this.embedder == embedder) return;
     this.embedder = embedder;
-    setPainter(Embedders.createFor(embedder, dist, dist));
+    setPainter(Embedders.createFor(embedder, draw, dist));
   }
 
   @Override

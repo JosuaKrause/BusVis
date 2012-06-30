@@ -4,6 +4,7 @@ import static infovis.util.VecUtil.*;
 import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
+import java.util.Collection;
 
 /**
  * A direct embedder. Positions the nodes each time the weight changes. The
@@ -44,7 +45,11 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
         refP = null;
         diff = null;
       }
-      for(final SpringNode n : weighter.nodes()) {
+      final Collection<SpringNode> nodes = weighter.nodes();
+      if(refP != null) {
+        changedWeights(nodes, ref, refP, diff);
+      }
+      for(final SpringNode n : nodes) {
         final Point2D pos = weighter.getDefaultPosition(n);
         if(n == ref) {
           continue;
@@ -71,13 +76,29 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
   }
 
   /**
+   * Is called when weights have changed.
+   * 
+   * @param ref The reference node.
+   * @param refP The position of the reference node.
+   * @param diff The vector from the reference nodes default position to its
+   *          current position.
+   * @param nodes The nodes.
+   */
+  @SuppressWarnings("unused")
+  protected void changedWeights(final Collection<SpringNode> nodes, final SpringNode ref,
+      final Point2D refP, final Point2D diff) {
+    // nothing to do
+  }
+
+  /**
    * Calculates the destination of the given node.
    * 
    * @param n The node.
    * @param pos The default position of this node.
    * @param ref The reference node.
    * @param refP The position of the reference node.
-   * @param diff The difference of the two nodes.
+   * @param diff The vector from the reference nodes default position to its
+   *          current position.
    * @return The desired position of the given node.
    */
   protected abstract Point2D getDestination(SpringNode n, Point2D pos, SpringNode ref,
