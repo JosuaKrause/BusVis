@@ -12,25 +12,53 @@ import java.util.Random;
  */
 public final class SpringNode {
 
-  /**
-   * The current x position.
-   */
+  /** The dense id of the node. */
+  private final int id;
+
+  /** The current x position. */
   private double x;
 
-  /**
-   * The current y position.
-   */
+  /** The current y position. */
   private double y;
 
-  /**
-   * The current x movement.
-   */
+  /** The current x movement. */
   private double dx;
 
-  /**
-   * The current y movement.
-   */
+  /** The current y movement. */
   private double dy;
+
+  /** The animation start point. */
+  private Point2D start;
+
+  /** The animation end point. */
+  private Point2D end;
+
+  /** The interpolation method or <code>null</code> if no animation is active. */
+  private Interpolator pol;
+
+  /** The start time. */
+  private long startTime;
+
+  /** The end time. */
+  private long endTime;
+
+  /**
+   * Creates a spring node.
+   * 
+   * @param id The dense id.
+   */
+  public SpringNode(final int id) {
+    this.id = id;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The id.
+   */
+  public int getId() {
+    return id;
+  }
 
   /**
    * Calculates the movement of the node.
@@ -186,32 +214,6 @@ public final class SpringNode {
   }
 
   /**
-   * The animation start point.
-   */
-  private Point2D start;
-
-  /**
-   * The animation end point.
-   */
-  private Point2D end;
-
-  /**
-   * The interpolation method or <code>null</code> if no animation is currently
-   * active.
-   */
-  private Interpolator pol;
-
-  /**
-   * The start time.
-   */
-  private long startTime;
-
-  /**
-   * The end time.
-   */
-  private long endTime;
-
-  /**
    * Starts an animation to the given point.
    * 
    * @param pos The end point.
@@ -263,6 +265,16 @@ public final class SpringNode {
     pol = null;
     start = null;
     end = null;
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    return obj instanceof SpringNode && ((SpringNode) obj).id == id;
+  }
+
+  @Override
+  public int hashCode() {
+    return id;
   }
 
 }

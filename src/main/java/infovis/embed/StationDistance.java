@@ -14,9 +14,7 @@ import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Weights the station network after the distance from one start station.
@@ -28,12 +26,15 @@ public final class StationDistance implements Weighter {
   /**
    * The backing map for the spring nodes.
    */
-  private final Map<SpringNode, BusStation> map;
+  private final BusStation[] map;
 
   /**
    * The reverse backing map for the spring nodes.
    */
   private final SpringNode[] rev;
+
+  /** Collection of all {@link SpringNode}s. */
+  private final List<SpringNode> nodes;
 
   /**
    * Dummy routes for uninitialized routings.
@@ -103,12 +104,14 @@ public final class StationDistance implements Weighter {
       dummyRoutes[id] = new RoutingResult(ctrl.getForId(id)); // dummy results
     }
     routes = dummyRoutes;
-    map = new HashMap<SpringNode, BusStation>();
-    rev = new SpringNode[ctrl.maxId() + 1];
+    final int length = ctrl.maxId() + 1;
+    map = new BusStation[length];
+    rev = new SpringNode[length];
+    nodes = Collections.unmodifiableList(Arrays.asList(rev));
     for(final BusStation s : ctrl.getStations()) {
-      final SpringNode node = new SpringNode();
+      final SpringNode node = new SpringNode(s.getId());
       node.setPosition(s.getDefaultX(), s.getDefaultY());
-      map.put(node, s);
+      map[node.getId()] = s;
       rev[s.getId()] = node;
     }
   }
@@ -198,7 +201,7 @@ public final class StationDistance implements Weighter {
    * @return The corresponding station.
    */
   public BusStation getStation(final SpringNode n) {
-    return map.get(n);
+    return map[n.getId()];
   }
 
   /**
@@ -340,7 +343,7 @@ public final class StationDistance implements Weighter {
     final BusStation fr = getStation(f);
     if(fr.equals(from)) return 0;
     final BusStation to = getStation(t);
-    if(to.equals(from) && !getRoute(fr).isNotReachable()) return factor
+    if(to.equals(from) && getRoute(fr).isReachable()) return factor
         * getRoute(fr).minutes();
     return -minDist;
   }
@@ -351,13 +354,13 @@ public final class StationDistance implements Weighter {
     final BusStation fr = getStation(f);
     if(fr.equals(from)) return false;
     final BusStation to = getStation(t);
-    if(to.equals(from)) return !getRoute(fr).isNotReachable();
+    if(to.equals(from)) return getRoute(fr).isReachable();
     return true;
   }
 
   @Override
-  public Collection<SpringNode> nodes() {
-    return map.keySet();
+  public List<SpringNode> nodes() {
+    return nodes;
   }
 
   @Override
@@ -367,7 +370,7 @@ public final class StationDistance implements Weighter {
 
   @Override
   public Point2D getDefaultPosition(final SpringNode node) {
-    final BusStation station = map.get(node);
+    final BusStation station = getStation(node);
     return new Point2D.Double(station.getDefaultX(), station.getDefaultY());
   }
 
@@ -390,7 +393,7 @@ public final class StationDistance implements Weighter {
   public List<WeightedEdge> edgesTo(final SpringNode to) {
     final BusStation station = getStation(to);
     final RoutingResult r = getRoute(station);
-    if(r.isStartNode() || r.isNotReachable()) return Collections.emptyList();
+    if(r.isStartNode() || !r.isReachable()) return Collections.emptyList();
     final Collection<BusEdge> e = r.getEdges();
     final WeightedEdge[] edges = new WeightedEdge[e.size()];
     BusTime start = getTime();
