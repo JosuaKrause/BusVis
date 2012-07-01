@@ -25,6 +25,15 @@ public interface NodeDrawer {
   void drawNode(Graphics2D g, Context ctx, SpringNode n, boolean secondarySelected);
 
   /**
+   * Draws the given node. The graphics device must be translated manually.
+   * 
+   * @param g The device.
+   * @param ctx The canvas context.
+   * @param n The secondary selected node.
+   */
+  void drawSecondarySelected(Graphics2D g, Context ctx, SpringNode n);
+
+  /**
    * Draws the edges of the given node. The graphics device must be translated
    * manually.
    * 
@@ -49,8 +58,9 @@ public interface NodeDrawer {
    * 
    * @param g The graphics context.
    * @param ctx The canvas context.
+   * @param drawCircles Whether to draw circles around the reference node.
    */
-  void drawBackground(Graphics2D g, Context ctx);
+  void drawBackground(Graphics2D g, Context ctx, boolean drawCircles);
 
   /**
    * A shape defining the area, where a click is associated with the given node.
@@ -112,10 +122,18 @@ public interface NodeDrawer {
   Rectangle2D getBoundingBox();
 
   /**
-   * Sets the animator to be notified when the weights change.
+   * Sets the animator associated with this drawer.
    * 
    * @param animator The animator.
    */
   void setAnimator(Animator animator);
+
+  /**
+   * Draws a legend, when circles are not drawn.
+   * 
+   * @param g The graphics context.
+   * @param ctx The canvas context.
+   */
+  void drawLegend(Graphics2D g, Context ctx);
 
 }

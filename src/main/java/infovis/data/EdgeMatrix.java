@@ -83,6 +83,43 @@ public final class EdgeMatrix {
     }
 
     /**
+     * Returns the number in the drawing order of the given non-highlighted bus
+     * line. That means the given line is drawn as <code>n</code>'th line when
+     * <code>n</code> is the result of this function. Note that this number is
+     * always smaller than the result of
+     * {@link #getNumberOfHighlighted(BusLine)}.
+     * 
+     * @param line The non-highlighted line.
+     * @return The number in the drawing order.
+     */
+    public synchronized int getNumberOfNonHighlighted(final BusLine line) {
+      final BusLine[] lines = getNonHighlightedLines();
+      for(int i = 0; i < lines.length; ++i) {
+        if(line.equals(lines[i])) return i;
+      }
+      throw new IllegalStateException("line is highlighted");
+    }
+
+    /**
+     * Returns the number in the drawing order of the given highlighted bus
+     * line. That means the given line is drawn as <code>n</code>'th line when
+     * <code>n</code> is the result of this function. Note that this number is
+     * always greater than the result of
+     * {@link #getNumberOfNonHighlighted(BusLine)}.
+     * 
+     * @param line The highlighted line.
+     * @return The number in the drawing order.
+     */
+    public synchronized int getNumberOfHighlighted(final BusLine line) {
+      final int off = lines.length - count; // number of non highlighted lines
+      final BusLine[] lines = getHighlightedLines();
+      for(int i = 0; i < lines.length; ++i) {
+        if(line.equals(lines[i])) return off + i;
+      }
+      throw new IllegalStateException("line not highlighted");
+    }
+
+    /**
      * Clears the highlights.
      */
     public synchronized void clearHighlighted() {

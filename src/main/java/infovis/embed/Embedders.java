@@ -7,10 +7,14 @@ package infovis.embed;
  */
 public enum Embedders {
 
-  /**
-   * Radial positioning technique.
-   */
+  /** Radial positioning technique. */
   CIRCULAR("Radial Positioning"),
+
+  /** Edge based technique. */
+  EDGE("Edge Based Positioning"),
+
+  /** Stress based technique. */
+  STRESS("Stress Based Positioning"),
 
   /**
    * Spring embedding technique.
@@ -53,8 +57,12 @@ public enum Embedders {
   public static AbstractEmbedder createFor(final Embedders embed,
       final NodeDrawer drawer, final Weighter weighter) {
     switch(embed) {
+      case EDGE:
+        return new EdgeEmbedder(weighter, drawer);
       case CIRCULAR:
         return new CircularEmbedder(weighter, drawer);
+      case STRESS:
+        return new StressEmbedder(weighter, drawer);
       case SPRING:
         return new SpringEmbedder(weighter, drawer);
     }

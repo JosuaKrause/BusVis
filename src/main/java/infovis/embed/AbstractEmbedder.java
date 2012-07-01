@@ -120,7 +120,7 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
   @Override
   public void draw(final Graphics2D gfx, final Context ctx) {
     final Graphics2D g2 = (Graphics2D) gfx.create();
-    drawer.drawBackground(g2, ctx);
+    drawer.drawBackground(g2, ctx, drawCircles());
     g2.dispose();
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
@@ -128,9 +128,15 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
       g.dispose();
     }
     for(final SpringNode n : drawer.nodes()) {
+      final boolean sel = secSel.contains(n);
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawNode(g, ctx, n, secSel.contains(n));
+      drawer.drawNode(g, ctx, n, sel);
       g.dispose();
+      if(sel) {
+        final Graphics2D gs = (Graphics2D) gfx.create();
+        drawer.drawSecondarySelected(gs, ctx, n);
+        gs.dispose();
+      }
     }
   }
 
@@ -139,6 +145,11 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
       drawer.drawLabel(g, ctx, n);
+      g.dispose();
+    }
+    if(!drawCircles()) {
+      final Graphics2D g = (Graphics2D) gfx.create();
+      drawer.drawLegend(g, ctx);
       g.dispose();
     }
   }
@@ -194,6 +205,9 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     selected.clear();
     for(final SpringNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
+      if(s == null) {
+        continue;
+      }
       if(s.contains(p)) {
         selected.add(new SelectedNode(n));
       }
@@ -224,6 +238,9 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     if(doesDrag()) return false;
     for(final SpringNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
+      if(s == null) {
+        continue;
+      }
       if(s.contains(p)) {
         drawer.selectNode(n);
         return true;
@@ -246,6 +263,9 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     String str = null;
     for(final SpringNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
+      if(s == null) {
+        continue;
+      }
       if(s.contains(p)) {
         final String text = drawer.getTooltipText(n);
         if(text != null) {
@@ -301,6 +321,15 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
   @Override
   public Rectangle2D getBoundingBox() {
     return drawer.getBoundingBox();
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Whether to draw distance circles around the reference node.
+   */
+  public boolean drawCircles() {
+    return false;
   }
 
 }

@@ -1,6 +1,7 @@
 package infovis.embed;
 
 import java.awt.geom.Point2D;
+import java.util.List;
 
 /**
  * Defines weights between {@link SpringNode}s in a spring embedder system.
@@ -29,11 +30,11 @@ public interface Weighter {
   boolean hasWeight(SpringNode from, SpringNode to);
 
   /**
-   * An iteration over all nodes in the spring embedder system.
+   * A list of all nodes in the spring embedder system.
    * 
-   * @return The iterable.
+   * @return The list.
    */
-  Iterable<SpringNode> nodes();
+  List<SpringNode> nodes();
 
   /**
    * Getter.
@@ -66,19 +67,13 @@ public interface Weighter {
    */
   int changes();
 
-  /**
-   * Signals no change.
-   */
+  /** Signals no change. */
   int NO_CHANGE = 0;
 
-  /**
-   * Signals a normal change.
-   */
+  /** Signals a normal change. */
   int NORMAL_CHANGE = 1;
 
-  /**
-   * Signals that a fast animation should be used.
-   */
+  /** Signals that a fast animation should be used. */
   int FAST_ANIMATION_CHANGE = 2;
 
   /**
@@ -87,5 +82,49 @@ public interface Weighter {
    * @return Whether this weighter is in animation.
    */
   boolean inAnimation();
+
+  /**
+   * A weighted edge.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  final class WeightedEdge {
+    /** The start node. */
+    public final SpringNode from;
+
+    /** The end node. */
+    public final SpringNode to;
+
+    /** The weight of the edge. */
+    public final double weight;
+
+    /**
+     * Creates a weighted edge.
+     * 
+     * @param from The start node.
+     * @param to The destination node.
+     * @param weight The weight.
+     */
+    public WeightedEdge(final SpringNode from, final SpringNode to, final double weight) {
+      this.from = from;
+      this.to = to;
+      this.weight = weight;
+    }
+  }
+
+  /**
+   * The edges leading from the reference node to the given node.
+   * 
+   * @param to The destination.
+   * @return The path from the reference node to the given node.
+   */
+  List<WeightedEdge> edgesTo(SpringNode to);
+
+  /**
+   * Sets the animator to be notified when the weights change.
+   * 
+   * @param animator The animator.
+   */
+  void setAnimator(Animator animator);
 
 }
