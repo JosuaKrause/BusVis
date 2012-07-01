@@ -201,10 +201,7 @@ public class StressEmbedder extends DirectEmbedder {
      * @param p The points to copy.
      */
     Points(final Points p) {
-      positions = new double[2][];
-      for(int i = 0; i < p.positions.length; i++) {
-        positions[i] = p.positions[i].clone();
-      }
+      positions = ArrayUtil.copy(p.positions);
     }
 
     /**
