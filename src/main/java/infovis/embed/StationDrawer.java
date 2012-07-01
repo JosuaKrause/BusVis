@@ -8,6 +8,7 @@ import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.data.EdgeMatrix;
 import infovis.data.EdgeMatrix.UndirectedEdge;
+import infovis.draw.LabelRealizer;
 import infovis.draw.LineRealizer;
 import infovis.draw.StationRealizer;
 import infovis.gui.Context;
@@ -17,7 +18,6 @@ import infovis.util.Interpolator;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
@@ -33,49 +33,34 @@ import java.util.Collection;
  */
 public class StationDrawer implements NodeDrawer, Fader {
 
-  /**
-   * The corresponding station distance.
-   */
+  /** The corresponding station distance. */
   private final StationDistance dist;
 
-  /**
-   * The realizer to actually draw the stations.
-   */
+  /** The realizer to actually draw the stations. */
   private final StationRealizer stationRealize;
 
-  /**
-   * The realizer to actually draw the lines.
-   */
+  /** The realizer to actually draw the lines. */
   private final LineRealizer lineRealize;
 
-  /**
-   * The predicted next bus station.
-   */
+  /** The realizer to actually draw the labels. */
+  private final LabelRealizer labelRealize;
+
+  /** The predicted next bus station. */
   protected volatile BusStation predict;
 
-  /**
-   * The current waiter thread.
-   */
+  /** The current waiter thread. */
   protected volatile Thread currentCalculator;
 
-  /**
-   * The fading bus station.
-   */
+  /** The fading bus station. */
   protected BusStation fadeOut;
 
-  /**
-   * The fading start time.
-   */
+  /** The fading start time. */
   protected long fadingStart;
 
-  /**
-   * The fading end time.
-   */
+  /** The fading end time. */
   protected long fadingEnd;
 
-  /**
-   * Whether we do fade currently.
-   */
+  /** Whether we do fade currently. */
   protected boolean fade;
 
   /**
@@ -84,12 +69,14 @@ public class StationDrawer implements NodeDrawer, Fader {
    * @param dist The corresponding station distance.
    * @param stationRealize The realizer to draw the stations.
    * @param lineRealize The realizer to draw the lines.
+   * @param labelRealize The realizer to draw labels.
    */
   public StationDrawer(final StationDistance dist, final StationRealizer stationRealize,
-      final LineRealizer lineRealize) {
+      final LineRealizer lineRealize, final LabelRealizer labelRealize) {
     this.dist = dist;
     this.stationRealize = stationRealize;
     this.lineRealize = lineRealize;
+    this.labelRealize = labelRealize;
     dist.setFader(this);
   }
 
@@ -243,34 +230,22 @@ public class StationDrawer implements NodeDrawer, Fader {
     final Rectangle2D node = s.getBounds2D();
     final Point2D pos = ctx.toComponentCoordinates(
         new Point2D.Double(node.getMaxX(), node.getMinY()));
-    final double x = pos.getX();
-    final double y = pos.getY();
 
-    final FontMetrics fm = g.getFontMetrics();
-    final String label = station.getName();
-    final Rectangle2D bbox = fm.getStringBounds(label, g);
-    // translate the rectangle
-    bbox.setRect(x + bbox.getMinX(), y + bbox.getMinY(), bbox.getWidth(),
-        bbox.getHeight());
-
-    if(!ctx.getVisibleComponent().intersects(bbox)) return;
-
-    final double z = ctx.toComponentLength(1);
-    final float d = (float) (z * z);
-
-    final Graphics2D g2 = (Graphics2D) g.create();
-    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f *
-        (d < 1 ? d : 1)));
-    g2.setColor(Color.WHITE);
-    g2.fill(bbox);
-    g2.dispose();
-
-    g.translate(x, y);
-    if(d < 1) {
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, d));
+    final BusStation from = dist.getFrom();
+    String distance;
+    if(from != null && from != station) {
+      final RoutingResult route = dist.getRoute(station);
+      if(route.isReachable()) {
+        distance = " (" + BusTime.minutesToString(route.minutes()) + ")";
+      } else {
+        distance = " (not reachable)";
+      }
+    } else {
+      distance = "";
     }
-    g.setColor(Color.BLACK);
-    g.drawString(station.getName(), 0, 0);
+
+    labelRealize.drawLabel(g, ctx.getVisibleComponent(), ctx.toComponentLength(1),
+        pos, station.getName() + distance);
   }
 
   @Override
