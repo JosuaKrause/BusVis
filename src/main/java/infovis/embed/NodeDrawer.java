@@ -50,8 +50,9 @@ public interface NodeDrawer {
    * @param g The device.
    * @param ctx The canvas context.
    * @param n The node.
+   * @param hovered If the node is hovered.
    */
-  void drawLabel(Graphics2D g, Context ctx, SpringNode n);
+  void drawLabel(Graphics2D g, Context ctx, SpringNode n, boolean hovered);
 
   /**
    * Draws the background.
