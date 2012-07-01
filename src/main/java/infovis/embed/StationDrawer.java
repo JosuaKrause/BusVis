@@ -2,9 +2,11 @@ package infovis.embed;
 
 import static infovis.util.VecUtil.*;
 import infovis.ctrl.Controller;
+import infovis.data.BusEdge;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.data.EdgeMatrix;
 import infovis.data.EdgeMatrix.UndirectedEdge;
 import infovis.draw.LineRealizer;
 import infovis.draw.StationRealizer;
@@ -22,6 +24,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Collection;
 
 /**
  * Draws the network.
@@ -123,7 +126,7 @@ public class StationDrawer implements NodeDrawer, Fader {
     final Rectangle2D visible = ctx.getVisibleCanvas();
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
-    if(route != null && route.isNotReachable()) return;
+    if(route != null && !route.isReachable()) return;
 
     final double x1 = n.getX();
     final double y1 = n.getY();
@@ -137,14 +140,15 @@ public class StationDrawer implements NodeDrawer, Fader {
 
       final SpringNode node = dist.getNode(neighbor);
       final RoutingResult otherRoute = dist.getRoute(neighbor);
-      if(otherRoute != null && otherRoute.isNotReachable()) {
+      if(otherRoute != null && !otherRoute.isReachable()) {
         continue;
       }
 
       final double x2 = node.getX();
       final double y2 = node.getY();
       final Line2D line = new Line2D.Double(x1, y1, x2, y2);
-      final Rectangle2D bbox = lineRealize.createLineShape(line, -1, degree).getBounds2D();
+      final Rectangle2D bbox =
+          lineRealize.createLineShape(line, -1, e.getLineDegree()).getBounds2D();
       if(!visible.intersects(bbox)) {
         continue;
       }
@@ -160,10 +164,11 @@ public class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public void drawNode(final Graphics2D g, final Context ctx, final SpringNode n) {
+  public void drawNode(final Graphics2D g, final Context ctx, final SpringNode n,
+      final boolean secondarySelected) {
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
-    if(route != null && route.isNotReachable()) return;
+    if(route != null && !route.isReachable()) return;
 
     final Shape shape = nodeClickArea(n, true);
     if(shape == null) return;
@@ -171,7 +176,46 @@ public class StationDrawer implements NodeDrawer, Fader {
     final Rectangle2D bbox = stroke.createStrokedShape(shape).getBounds2D();
     if(!ctx.getVisibleCanvas().intersects(bbox)) return;
 
-    stationRealize.drawStation(g, shape, stroke, station.equals(dist.getFrom()));
+    stationRealize.drawStation(g, shape, stroke,
+        station.equals(dist.getFrom()), secondarySelected);
+  }
+
+  @Override
+  public void drawSecondarySelected(final Graphics2D g, final Context ctx,
+      final SpringNode n) {
+    final BusStation station = dist.getStation(n);
+    final RoutingResult route = dist.getRoute(station);
+    if(route != null && !route.isReachable()) return;
+
+    final Collection<BusEdge> edges = route.getEdges();
+    if(edges == null) return;
+
+    final int size = edges.size();
+    final Shape[] shapes = new Shape[size + 1];
+    final Line2D[] lines = new Line2D[size];
+    final BusLine[] busLines = new BusLine[size];
+    final int[] numbers = new int[size];
+    final int[] maxNumbers = new int[size];
+    final SpringNode start = dist.getReferenceNode();
+    shapes[0] = nodeClickArea(start, true);
+    Point2D pos = start.getPos();
+    final EdgeMatrix matrix = dist.getMatrix();
+    int i = 0;
+    for(final BusEdge e : edges) {
+      final SpringNode cur = dist.getNode(e.getTo());
+      final Point2D curPos = cur.getPos();
+      final BusLine line = e.getLine();
+      lines[i] = new Line2D.Double(pos, curPos);
+      busLines[i] = line;
+      final UndirectedEdge ue = matrix.getFor(e.getFrom(), e.getTo());
+      numbers[i] = ue.getNumberOfHighlighted(line);
+      maxNumbers[i] = ue.getLineDegree();
+      // index of shapes must be one greater
+      shapes[++i] = nodeClickArea(cur, true);
+      pos = curPos;
+    }
+    stationRealize.drawRoute(g, lineRealize, shapes, lines, busLines, numbers,
+        maxNumbers);
   }
 
   @Override
@@ -339,7 +383,7 @@ public class StationDrawer implements NodeDrawer, Fader {
     String distance;
     if(from != null && from != station) {
       final RoutingResult route = dist.getRoute(station);
-      if(!route.isNotReachable()) {
+      if(route.isReachable()) {
         distance = " (" + BusTime.minutesToString(route.minutes()) + ")";
       } else {
         distance = " (not reachable)";

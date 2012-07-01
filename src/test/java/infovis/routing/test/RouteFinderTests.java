@@ -270,8 +270,8 @@ public class RouteFinderTests {
       final RoutingResult[] with = router.findRoutes(man, s, null, NOON, 3, mth,
           10 * SECONDS_PER_MINUTE);
       for(int i = 0; i <= man.maxId(); i++) {
-        if(i != s.getId() && !without[i].isNotReachable()) {
-          assertFalse("no route from " + s + " to " + i, with[i].isNotReachable());
+        if(i != s.getId() && without[i].isReachable()) {
+          assertTrue("no route from " + s + " to " + i, with[i].isReachable());
           final Comparator<BusTime> rel = NOON.createRelativeComparator();
           final int res = rel.compare(with[i].getEndTime(), without[i].getEndTime());
           assertTrue(res <= 0);
