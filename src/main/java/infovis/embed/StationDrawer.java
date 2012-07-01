@@ -218,10 +218,25 @@ public class StationDrawer implements NodeDrawer, Fader {
         maxNumbers);
   }
 
+  /**
+   * If a station has a degree of this or lower the label will always be drawn.
+   */
+  private static final int LOW_DEGREE = 1;
+
+  /**
+   * If a station has a degree of this or higher the label will always be drawn.
+   */
+  private static final int HIGH_DEGREE = 6;
+
   @Override
-  public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n) {
+  public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n,
+      final boolean hovered) {
     final BusStation station = dist.getStation(n);
-    if(dist.getMatrix().getDegree(station) == 2) return;
+
+    if(!hovered) {
+      final int degree = dist.getMatrix().getDegree(station);
+      if(degree > LOW_DEGREE && degree < HIGH_DEGREE) return;
+    }
 
     final Shape s = nodeClickArea(n, true);
     if(s == null) return;
