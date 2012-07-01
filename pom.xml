@@ -42,25 +42,35 @@
 			<version>2.3</version>
 		</dependency>
 		<dependency>
-     	  <groupId>org.apache.xmlgraphics</groupId>
-	      <artifactId>batik-swing</artifactId>
-	      <version>1.7</version>
-	    </dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-swing</artifactId>
+			<version>1.7</version>
+		</dependency>
+		<dependency>
+			<groupId>mdsj</groupId>
+			<artifactId>mdsj</artifactId>
+			<version>0.2</version>
+		</dependency>
 	</dependencies>
 	<repositories>
-    <repository>
-	        <id>joschi-snapshots</id>
-	        <url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/snapshots</url>
-	    </repository>
+		<repository>
+			<id>joschi-snapshots</id>
+			<url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/snapshots</url>
+		</repository>
+		<repository>
+			<id>mdsj</id>
+			<name>MDSJ Maven Repository</name>
+			<url>http://woerteler.de/maven</url>
+		</repository>
 	</repositories>
 	<distributionManagement>
-	    <repository>
-	        <id>repo</id>
-	        <url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/releases</url>
-	    </repository>
-	    <snapshotRepository>
-	        <id>snapshot-repo</id>
-	        <url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/snapshots</url>
-	    </snapshotRepository>
+		<repository>
+			<id>repo</id>
+			<url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshot-repo</id>
+			<url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/snapshots</url>
+		</snapshotRepository>
 	</distributionManagement>
 </project>

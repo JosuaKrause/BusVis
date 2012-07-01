@@ -1,7 +1,6 @@
 package infovis.embed;
 
 import java.awt.geom.Point2D;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -35,7 +34,7 @@ public interface Weighter {
    * 
    * @return The list.
    */
-  Collection<SpringNode> nodes();
+  List<SpringNode> nodes();
 
   /**
    * Getter.
@@ -68,19 +67,13 @@ public interface Weighter {
    */
   int changes();
 
-  /**
-   * Signals no change.
-   */
+  /** Signals no change. */
   int NO_CHANGE = 0;
 
-  /**
-   * Signals a normal change.
-   */
+  /** Signals a normal change. */
   int NORMAL_CHANGE = 1;
 
-  /**
-   * Signals that a fast animation should be used.
-   */
+  /** Signals that a fast animation should be used. */
   int FAST_ANIMATION_CHANGE = 2;
 
   /**
@@ -96,19 +89,13 @@ public interface Weighter {
    * @author Joschi <josua.krause@googlemail.com>
    */
   final class WeightedEdge {
-    /**
-     * The start node.
-     */
+    /** The start node. */
     public final SpringNode from;
 
-    /**
-     * The end node.
-     */
+    /** The end node. */
     public final SpringNode to;
 
-    /**
-     * The weight of the edge.
-     */
+    /** The weight of the edge. */
     public final double weight;
 
     /**

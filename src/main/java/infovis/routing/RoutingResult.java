@@ -129,8 +129,8 @@ public final class RoutingResult {
    * 
    * @return Whether the destination is not reachable.
    */
-  public boolean isNotReachable() {
-    return edges == null && from != to;
+  public boolean isReachable() {
+    return edges != null || from == to;
   }
 
   /**
@@ -175,7 +175,7 @@ public final class RoutingResult {
     sb.append("\n  from=").append(from.getName()).append(",\n  to=").append(to.getName());
 
     if(isStartNode()) return sb.append("]").toString();
-    if(isNotReachable()) return sb.append(", state=NOT_REACHABLE]").toString();
+    if(!isReachable()) return sb.append(", state=NOT_REACHABLE]").toString();
 
     sb.append(",\n  steps=[\n    Start at ").append(from.getName());
     if(!from.equals(to)) {
