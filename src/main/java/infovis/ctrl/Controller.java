@@ -137,11 +137,11 @@ public final class Controller implements BusStationEnumerator {
    * All positioning techniques.
    */
   private static final Embedders[] EMBEDDERS = new Embedders[] {
-      // Embedders.EDGE,
+    // Embedders.EDGE,
 
-      Embedders.CIRCULAR,
+    Embedders.CIRCULAR,
 
-      // Embedders.SPRING,
+    // Embedders.SPRING,
   };
 
   /**
@@ -424,6 +424,26 @@ public final class Controller implements BusStationEnumerator {
     for(final BusVisualization v : vis) {
       v.undefinedChange(this);
     }
+  }
+
+  /**
+   * Adds given minutes to the actual time.
+   * 
+   * @param min given minutes
+   */
+  public void addTime(final int min) {
+    final BusTime time = getTime();
+    int m = time.getMinute() + min;
+    int h = time.getHour();
+    while(m >= 60) {
+      m -= 60;
+      if(h >= 23) {
+        h = 0;
+      } else {
+        h++;
+      }
+    }
+    setTime(new BusTime(h, m));
   }
 
 }

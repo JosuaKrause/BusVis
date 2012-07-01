@@ -19,12 +19,16 @@ import java.util.Comparator;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -89,6 +93,17 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /** The technique box. */
   protected final JComboBox embedBox;
 
+  // TODO
+  /**
+   * 
+   */
+  FastForwardThread runnable;
+
+  /**
+   * 
+   */
+  private Thread thread;
+
   /**
    * A thin wrapper for the bus station name. Also allows the <code>null</code>
    * bus station, representing no selection.
@@ -150,6 +165,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * @param ctrl The corresponding controller.
    */
   public ControlPanel(final Controller ctrl) {
+    // TODO
+    runnable = new FastForwardThread(ctrl);
+    thread = new Thread(runnable);
+    thread.setDaemon(true);
+    thread.start();
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     final Component space = Box.createRigidArea(new Dimension(5, 5));
     // routing selection
@@ -276,6 +296,41 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     });
     addHor(new JLabel("Start Time:"), startHours, new JLabel(":"),
         startMinutes, now, btLabel, new JLabel(" "));
+
+    // fast forward
+    //TODO
+    final JSlider fwSlider = new JSlider(SwingConstants.HORIZONTAL, 1, 60, 1);
+    fwSlider.setMajorTickSpacing(9);
+    fwSlider.setMinorTickSpacing(5);
+    fwSlider.setPaintTicks(true);
+    fwSlider.setPaintLabels(true);
+    fwSlider.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(final ChangeEvent e) {
+        runnable.setMinute(fwSlider.getValue());
+
+      }
+    });
+
+    final JButton fastForwardbtn = new JButton();
+    fastForwardbtn.setIcon(new ImageIcon("src/main/resources/pics/Fast-forward.gif"));
+    fastForwardbtn.setToolTipText("Fast-Forward");
+    fastForwardbtn.addActionListener(new ActionListener() {
+
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        if(runnable.isRunning()) {
+          fastForwardbtn.setIcon(new ImageIcon("src/main/resources/pics/Fast-forward.gif"));
+          fastForwardbtn.setToolTipText("Fast-Forward");
+        } else {
+          fastForwardbtn.setIcon(new ImageIcon("src/main/resources/pics/Stop.gif"));
+          fastForwardbtn.setToolTipText("Stop");
+        }
+        runnable.flag(fwSlider.getValue());
+      }
+    });
+    addHor(fwSlider, fastForwardbtn);
 
     // change time
 
@@ -517,6 +572,86 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   @Override
   public void focusStation() {
     // already covered by select bus station
+  }
+
+  // TODO
+  /**
+   * @author Feeras
+   */
+  public class FastForwardThread implements Runnable {
+
+    /**
+     * 
+     */
+    private final Controller ctrl;
+
+    /**
+     * 
+     */
+    private boolean running = false;
+    /**
+     * 
+     */
+    private int minute;
+
+    /**
+     * @param ctrl Controller
+     */
+    public FastForwardThread(final Controller ctrl) {
+      this.ctrl = ctrl;
+    }
+
+    /**
+     * @param minute
+     */
+    public void flag(final int minute) {
+      this.minute = minute;
+      running = !running;
+    }
+
+    @Override
+    public void run() {
+      while(true) {
+        if(running) {
+          System.out.println("fast-forward mit " + minute);
+          ctrl.addTime(minute);
+        }
+        try {
+          Thread.sleep(1000);
+        } catch(final InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    /**
+     * @return
+     */
+    public boolean isRunning() {
+      return running;
+    }
+
+    /**
+     * @param running
+     */
+    public void setRunning(final boolean running) {
+      this.running = running;
+    }
+
+    /**
+     * @return
+     */
+    public int getMinute() {
+      return minute;
+    }
+
+    /**
+     * @param minute
+     */
+    public void setMinute(final int minute) {
+      this.minute = minute;
+    }
+
   }
 
 }
