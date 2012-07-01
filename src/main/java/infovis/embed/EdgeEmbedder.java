@@ -1,6 +1,7 @@
 package infovis.embed;
 
 import static infovis.util.VecUtil.*;
+import infovis.draw.BackgroundRealizer;
 import infovis.embed.Weighter.WeightedEdge;
 
 import java.awt.geom.Line2D;
@@ -102,6 +103,11 @@ public class EdgeEmbedder extends DirectEmbedder {
   protected Point2D getDestination(final SpringNode n, final Point2D pos, final SpringNode ref,
       final Point2D refP, final Point2D diff) {
     return positions.get(n);
+  }
+
+  @Override
+  public BackgroundRealizer backgroundRealizer() {
+    return BackgroundRealizer.NO_BG;
   }
 
 }
