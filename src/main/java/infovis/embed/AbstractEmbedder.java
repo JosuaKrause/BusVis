@@ -9,6 +9,7 @@ import java.awt.Shape;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -144,7 +145,7 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
   public void drawHUD(final Graphics2D gfx, final Context ctx) {
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawLabel(g, ctx, n);
+      drawer.drawLabel(g, ctx, n, hovered.get(n.getId()));
       g.dispose();
     }
     if(!drawCircles()) {
@@ -154,9 +155,24 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     }
   }
 
+  /**
+   * The lookup for hovered nodes.
+   */
+  private final BitSet hovered = new BitSet();
+
   @Override
   public void moveMouse(final Point2D cur) {
     drawer.moveMouse(cur);
+    for(final SpringNode n : drawer.nodes()) {
+      final Shape s = drawer.nodeClickArea(n, true);
+      if(s == null) {
+        continue;
+      }
+      hovered.set(n.getId(), s.contains(cur));
+    }
+    if(!hovered.isEmpty()) {
+      refreshAll();
+    }
   }
 
   /**
