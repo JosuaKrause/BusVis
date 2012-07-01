@@ -1,6 +1,7 @@
 package infovis.gui;
 
 import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -37,9 +38,10 @@ public interface Painter {
    * dragging is performed, when this method returns <code>true</code>.
    * 
    * @param p The click position in canvas coordinates.
+   * @param e The original event.
    * @return Whether the click was consumed.
    */
-  boolean click(Point2D p);
+  boolean click(Point2D p, MouseEvent e);
 
   /**
    * Is called when the user clicks at the component. The coordinates are in the
