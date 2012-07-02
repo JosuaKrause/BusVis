@@ -109,7 +109,8 @@ public class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public void drawEdges(final Graphics2D g, final Context ctx, final SpringNode n) {
+  public void drawEdges(final Graphics2D g, final Context ctx, final SpringNode n,
+      final boolean secSel) {
     final Rectangle2D visible = ctx.getVisibleCanvas();
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
@@ -142,9 +143,19 @@ public class StationDrawer implements NodeDrawer, Fader {
 
       BusLine[] unused;
       BusLine[] used;
-      synchronized(e) {
-        unused = e.getNonHighlightedLines();
-        used = e.getHighlightedLines();
+      if(dist.getFrom() != null) {
+        if(!secSel) {
+          synchronized(e) {
+            unused = e.getNonHighlightedLines();
+            used = e.getHighlightedLines();
+          }
+        } else {
+          unused = e.getLines();
+          used = new BusLine[0];
+        }
+      } else {
+        unused = e.getLines();
+        used = null;
       }
       lineRealize.drawLines(g, line, unused, used);
     }

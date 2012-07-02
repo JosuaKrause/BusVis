@@ -55,9 +55,9 @@ public interface LineRealizer {
     @Override
     public void drawLines(final Graphics2D g, final Line2D line, final BusLine[] unused,
         final BusLine[] used) {
-      final int degree = used.length + unused.length;
+      final int degree = (used != null ? used.length : 0) + unused.length;
       final Graphics2D g2 = (Graphics2D) g.create();
-      if(used.length > 0) {
+      if(used != null) {
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
       }
       int counter = 0;
@@ -70,10 +70,12 @@ public interface LineRealizer {
         ++counter;
       }
       g2.dispose();
-      for(final BusLine l : used) {
-        g.setColor(l.getColor());
-        g.fill(createLineShape(line, counter, degree));
-        ++counter;
+      if(used != null) {
+        for(final BusLine l : used) {
+          g.setColor(l.getColor());
+          g.fill(createLineShape(line, counter, degree));
+          ++counter;
+        }
       }
     }
 
@@ -91,9 +93,9 @@ public interface LineRealizer {
     public void drawLines(final Graphics2D g, final Line2D line, final BusLine[] unused,
         final BusLine[] used) {
 
-      final int degree = used.length + unused.length;
+      final int degree = (used != null ? used.length : 0) + unused.length;
       final Graphics2D g2 = (Graphics2D) g.create();
-      if(used.length > 0) {
+      if(used != null) {
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
       }
       int counter = 0;
@@ -106,25 +108,32 @@ public interface LineRealizer {
         ++counter;
       }
       g2.dispose();
-      for(final BusLine l : used) {
-        g.setColor(l.getColor());
-        g.fill(createLineShape(line, counter, degree));
-        ++counter;
+      if(used != null) {
+        for(final BusLine l : used) {
+          g.setColor(l.getColor());
+          g.fill(createLineShape(line, counter, degree));
+          ++counter;
+        }
       }
 
     }
 
     @Override
     public Shape createLineShape(final Line2D line, final int number, final int maxNumber) {
-
       if(number < 0) return new BasicStroke(maxNumber, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL).createStrokedShape(line);
 
       // calculate normal vector
       final Point2D p1 = line.getP1();
       final Point2D p2 = line.getP2();
 
-      final double dx = p2.getX() - p1.getX();
-      final double dy = p2.getY() - p1.getY();
+      final double dx, dy;
+      if(p1.getX() < p2.getX() || (p1.getX() == p2.getX() && p1.getY() < p2.getY())) {
+        dx = p2.getX() - p1.getX();
+        dy = p2.getY() - p1.getY();
+      } else {
+        dx = p1.getX() - p2.getX();
+        dy = p1.getY() - p2.getY();
+      }
 
       final Point2D normal = new Point2D.Double(-dy, dx);
       // unit length

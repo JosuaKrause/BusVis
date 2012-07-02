@@ -125,7 +125,12 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     g2.dispose();
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawEdges(g, ctx, n);
+      drawer.drawEdges(g, ctx, n, !secSel.isEmpty());
+      g.dispose();
+    }
+    for(final SpringNode sel : secSel) {
+      final Graphics2D g = (Graphics2D) gfx.create();
+      drawer.drawSecondarySelected(g, ctx, sel);
       g.dispose();
     }
     for(final SpringNode n : drawer.nodes()) {
@@ -133,11 +138,6 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
       final Graphics2D g = (Graphics2D) gfx.create();
       drawer.drawNode(g, ctx, n, sel);
       g.dispose();
-      if(sel) {
-        final Graphics2D gs = (Graphics2D) gfx.create();
-        drawer.drawSecondarySelected(gs, ctx, n);
-        gs.dispose();
-      }
     }
   }
 
@@ -159,6 +159,7 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
    * The lookup for hovered nodes.
    */
   private final BitSet hovered = new BitSet();
+
 
   @Override
   public void moveMouse(final Point2D cur) {

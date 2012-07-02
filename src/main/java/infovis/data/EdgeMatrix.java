@@ -114,7 +114,7 @@ public final class EdgeMatrix {
       final int off = lines.length - count; // number of non highlighted lines
       final BusLine[] lines = getHighlightedLines();
       for(int i = 0; i < lines.length; ++i) {
-        if(line.equals(lines[i])) return off + i;
+        if(line.equals(lines[i])) return off + i - walkingHighlighted();
       }
       throw new IllegalStateException("line not highlighted");
     }
@@ -147,6 +147,19 @@ public final class EdgeMatrix {
         }
       }
       throw new IllegalStateException("line not found");
+    }
+
+    /**
+     * Getter.
+     * 
+     * @return All lines in the correct order.
+     */
+    public synchronized BusLine[] getLines() {
+      final int l = lines.length - count;
+      final BusLine[] res = new BusLine[lines.length];
+      System.arraycopy(getNonHighlightedLines(), 0, res, 0, l);
+      System.arraycopy(getHighlightedLines(), 0, res, l, lines.length - l);
+      return res;
     }
 
     /**
