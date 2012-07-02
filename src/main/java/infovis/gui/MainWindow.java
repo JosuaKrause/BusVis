@@ -36,12 +36,12 @@ public final class MainWindow extends JFrame {
    */
   public MainWindow(final BusStationManager m) {
     ctrl = new Controller(m, this);
-    final Overview over = new Overview(ctrl, 350, 350);
+    final Overview over = new Overview(ctrl, 400, 400);
     final JSplitPane left = new JSplitPane(JSplitPane.VERTICAL_SPLIT, over,
         new ControlPanel(ctrl));
-    left.setDividerLocation(350);
+    left.setDividerLocation(400);
     left.setOneTouchExpandable(true);
-    final BusCanvas mainCanvas = BusCanvas.createBusCanvas(ctrl, 800, 800);
+    final BusCanvas mainCanvas = BusCanvas.createBusCanvas(ctrl, 900, 900);
     final JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, mainCanvas);
     add(pane);
     pack();
@@ -74,6 +74,7 @@ public final class MainWindow extends JFrame {
       }
 
     });
+    setExtendedState(Frame.NORMAL);
   }
 
   @Override
