@@ -40,8 +40,10 @@ public interface NodeDrawer {
    * @param g The device.
    * @param ctx The canvas context.
    * @param n The node.
+   * @param secondarySelection If a secondary selection is made, this value is
+   *          <code>true</code>.
    */
-  void drawEdges(Graphics2D g, Context ctx, SpringNode n);
+  void drawEdges(Graphics2D g, Context ctx, SpringNode n, boolean secondarySelection);
 
   /**
    * Draws the label of a given node. Note that the coordinates are in component
