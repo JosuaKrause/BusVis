@@ -359,6 +359,16 @@ public final class StationDistance implements Weighter {
     return station == null ? null : rev[station.getId()];
   }
 
+  /**
+   * Getter.
+   * 
+   * @param i The node id.
+   * @return The node.
+   */
+  public SpringNode getNode(final int i) {
+    return rev[i];
+  }
+
   @Override
   public List<WeightedEdge> edgesTo(final SpringNode to) {
     final BusStation station = getStation(to);

@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.BitSet;
 
 /**
  * Draws spring nodes and interacts with them.
@@ -54,8 +55,10 @@ public interface NodeDrawer {
    * @param ctx The canvas context.
    * @param n The node.
    * @param hovered If the node is hovered.
+   * @param addText Text to add to the label. If this value is not
+   *          <code>null</code> the label will be drawn.
    */
-  void drawLabel(Graphics2D g, Context ctx, SpringNode n, boolean hovered);
+  void drawLabel(Graphics2D g, Context ctx, SpringNode n, boolean hovered, String addText);
 
   /**
    * Draws the background.
@@ -65,6 +68,16 @@ public interface NodeDrawer {
    * @param background How to draw the background.
    */
   void drawBackground(Graphics2D g, Context ctx, BackgroundRealizer background);
+
+  /**
+   * Draws the labels of a route.
+   * 
+   * @param g The graphics context.
+   * @param ctx The canvas context.
+   * @param n The destination.
+   * @param visited The method sets all nodes that are visited.
+   */
+  void drawRouteLabels(Graphics2D g, Context ctx, SpringNode n, BitSet visited);
 
   /**
    * A shape defining the area, where a click is associated with the given node.
@@ -117,6 +130,14 @@ public interface NodeDrawer {
    * @return The iterable.
    */
   Iterable<SpringNode> nodes();
+
+  /**
+   * Getter.
+   * 
+   * @param i The id of the node.
+   * @return The node.
+   */
+  SpringNode getNode(int i);
 
   /**
    * Is called when the user moves the mouse.
