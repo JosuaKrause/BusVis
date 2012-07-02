@@ -4,14 +4,7 @@ import static infovis.util.VecUtil.*;
 import infovis.draw.BackgroundRealizer;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A simple circular embedder.
@@ -36,10 +29,22 @@ public final class CircularEmbedder extends DirectEmbedder {
     posMap = new Point2D[weighter.nodes().size()];
   }
 
+  /**
+   * Sets the position of the node.
+   * 
+   * @param n The node.
+   * @param pos The position.
+   */
   private void setPos(final SpringNode n, final Point2D pos) {
     posMap[n.getId()] = pos;
   }
 
+  /**
+   * Getter.
+   * 
+   * @param n The node.
+   * @return The position.
+   */
   private Point2D getPos(final SpringNode n) {
     return posMap[n.getId()];
   }
@@ -47,81 +52,65 @@ public final class CircularEmbedder extends DirectEmbedder {
   @Override
   protected void changedWeights(final Collection<SpringNode> nodes, final SpringNode ref,
       final Point2D refP, final Point2D diff) {
-    final double binSize = weighter.getFactor() * 5;
-    final Map<Integer, Set<SpringNode>> bins = new HashMap<Integer, Set<SpringNode>>();
     // initial position
     for(final SpringNode n : nodes) {
       final Point2D pos = weighter.getDefaultPosition(n);
       final double w = weighter.weight(n, ref);
       final Point2D p = addVec(setLength(subVec(addVec(pos, diff), refP), w), refP);
       setPos(n, p);
-      final int bin0 = (int) (w / binSize);
-      final int bin1 = (int) ((w + binSize * 0.5) / binSize);
-      addToBin(bins, bin0, n);
-      addToBin(bins, bin1, n);
     }
     // conflict resolution
-    final List<SpringNode> bin = new ArrayList<SpringNode>();
-    for(final Set<SpringNode> bs : bins.values()) {
-      bin.clear();
-      bin.addAll(bs);
-      final ListIterator<SpringNode> it = bin.listIterator();
-      for(int i = 0; i < 1000; ++i) {
-        while(it.hasNext()) {
-          final SpringNode a = it.next();
-          for(final SpringNode b : bin) {
-            resolveIfNeeded(a, b, refP);
-          }
+    int i = 1000;
+    boolean hasChanged = true;
+    while(hasChanged) {
+      hasChanged = false;
+      for(final SpringNode a : nodes) {
+        for(final SpringNode b : nodes) {
+          hasChanged |= resolveIfNeeded(a, b, refP);
         }
-        while(it.hasPrevious()) {
-          final SpringNode a = it.previous();
-          for(final SpringNode b : bin) {
-            resolveIfNeeded(a, b, refP);
-          }
-        }
+      }
+      // we certainly do not want an infinite loop
+      if(--i < 0) {
+        break;
       }
     }
   }
 
-  private void resolveIfNeeded(final SpringNode a, final SpringNode b,
+  /**
+   * Resolves overlapping of two nodes if they overlap.
+   * 
+   * @param a A node.
+   * @param b A node.
+   * @param center The center point.
+   * @return Whether the position has changed.
+   */
+  private boolean resolveIfNeeded(final SpringNode a, final SpringNode b,
       final Point2D center) {
+    if(a.equals(b)) return false;
     final double ra = drawer.nodeRadius(a);
     final double rb = drawer.nodeRadius(b);
     final Point2D pa = getPos(a);
     final Point2D pb = getPos(b);
     final double distSq = pa.distanceSq(pb);
-    if(Double.isNaN(distSq)) return;
-    final double rSq = (ra + rb) * (ra + rb);
-    if(distSq >= rSq) return;
-    final double dist = Math.sqrt(distSq);
-    final double da = ra - dist;
-    final double db = rb - dist;
+    if(Double.isNaN(distSq)) return false;
+    final double rSum = ra + rb;
+    final double rSq = rSum * rSum;
+    if(distSq >= rSq) return false;
+    final double da = rSum;
+    final double db = rSum;
+    if(Double.isNaN(da) || Double.isNaN(db)) return false;
     Point2D rotA;
     Point2D rotB;
     if(isClockwiseOf(center, pa, pb)) {
-      rotA = rotate(pa, center, -da);
-      rotB = rotate(pb, center, db);
+      rotA = rotate(pa, center, -db);
+      rotB = rotate(pb, center, da);
     } else {
-      rotA = rotate(pa, center, da);
-      rotB = rotate(pb, center, -db);
+      rotA = rotate(pa, center, db);
+      rotB = rotate(pb, center, -da);
     }
     setPos(a, rotA);
     setPos(b, rotB);
-  }
-
-  /**
-   * Adds a node to a bin.
-   * 
-   * @param bins The bin map.
-   * @param bin The bin.
-   * @param n The node.
-   */
-  private static void addToBin(final Map<Integer, Set<SpringNode>> bins,
-      final int bin, final SpringNode n) {
-    if(!bins.containsKey(bin)) {
-      bins.put(bin, new HashSet<SpringNode>());
-    }
-    bins.get(bin).add(n);
+    return true;
   }
 
   @Override
