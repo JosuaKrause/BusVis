@@ -23,9 +23,7 @@ import javax.swing.SwingUtilities;
  */
 public final class MainWindow extends JFrame {
 
-  /**
-   * SVUID.
-   */
+  /** SVUID. */
   private static final long serialVersionUID = 1471398627061096012L;
 
   /** Controller. */
@@ -83,4 +81,5 @@ public final class MainWindow extends JFrame {
     ctrl.quit(true);
     super.dispose();
   }
+
 }
