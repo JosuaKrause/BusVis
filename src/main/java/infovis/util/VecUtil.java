@@ -1,6 +1,7 @@
 package infovis.util;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 
 /**
@@ -87,7 +88,7 @@ public final class VecUtil {
    * 
    * @param pos The point to rotate.
    * @param center The center.
-   * @param dist The distance.
+   * @param dist The distance. Positive values rotate in clockwise direction.
    * @return The point that has the given distance to the original point.
    * @throws IllegalArgumentException When the distance is longer than the
    *           diameter.
@@ -97,7 +98,8 @@ public final class VecUtil {
     final double dSq = dist * dist;
     final Point2D rad = subVec(pos, center);
     final double radSq = getLengthSq(rad);
-    if(dSq > 4 * radSq) throw new IllegalArgumentException("distance too long");
+    if(dSq > 4 * radSq) // throw new IllegalArgumentException("distance too long");
+      return subVec(center, rad);
     return rotateByAngle(pos, center, f * Math.acos(1 - dSq * 0.5 / radSq));
   }
 
@@ -114,6 +116,21 @@ public final class VecUtil {
     final AffineTransform at = AffineTransform.getRotateInstance(angle, center.getX(),
         center.getY());
     return at.transform(pos, null);
+  }
+
+  /**
+   * Whether point a must be rotated clockwise around the center point to align
+   * with point b.
+   * 
+   * @param center The center of rotation.
+   * @param a Point a.
+   * @param b Point b.
+   * @return Whether the rotation must be clockwise.
+   */
+  public static boolean isClockwiseOf(final Point2D center, final Point2D a,
+      final Point2D b) {
+    return Line2D.relativeCCW(center.getX(), center.getY(), a.getX(), a.getY(), b.getX(),
+        b.getY()) < 0;
   }
 
 }

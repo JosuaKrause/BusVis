@@ -11,6 +11,13 @@ import java.util.List;
 public interface Weighter {
 
   /**
+   * Getter.
+   * 
+   * @return The distance factor.
+   */
+  double getFactor();
+
+  /**
    * The weight of the directed edge.
    * 
    * @param from The source of the edge.

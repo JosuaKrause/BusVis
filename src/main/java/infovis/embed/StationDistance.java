@@ -295,11 +295,7 @@ public final class StationDistance implements Weighter {
     this.factor = factor;
   }
 
-  /**
-   * Getter.
-   * 
-   * @return The distance factor.
-   */
+  @Override
   public double getFactor() {
     return factor;
   }

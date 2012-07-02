@@ -74,6 +74,16 @@ public interface NodeDrawer {
   Shape nodeClickArea(SpringNode n, boolean real);
 
   /**
+   * A shape defining the area, where a click is associated with the given node.
+   * The area should be located at the given position.
+   * 
+   * @param n The node.
+   * @param pos The position.
+   * @return The clickable shape of the node.
+   */
+  Shape nodeClickArea(SpringNode n, Point2D pos);
+
+  /**
    * Defines the tool-tip text for the given node.
    * 
    * @param n The node.
