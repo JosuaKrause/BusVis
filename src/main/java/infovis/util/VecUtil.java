@@ -1,5 +1,7 @@
 package infovis.util;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 
 /**
@@ -78,6 +80,57 @@ public final class VecUtil {
    */
   public static Point2D setLength(final Point2D v, final double l) {
     return mulVec(v, l / getLength(v));
+  }
+
+  /**
+   * Rotates a point around the center such that the result has the given
+   * distance to the original point.
+   * 
+   * @param pos The point to rotate.
+   * @param center The center.
+   * @param dist The distance. Positive values rotate in clockwise direction.
+   * @return The point that has the given distance to the original point.
+   * @throws IllegalArgumentException When the distance is longer than the
+   *           diameter.
+   */
+  public static Point2D rotate(final Point2D pos, final Point2D center, final double dist) {
+    final double f = dist > 0 ? 1 : -1;
+    final double dSq = dist * dist;
+    final Point2D rad = subVec(pos, center);
+    final double radSq = getLengthSq(rad);
+    if(dSq > 4 * radSq)
+      return subVec(center, rad);
+    return rotateByAngle(pos, center, f * Math.acos(1 - dSq * 0.5 / radSq));
+  }
+
+  /**
+   * Rotates a point a given angle around the center.
+   * 
+   * @param pos The point to rotate.
+   * @param center The center.
+   * @param angle The angle.
+   * @return The rotated point.
+   */
+  public static Point2D rotateByAngle(final Point2D pos, final Point2D center,
+      final double angle) {
+    final AffineTransform at = AffineTransform.getRotateInstance(angle, center.getX(),
+        center.getY());
+    return at.transform(pos, null);
+  }
+
+  /**
+   * Whether point a must be rotated clockwise around the center point to align
+   * with point b.
+   * 
+   * @param center The center of rotation.
+   * @param a Point a.
+   * @param b Point b.
+   * @return Whether the rotation must be clockwise.
+   */
+  public static boolean isClockwiseOf(final Point2D center, final Point2D a,
+      final Point2D b) {
+    return Line2D.relativeCCW(center.getX(), center.getY(), a.getX(), a.getY(), b.getX(),
+        b.getY()) < 0;
   }
 
 }

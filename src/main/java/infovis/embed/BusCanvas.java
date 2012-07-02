@@ -4,6 +4,7 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.draw.LabelRealizer;
 import infovis.draw.LineRealizer;
 import infovis.draw.StationRealizer;
 import infovis.gui.Canvas;
@@ -60,7 +61,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
       final int height) {
     final StationDistance dist = new StationDistance(ctrl);
     final StationDrawer draw = new StationDrawer(dist,
-        StationRealizer.STANDARD, LineRealizer.STANDARD);
+        StationRealizer.STANDARD, LineRealizer.ADVANCED, LabelRealizer.STANDARD);
     dist.setMinDist(60.0);
     dist.setFactor(10);
     final Embedders e = Embedders.CIRCULAR;
