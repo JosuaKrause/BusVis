@@ -8,16 +8,15 @@ import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.data.EdgeMatrix;
 import infovis.data.EdgeMatrix.UndirectedEdge;
+import infovis.draw.BackgroundRealizer;
+import infovis.draw.LabelRealizer;
 import infovis.draw.LineRealizer;
 import infovis.draw.StationRealizer;
 import infovis.gui.Context;
 import infovis.routing.RoutingResult;
 import infovis.util.Interpolator;
 
-import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
@@ -31,52 +30,34 @@ import java.util.Collection;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class StationDrawer implements NodeDrawer, Fader {
+public final class StationDrawer implements NodeDrawer, Fader {
 
-  /**
-   * The corresponding station distance.
-   */
+  /** The corresponding station distance. */
   private final StationDistance dist;
 
-  /**
-   * The realizer to actually draw the stations.
-   */
+  /** The realizer to actually draw the stations. */
   private final StationRealizer stationRealize;
 
-  /**
-   * The realizer to actually draw the lines.
-   */
+  /** The realizer to actually draw the lines. */
   private final LineRealizer lineRealize;
 
-  /**
-   * The predicted next bus station.
-   */
-  protected volatile BusStation predict;
+  /** The realizer to actually draw the labels. */
+  private final LabelRealizer labelRealize;
 
-  /**
-   * The current waiter thread.
-   */
-  protected volatile Thread currentCalculator;
+  /** The predicted next bus station. */
+  private volatile BusStation predict;
 
-  /**
-   * The fading bus station.
-   */
-  protected BusStation fadeOut;
+  /** The fading bus station. */
+  private BusStation fadeOut;
 
-  /**
-   * The fading start time.
-   */
-  protected long fadingStart;
+  /** The fading start time. */
+  private long fadingStart;
 
-  /**
-   * The fading end time.
-   */
-  protected long fadingEnd;
+  /** The fading end time. */
+  private long fadingEnd;
 
-  /**
-   * Whether we do fade currently.
-   */
-  protected boolean fade;
+  /** Whether we do fade currently. */
+  private boolean fade;
 
   /**
    * Creates a station drawer.
@@ -84,12 +65,14 @@ public class StationDrawer implements NodeDrawer, Fader {
    * @param dist The corresponding station distance.
    * @param stationRealize The realizer to draw the stations.
    * @param lineRealize The realizer to draw the lines.
+   * @param labelRealize The realizer to draw labels.
    */
   public StationDrawer(final StationDistance dist, final StationRealizer stationRealize,
-      final LineRealizer lineRealize) {
+      final LineRealizer lineRealize, final LabelRealizer labelRealize) {
     this.dist = dist;
     this.stationRealize = stationRealize;
     this.lineRealize = lineRealize;
+    this.labelRealize = labelRealize;
     dist.setFader(this);
   }
 
@@ -122,7 +105,8 @@ public class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public void drawEdges(final Graphics2D g, final Context ctx, final SpringNode n) {
+  public void drawEdges(final Graphics2D g, final Context ctx, final SpringNode n,
+      final boolean secSel) {
     final Rectangle2D visible = ctx.getVisibleCanvas();
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
@@ -155,9 +139,19 @@ public class StationDrawer implements NodeDrawer, Fader {
 
       BusLine[] unused;
       BusLine[] used;
-      synchronized(e) {
-        unused = e.getNonHighlightedLines();
-        used = e.getHighlightedLines();
+      if(dist.getFrom() != null) {
+        if(!secSel) {
+          synchronized(e) {
+            unused = e.getNonHighlightedLines();
+            used = e.getHighlightedLines();
+          }
+        } else {
+          unused = e.getLines();
+          used = new BusLine[0];
+        }
+      } else {
+        unused = e.getLines();
+        used = null;
       }
       lineRealize.drawLines(g, line, unused, used);
     }
@@ -214,48 +208,50 @@ public class StationDrawer implements NodeDrawer, Fader {
       shapes[++i] = nodeClickArea(cur, true);
       pos = curPos;
     }
-    stationRealize.drawRoute(g, lineRealize, shapes, lines, busLines, numbers,
-        maxNumbers);
+    stationRealize.drawRoute(g, lineRealize, shapes, lines, busLines, numbers, maxNumbers);
   }
 
+  /**
+   * If a station has a degree of this or lower the label will always be drawn.
+   */
+  private static final int LOW_DEGREE = 1;
+
+  /**
+   * If a station has a degree of this or higher the label will always be drawn.
+   */
+  private static final int HIGH_DEGREE = 6;
+
   @Override
-  public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n) {
+  public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n,
+      final boolean hovered) {
     final BusStation station = dist.getStation(n);
-    if(dist.getMatrix().getDegree(station) == 2) return;
+
+    if(!hovered) {
+      final int degree = dist.getMatrix().getDegree(station);
+      if(degree > LOW_DEGREE && degree < HIGH_DEGREE) return;
+    }
 
     final Shape s = nodeClickArea(n, true);
     if(s == null) return;
     final Rectangle2D node = s.getBounds2D();
     final Point2D pos = ctx.toComponentCoordinates(
         new Point2D.Double(node.getMaxX(), node.getMinY()));
-    final double x = pos.getX();
-    final double y = pos.getY();
 
-    final FontMetrics fm = g.getFontMetrics();
-    final String label = station.getName();
-    final Rectangle2D bbox = fm.getStringBounds(label, g);
-    // translate the rectangle
-    bbox.setRect(x + bbox.getMinX(), y + bbox.getMinY(), bbox.getWidth(),
-        bbox.getHeight());
-
-    if(!ctx.getVisibleComponent().intersects(bbox)) return;
-
-    final double z = ctx.toComponentLength(1);
-    final float d = (float) (z * z);
-
-    final Graphics2D g2 = (Graphics2D) g.create();
-    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f *
-        (d < 1 ? d : 1)));
-    g2.setColor(Color.WHITE);
-    g2.fill(bbox);
-    g2.dispose();
-
-    g.translate(x, y);
-    if(d < 1) {
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, d));
+    final BusStation from = dist.getFrom();
+    String distance;
+    if(from != null && from != station) {
+      final RoutingResult route = dist.getRoute(station);
+      if(route.isReachable()) {
+        distance = " (" + BusTime.minutesToString(route.minutes()) + ")";
+      } else {
+        distance = " (not reachable)";
+      }
+    } else {
+      distance = "";
     }
-    g.setColor(Color.BLACK);
-    g.drawString(station.getName(), 0, 0);
+
+    labelRealize.drawLabel(g, ctx.getVisibleComponent(), ctx.toComponentLength(1),
+        pos, station.getName() + distance);
   }
 
   @Override
@@ -302,27 +298,23 @@ public class StationDrawer implements NodeDrawer, Fader {
   }
 
   /**
-   * The highest drawn circle interval.
-   */
-  public static final int MAX_INTERVAL = 12;
-
-  /**
    * Getter.
    * 
    * @param i The interval.
+   * @param factor The distance factor.
    * @param center The center of the circle.
    * @return The circle.
    */
-  public Ellipse2D getCircle(final int i, final Point2D center) {
-    final Point2D c = center != null ? center : dist.getReferenceNode().getPos();
-    final double radius = dist.getFactor() * 5 * i;
+  public static Ellipse2D getCircle(final int i, final double factor, final Point2D center) {
+    final Point2D c = center;
+    final double radius = factor * 5 * i;
     final double r2 = radius * 2;
     return new Ellipse2D.Double(c.getX() - radius, c.getY() - radius, r2, r2);
   }
 
   @Override
-  public void drawBackground(final Graphics2D g, final Context ctx, final boolean dc) {
-    if(!dc) return;
+  public void drawBackground(final Graphics2D g, final Context ctx,
+      final BackgroundRealizer background) {
     final SpringNode ref = dist.getReferenceNode();
     if(ref == null && !fade) return;
     Point2D center;
@@ -345,36 +337,18 @@ public class StationDrawer implements NodeDrawer, Fader {
       alpha = 1;
     }
     if(center == null) return;
-    boolean b = true;
-    g.setColor(Color.WHITE);
-    for(int i = MAX_INTERVAL; i > 0; --i) {
-      final Shape circ = getCircle(i, center);
-      final Graphics2D g2 = (Graphics2D) g.create();
-      if(b) {
-        final double d = (MAX_INTERVAL - i + 2.0) / (MAX_INTERVAL + 2);
-        final double curAlpha = alpha * d;
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-            (float) curAlpha));
-        g2.setColor(Color.LIGHT_GRAY);
-      }
-      b = !b;
-      g2.fill(circ);
-      g2.dispose();
-    }
+    final double factor = dist.getFactor();
+    if(!ctx.getVisibleCanvas().intersects(background.boundingBox(center, factor))) return;
+    background.drawBackground(g, center, factor, alpha);
   }
 
   @Override
-  public void drawLegend(final Graphics2D g, final Context ctx) {
-    // TODO draw legend
-  }
-
-  @Override
-  public Rectangle2D getBoundingBox() {
+  public Rectangle2D getBoundingBox(final BackgroundRealizer background) {
     Rectangle2D bbox = null;
     final BusStation s = predict;
     if(s != null) {
       final Point2D pos = dist.getNode(s).getPos();
-      bbox = getCircle(MAX_INTERVAL, pos).getBounds2D();
+      bbox = background.boundingBox(pos, dist.getFactor());
     } else {
       for(final SpringNode n : nodes()) {
         final Shape shape = nodeClickArea(n, false);

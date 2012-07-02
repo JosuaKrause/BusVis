@@ -1,5 +1,6 @@
 package infovis.embed;
 
+import infovis.draw.BackgroundRealizer;
 import infovis.gui.Context;
 
 import java.awt.Graphics2D;
@@ -40,8 +41,10 @@ public interface NodeDrawer {
    * @param g The device.
    * @param ctx The canvas context.
    * @param n The node.
+   * @param secondarySelection If a secondary selection is made, this value is
+   *          <code>true</code>.
    */
-  void drawEdges(Graphics2D g, Context ctx, SpringNode n);
+  void drawEdges(Graphics2D g, Context ctx, SpringNode n, boolean secondarySelection);
 
   /**
    * Draws the label of a given node. Note that the coordinates are in component
@@ -50,17 +53,18 @@ public interface NodeDrawer {
    * @param g The device.
    * @param ctx The canvas context.
    * @param n The node.
+   * @param hovered If the node is hovered.
    */
-  void drawLabel(Graphics2D g, Context ctx, SpringNode n);
+  void drawLabel(Graphics2D g, Context ctx, SpringNode n, boolean hovered);
 
   /**
    * Draws the background.
    * 
    * @param g The graphics context.
    * @param ctx The canvas context.
-   * @param drawCircles Whether to draw circles around the reference node.
+   * @param background How to draw the background.
    */
-  void drawBackground(Graphics2D g, Context ctx, boolean drawCircles);
+  void drawBackground(Graphics2D g, Context ctx, BackgroundRealizer background);
 
   /**
    * A shape defining the area, where a click is associated with the given node.
@@ -125,9 +129,10 @@ public interface NodeDrawer {
    * Calculates the bounding box of the paint area. This method may return
    * <code>null</code> to indicate that the bounding box is not important.
    * 
+   * @param background The background.
    * @return The bounding box or <code>null</code>.
    */
-  Rectangle2D getBoundingBox();
+  Rectangle2D getBoundingBox(BackgroundRealizer background);
 
   /**
    * Sets the animator associated with this drawer.
@@ -135,13 +140,5 @@ public interface NodeDrawer {
    * @param animator The animator.
    */
   void setAnimator(Animator animator);
-
-  /**
-   * Draws a legend, when circles are not drawn.
-   * 
-   * @param g The graphics context.
-   * @param ctx The canvas context.
-   */
-  void drawLegend(Graphics2D g, Context ctx);
 
 }

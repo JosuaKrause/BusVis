@@ -23,72 +23,46 @@ import java.util.List;
  */
 public final class StationDistance implements Weighter {
 
-  /**
-   * The backing map for the spring nodes.
-   */
+  /** The backing map for the spring nodes. */
   private final BusStation[] map;
 
-  /**
-   * The reverse backing map for the spring nodes.
-   */
+  /** The reverse backing map for the spring nodes. */
   private final SpringNode[] rev;
 
   /** Collection of all {@link SpringNode}s. */
   private final List<SpringNode> nodes;
 
-  /**
-   * Dummy routes for uninitialized routings.
-   */
+  /** Dummy routes for uninitialized routings. */
   private final RoutingResult[] dummyRoutes;
 
-  /**
-   * The routes from the bus station, may be <code>null</code>.
-   */
-  protected volatile RoutingResult[] routes;
+  /** The routes from the bus station, may be <code>null</code>. */
+  private volatile RoutingResult[] routes;
 
-  /**
-   * The current reference time.
-   */
-  protected BusTime time = new BusTime(12, 0);
+  /** The current reference time. */
+  private BusTime time = new BusTime(12, 0);
 
-  /**
-   * The change time for lines.
-   */
-  protected int changeTime = 5;
+  /** The change time for lines. */
+  private int changeTime = 5;
 
-  /**
-   * The start bus station or <code>null</code> if there is none.
-   */
-  protected BusStation from;
+  /** The start bus station or <code>null</code> if there is none. */
+  private BusStation from;
 
-  /**
-   * The factor to scale the distances.
-   */
+  /** The factor to scale the distances. */
   private double factor = .1;
 
-  /**
-   * The controller.
-   */
-  protected final Controller ctrl;
+  /** The controller. */
+  private final Controller ctrl;
 
-  /**
-   * The undirected edge matrix.
-   */
+  /** The undirected edge matrix. */
   private final EdgeMatrix matrix;
 
-  /**
-   * The routing manager.
-   */
+  /** The routing manager. */
   private final RoutingManager rm = RoutingManager.newInstance();
 
-  /**
-   * The animator to be notified when something has changed.
-   */
+  /** The animator to be notified when something has changed. */
   private Animator animator;
 
-  /**
-   * The fader.
-   */
+  /** The fader. */
   private Fader fader;
 
   /**

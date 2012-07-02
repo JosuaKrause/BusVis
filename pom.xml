@@ -47,11 +47,6 @@
 			<version>1.7</version>
 		</dependency>
 		<dependency>
-			<groupId>joschi-mvn</groupId>
-			<artifactId>Bubble-Sets</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>mdsj</groupId>
 			<artifactId>mdsj</artifactId>
 			<version>0.2</version>
