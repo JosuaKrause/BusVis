@@ -6,10 +6,16 @@ import infovis.gui.Refreshable;
 
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.BitSet;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
+import javax.swing.SwingUtilities;
 
 /**
  * An abstract embedding visualization.
@@ -71,9 +77,7 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
               }
             }
             if(step()) {
-              for(final Refreshable r : receivers) {
-                r.refresh();
-              }
+              refreshAll();
             }
           }
         } finally {
@@ -96,6 +100,15 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
   protected abstract boolean step();
 
   /**
+   * Refreshes all refreshables.
+   */
+  protected void refreshAll() {
+    for(final Refreshable r : receivers) {
+      r.refresh();
+    }
+  }
+
+  /**
    * Adds a refreshable that is refreshed each step.
    * 
    * @param r The refreshable.
@@ -116,9 +129,15 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
       g.dispose();
     }
     for(final SpringNode n : drawer.nodes()) {
+      final boolean sel = secSel.contains(n);
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawNode(g, ctx, n);
+      drawer.drawNode(g, ctx, n, sel);
       g.dispose();
+      if(sel) {
+        final Graphics2D gs = (Graphics2D) gfx.create();
+        drawer.drawSecondarySelected(gs, ctx, n);
+        gs.dispose();
+      }
     }
   }
 
@@ -126,7 +145,7 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
   public void drawHUD(final Graphics2D gfx, final Context ctx) {
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawLabel(g, ctx, n);
+      drawer.drawLabel(g, ctx, n, hovered.get(n.getId()));
       g.dispose();
     }
     if(!drawCircles()) {
@@ -136,9 +155,24 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     }
   }
 
+  /**
+   * The lookup for hovered nodes.
+   */
+  private final BitSet hovered = new BitSet();
+
   @Override
   public void moveMouse(final Point2D cur) {
     drawer.moveMouse(cur);
+    for(final SpringNode n : drawer.nodes()) {
+      final Shape s = drawer.nodeClickArea(n, true);
+      if(s == null) {
+        continue;
+      }
+      hovered.set(n.getId(), s.contains(cur));
+    }
+    if(!hovered.isEmpty()) {
+      refreshAll();
+    }
   }
 
   /**
@@ -197,8 +231,26 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     return !selected.isEmpty();
   }
 
+  /**
+   * A list of all secondary selected nodes.
+   */
+  private final Set<SpringNode> secSel = new HashSet<SpringNode>();
+
   @Override
-  public boolean click(final Point2D p) {
+  public boolean click(final Point2D p, final MouseEvent e) {
+    if(SwingUtilities.isRightMouseButton(e)) {
+      secSel.clear();
+      for(final SpringNode n : drawer.nodes()) {
+        final Shape s = drawer.nodeClickArea(n, true);
+        if(s.contains(p)) {
+          secSel.add(n);
+        }
+      }
+      if(!secSel.isEmpty()) {
+        refreshAll();
+      }
+      return true;
+    }
     if(doesDrag()) return false;
     for(final SpringNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);

@@ -4,6 +4,7 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.draw.LabelRealizer;
 import infovis.draw.LineRealizer;
 import infovis.draw.StationRealizer;
 import infovis.gui.Canvas;

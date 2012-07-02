@@ -35,8 +35,8 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
     final SpringNode ref = weighter.getReferenceNode();
     final int changes = weighter.changes();
     if(changes != Weighter.NO_CHANGE) {
-      Point2D diff;
-      Point2D refP;
+      final Point2D diff;
+      final Point2D refP;
       if(ref != null) {
         final Point2D orig = weighter.getDefaultPosition(ref);
         refP = ref.getPos();

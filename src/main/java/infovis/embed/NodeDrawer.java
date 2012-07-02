@@ -20,8 +20,18 @@ public interface NodeDrawer {
    * @param g The device.
    * @param ctx The canvas context.
    * @param n The node.
+   * @param secondarySelected If the node is secondary selected.
    */
-  void drawNode(Graphics2D g, Context ctx, SpringNode n);
+  void drawNode(Graphics2D g, Context ctx, SpringNode n, boolean secondarySelected);
+
+  /**
+   * Draws the given node. The graphics device must be translated manually.
+   * 
+   * @param g The device.
+   * @param ctx The canvas context.
+   * @param n The secondary selected node.
+   */
+  void drawSecondarySelected(Graphics2D g, Context ctx, SpringNode n);
 
   /**
    * Draws the edges of the given node. The graphics device must be translated
@@ -40,8 +50,9 @@ public interface NodeDrawer {
    * @param g The device.
    * @param ctx The canvas context.
    * @param n The node.
+   * @param hovered If the node is hovered.
    */
-  void drawLabel(Graphics2D g, Context ctx, SpringNode n);
+  void drawLabel(Graphics2D g, Context ctx, SpringNode n, boolean hovered);
 
   /**
    * Draws the background.
