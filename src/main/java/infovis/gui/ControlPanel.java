@@ -26,6 +26,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
@@ -60,17 +61,18 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /** The check box to select now as start time. */
   protected final JCheckBox now;
 
-  /** Bus change time. */
+  /** Bus change time spinner. */
   protected final JSpinner changeMinutes;
 
-  /** The change time label. */
-  private final JLabel ctLabel;
+  /** Bus change time slider. */
+  protected final JSlider changeMinutesSlider;
 
   /** The time window spinner. */
   protected final JSpinner timeWindow;
 
-  /** The walk time window label. */
-  private final JLabel twwLabel;
+  /** The time windows slider. */
+  protected final JSlider timeWindowSlider;
+
 
   /** Walk time in hours. */
   protected final JSpinner timeWalkHours;
@@ -78,11 +80,12 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /** Walk time in minutes. */
   protected final JSpinner timeWalkMinutes;
 
+  /** Walk time slider. */
+  protected final JSlider timeWalkSlider;
+
   /** Minutes for the last walk. */
   protected int lastWalkMin = -1;
 
-  /** The time window label. */
-  private final JLabel twLabel;
 
   /** Maps bus station ids to indices in the combo box. */
   private final int[] indexMap;
@@ -146,6 +149,84 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       res[i + 1] = new BusStationName(arr[i]);
     }
     return res;
+  }
+
+  /**
+   * Cyclic mouse wheel listener that corresponds to a JSpinner. Increases /
+   * descreases the spinner value depending on the direction of the mousewheel
+   * movement.
+   * 
+   * @author Marc Spicker
+   */
+  private class CyclicMouseWheelListener implements MouseWheelListener {
+
+    /** Parent spinner. */
+    final JSpinner parent;
+
+    /**
+     * Constructor.
+     * 
+     * @param parent The parent spinner.
+     */
+    public CyclicMouseWheelListener(final JSpinner parent) {
+      this.parent = parent;
+    }
+
+    @Override
+    public void mouseWheelMoved(final MouseWheelEvent e) {
+      if(e.getWheelRotation() < 0) {
+        parent.setValue(parent.getNextValue());
+      } else {
+        parent.setValue(parent.getPreviousValue());
+      }
+    }
+
+  }
+
+  /**
+   * Mouse wheel listener that corresponds to a JSpinner. Increases / descreases
+   * the spinner value depending on the direction of the mousewheel movement.
+   * 
+   * @author Marc Spicker
+   */
+  private class SimpleMouseWheelListener implements MouseWheelListener {
+
+    /** Parent spinner. */
+    final JSpinner parent;
+
+    /** Minimum value. */
+    final int minVal;
+
+    /** Maximum value. */
+    final int maxVal;
+
+    /**
+     * Constructor.
+     * 
+     * @param parent Corresponding spinner.
+     * @param minVal Minimum value.
+     * @param maxVal Maximum value.
+     */
+    public SimpleMouseWheelListener(final JSpinner parent, final int minVal,
+        final int maxVal) {
+      this.parent = parent;
+      this.minVal = minVal;
+      this.maxVal = maxVal;
+    }
+
+    @Override
+    public void mouseWheelMoved(final MouseWheelEvent e) {
+      if(e.getWheelRotation() < 0) {
+        if(!parent.getValue().equals(maxVal)) {
+          parent.setValue(parent.getNextValue());
+        }
+      } else {
+        if(!parent.getValue().equals(minVal)) {
+          parent.setValue(parent.getPreviousValue());
+        }
+      }
+    }
+
   }
 
   /**
@@ -229,35 +310,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     startHours = new JSpinner(hours);
     startHours.setMaximumSize(new Dimension(60, 40));
     startHours.setPreferredSize(new Dimension(60, 40));
-    startHours.addMouseWheelListener(new MouseWheelListener() {
-
-      @Override
-      public void mouseWheelMoved(final MouseWheelEvent e) {
-        if(e.getWheelRotation() < 0) {
-          startHours.setValue(startHours.getNextValue());
-        } else {
-          startHours.setValue(startHours.getPreviousValue());
-        }
-      }
-
-    });
+    startHours.addMouseWheelListener(new CyclicMouseWheelListener(startHours));
 
     final CyclicNumberModel minutes = new CyclicNumberModel(0, 0, 59);
     startMinutes = new JSpinner(minutes);
     startMinutes.setMaximumSize(new Dimension(60, 40));
     startMinutes.setPreferredSize(new Dimension(60, 40));
-    startMinutes.addMouseWheelListener(new MouseWheelListener() {
-
-      @Override
-      public void mouseWheelMoved(final MouseWheelEvent e) {
-        if(e.getWheelRotation() < 0) {
-          startMinutes.setValue(startMinutes.getNextValue());
-        } else {
-          startMinutes.setValue(startMinutes.getPreviousValue());
-        }
-      }
-
-    });
+    startMinutes.addMouseWheelListener(new CyclicMouseWheelListener(startMinutes));
 
     startHours.addChangeListener(new ChangeListener() {
 
@@ -309,10 +368,32 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     add(new JSeparator(SwingConstants.HORIZONTAL));
 
     // change time
+
+    changeMinutesSlider = new JSlider(-5, 60, 0);
+    changeMinutesSlider.setMajorTickSpacing(20);
+    changeMinutesSlider.setMinorTickSpacing(5);
+    changeMinutesSlider.setPaintTicks(true);
+    changeMinutesSlider.setPaintLabels(true);
+    changeMinutesSlider.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(final ChangeEvent e) {
+        final int changeTime = changeMinutesSlider.getValue();
+        if(changeTime != ctrl.getChangeTime()) {
+          changeMinutes.setValue(changeTime);
+          ctrl.setChangeTime(changeTime);
+        }
+
+      }
+
+    });
+
     final SpinnerNumberModel cMinutes = new SpinnerNumberModel(0, -5, 60, 1);
     changeMinutes = new JSpinner(cMinutes);
     changeMinutes.setMaximumSize(new Dimension(60, 40));
     changeMinutes.setPreferredSize(new Dimension(60, 40));
+    changeMinutes.addMouseWheelListener(new SimpleMouseWheelListener(changeMinutes, -5,
+        60));
 
     changeMinutes.addChangeListener(new ChangeListener() {
 
@@ -320,14 +401,15 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       public void stateChanged(final ChangeEvent e) {
         final int changeTime = getChangeTime();
         if(changeTime != ctrl.getChangeTime()) {
+          changeMinutesSlider.setValue(changeTime);
           ctrl.setChangeTime(getChangeTime());
         }
       }
 
     });
 
-    ctLabel = new JLabel();
-    addHor(new JLabel("Change Time:"), changeMinutes, ctLabel, space);
+    addHor(new JLabel("Change Time:"), changeMinutes, new JLabel("min"),
+        changeMinutesSlider, space);
     add(new JSeparator(SwingConstants.HORIZONTAL));
 
     // time window
@@ -335,6 +417,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     timeWindow = new JSpinner(tWindow);
     timeWindow.setMaximumSize(new Dimension(60, 40));
     timeWindow.setPreferredSize(new Dimension(60, 40));
+    timeWindow.addMouseWheelListener(new SimpleMouseWheelListener(timeWindow, 0, 24));
 
     timeWindow.addChangeListener(new ChangeListener() {
 
@@ -342,26 +425,61 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       public void stateChanged(final ChangeEvent e) {
         final int time = (Integer) timeWindow.getValue();
         if(ctrl.getMaxTimeHours() != time) {
+          timeWindowSlider.setValue(time);
           ctrl.setMaxTimeHours(time);
         }
       }
 
     });
 
-    twLabel = new JLabel();
-    addHor(new JLabel("Max Wait:"), timeWindow, twLabel, space);
+    timeWindowSlider = new JSlider(0, 24, 0);
+    timeWindowSlider.setMajorTickSpacing(3);
+    timeWindowSlider.setMinorTickSpacing(1);
+    timeWindowSlider.setPaintTicks(true);
+    timeWindowSlider.setPaintLabels(true);
+    timeWindowSlider.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(final ChangeEvent e) {
+        final int time = timeWindowSlider.getValue();
+        if(time != ctrl.getMaxTimeHours()) {
+          timeWindow.setValue(time);
+          ctrl.setMaxTimeHours(time);
+        }
+
+      }
+
+    });
+
+    addHor(new JLabel("Max Wait:"), timeWindow, new JLabel("h"), timeWindowSlider, space);
     add(new JSeparator(SwingConstants.HORIZONTAL));
 
     // walk time window
-    final CyclicNumberModel walkHours = new CyclicNumberModel(0, 0, 23);
+    final SpinnerNumberModel walkHours = new SpinnerNumberModel(0, 0, 1, 1);
     timeWalkHours = new JSpinner(walkHours);
     timeWalkHours.setMaximumSize(new Dimension(60, 40));
     timeWalkHours.setPreferredSize(new Dimension(60, 40));
+    timeWalkHours.addMouseWheelListener(new SimpleMouseWheelListener(timeWalkHours, 0, 1));
 
     final CyclicNumberModel walkMinutes = new CyclicNumberModel(0, 0, 59);
     timeWalkMinutes = new JSpinner(walkMinutes);
     timeWalkMinutes.setMaximumSize(new Dimension(60, 40));
     timeWalkMinutes.setPreferredSize(new Dimension(60, 40));
+    timeWalkMinutes.addMouseWheelListener(new MouseWheelListener() {
+
+      @Override
+      public void mouseWheelMoved(final MouseWheelEvent e) {
+        if(e.getWheelRotation() < 0) {
+          if(!(timeWalkHours.getValue().equals(1) && timeWalkMinutes.getValue().equals(59))) {
+            timeWalkMinutes.setValue(timeWalkMinutes.getNextValue());
+          }
+        } else {
+          if(!(timeWalkHours.getValue().equals(0) && timeWalkMinutes.getValue().equals(0))) {
+            timeWalkMinutes.setValue(timeWalkMinutes.getPreviousValue());
+          }
+        }
+      }
+    });
 
     timeWalkHours.addChangeListener(new ChangeListener() {
 
@@ -369,7 +487,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       public void stateChanged(final ChangeEvent e) {
         final int walkTime = getWalkTime();
         if(!(ctrl.getWalkTime() == walkTime)) {
-          ctrl.setWalkTime(getWalkTime());
+          timeWalkSlider.setValue(walkTime);
+          ctrl.setWalkTime(walkTime);
         }
       }
 
@@ -380,21 +499,44 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       @Override
       public void stateChanged(final ChangeEvent e) {
         if(lastWalkMin % 60 == 59 && timeWalkMinutes.getValue().equals(0)) {
+          if(timeWalkHours.getValue().equals(1)) {
+            timeWalkMinutes.setValue(59);
+          }
           timeWalkHours.setValue(timeWalkHours.getNextValue());
         } else if(lastWalkMin % 60 == 0 && timeWalkMinutes.getValue().equals(59)) {
           timeWalkHours.setValue(timeWalkHours.getPreviousValue());
         }
         final int walkTime = getWalkTime();
-        if(!(ctrl.getWalkTime() == walkTime)) {
+        if(ctrl.getWalkTime() != walkTime) {
           ctrl.setWalkTime(getWalkTime());
         }
+        timeWalkSlider.setValue(getWalkTime());
         lastWalkMin = walkTime;
       }
 
     });
 
-    twwLabel = new JLabel();
-    addHor(new JLabel("Max Walk:"), timeWalkHours, timeWalkMinutes, twwLabel, space);
+    timeWalkSlider = new JSlider(0, 119, 0);
+    timeWalkSlider.setMajorTickSpacing(20);
+    timeWalkSlider.setMinorTickSpacing(5);
+    timeWalkSlider.setPaintTicks(true);
+    timeWalkSlider.setPaintLabels(true);
+    timeWalkSlider.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(final ChangeEvent e) {
+        final int walkTime = timeWalkSlider.getValue();
+        if(ctrl.getWalkTime() != walkTime) {
+          timeWalkHours.setValue(walkTime / 60);
+          timeWalkMinutes.setValue(walkTime % 60);
+          ctrl.setWalkTime(walkTime);
+        }
+      }
+
+    });
+
+    addHor(new JLabel("Max Walk:"), timeWalkHours, timeWalkMinutes, new JLabel("h"),
+        timeWalkSlider, space);
 
     // end of layout
     add(Box.createVerticalGlue());
@@ -523,7 +665,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   @Override
   public void setChangeTime(final int minutes) {
     changeMinutes.setValue(minutes);
-    ctLabel.setText(BusTime.minutesToString(minutes));
+    changeMinutesSlider.setValue(minutes);
   }
 
   @Override
@@ -537,12 +679,12 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   public void undefinedChange(final Controller ctrl) {
     final int mth = ctrl.getMaxTimeHours();
     timeWindow.setValue(mth);
-    twLabel.setText(BusTime.minutesToString(mth * BusTime.MINUTES_PER_HOUR));
+    timeWindowSlider.setValue(mth);
 
     final int walkTime = ctrl.getWalkTime();
     timeWalkHours.setValue(walkTime / 60);
     timeWalkMinutes.setValue(walkTime % 60);
-    twwLabel.setText(BusTime.minutesToString(walkTime));
+    timeWalkSlider.setValue(walkTime);
 
     if(algoBox != null) {
       algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
