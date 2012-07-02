@@ -60,8 +60,8 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   public static BusCanvas createBusCanvas(final Controller ctrl, final int width,
       final int height) {
     final StationDistance dist = new StationDistance(ctrl);
-    final StationDrawer draw = new StationDrawer(dist, StationRealizer.STANDARD,
-        LineRealizer.STANDARD, LabelRealizer.STANDARD);
+    final StationDrawer draw = new StationDrawer(dist,
+        StationRealizer.STANDARD, LineRealizer.ADVANCED, LabelRealizer.STANDARD);
     dist.setMinDist(60.0);
     dist.setFactor(10);
     final Embedders e = Embedders.CIRCULAR;
