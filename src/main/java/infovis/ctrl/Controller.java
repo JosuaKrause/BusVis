@@ -17,6 +17,7 @@ import java.util.TimerTask;
 
 import javax.swing.JFrame;
 
+// TODO: Auto-generated Javadoc
 /**
  * The controller of the visualizations.
  * 
@@ -52,6 +53,9 @@ public final class Controller implements BusStationEnumerator {
   /** Timer for real-time view. */
   private final Timer timer = new Timer(true);
 
+  /** The fw thread. */
+  private FastForwardThread fwThread;
+
   /**
    * Creates a new controller.
    * 
@@ -62,10 +66,20 @@ public final class Controller implements BusStationEnumerator {
     this.manager = manager;
     this.frame = frame;
     startTimer();
+    startFwThread();
   }
 
   /**
-   * Starts a timer that periodically refreshes the time when
+   * Start fw thread.
+   */
+  void startFwThread() {
+    fwThread = new FastForwardThread(this);
+    fwThread.setDaemon(true);
+    fwThread.start();
+  }
+
+  /**
+   * Starts a timer that periodically refreshes the time when.
    * {@link #isStartTimeNow()} returns <code>true</code>. The refresh happens
    * exact at the beginning of a minute.
    */
@@ -137,13 +151,13 @@ public final class Controller implements BusStationEnumerator {
    * All positioning techniques.
    */
   private static final Embedders[] EMBEDDERS = new Embedders[] {
-      // Embedders.EDGE,
+    // Embedders.EDGE,
 
     Embedders.CIRCULAR,
 
-      Embedders.STRESS,
+    Embedders.STRESS,
 
-      // Embedders.SPRING,
+    // Embedders.SPRING,
   };
 
   /**
@@ -374,16 +388,28 @@ public final class Controller implements BusStationEnumerator {
     vis.remove(v);
   }
 
+  /*
+   * (non-Javadoc)
+   * @see infovis.data.BusStationEnumerator#getStations()
+   */
   @Override
   public Collection<BusStation> getStations() {
     return manager.getStations();
   }
 
+  /*
+   * (non-Javadoc)
+   * @see infovis.data.BusStationEnumerator#maxId()
+   */
   @Override
   public int maxId() {
     return manager.maxId();
   }
 
+  /*
+   * (non-Javadoc)
+   * @see infovis.data.BusStationEnumerator#getForId(int)
+   */
   @Override
   public BusStation getForId(final int id) {
     return manager.getForId(id);
@@ -446,6 +472,107 @@ public final class Controller implements BusStationEnumerator {
       }
     }
     setTime(new BusTime(h, m));
+  }
+
+  /**
+   * Gets the fw thread.
+   * 
+   * @return the fw thread
+   */
+  public FastForwardThread getFwThread() {
+    return fwThread;
+  }
+
+  /**
+   * The Class FastForwardThread.
+   * 
+   * @author Feeras
+   */
+  public class FastForwardThread extends Thread {
+
+    /** The ctrl. */
+    private final Controller ctrl;
+
+    /** The running. */
+    private boolean running = false;
+
+    /** The minute. */
+    private int minute;
+
+    /**
+     * Instantiates a new fast forward thread.
+     * 
+     * @param ctrl Controller
+     */
+    public FastForwardThread(final Controller ctrl) {
+      this.ctrl = ctrl;
+    }
+
+    /**
+     * Flag.
+     * 
+     * @param minute the minute
+     */
+    public void flag(final int minute) {
+      this.minute = minute;
+      running = !running;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see java.lang.Runnable#run()
+     */
+    @Override
+    public void run() {
+      while(!Thread.currentThread().isInterrupted()) {
+        if(running) {
+          ctrl.addTime(minute);
+        }
+        try {
+          Thread.sleep(1000);
+        } catch(final InterruptedException e) {
+          Thread.currentThread().interrupt();
+          e.printStackTrace();
+        }
+      }
+    }
+
+    /**
+     * Checks if is running.
+     * 
+     * @return true, if is running
+     */
+    public boolean isRunning() {
+      return running;
+    }
+
+    /**
+     * Sets the running.
+     * 
+     * @param running the new running
+     */
+    public void setRunning(final boolean running) {
+      this.running = running;
+    }
+
+    /**
+     * Gets the minute.
+     * 
+     * @return the minute
+     */
+    public int getMinute() {
+      return minute;
+    }
+
+    /**
+     * Sets the minute.
+     * 
+     * @param minute the new minute
+     */
+    public void setMinute(final int minute) {
+      this.minute = minute;
+    }
+
   }
 
 }
