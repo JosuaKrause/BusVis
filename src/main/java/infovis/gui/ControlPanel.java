@@ -553,7 +553,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     twLabels.put(40, new JLabel("40"));
     twLabels.put(60, new JLabel("60"));
     twLabels.put(80, new JLabel("80"));
-    twLabels.put(100, new JLabel("100"));
     twLabels.put(119, new JLabel("120"));
     timeWalkSlider.setLabelTable(twLabels);
 

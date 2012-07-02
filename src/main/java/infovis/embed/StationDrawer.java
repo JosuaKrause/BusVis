@@ -403,20 +403,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
 
   @Override
   public String getTooltipText(final SpringNode node) {
-    final BusStation station = dist.getStation(node);
-    final BusStation from = dist.getFrom();
-    String distance;
-    if(from != null && from != station) {
-      final RoutingResult route = dist.getRoute(station);
-      if(route.isReachable()) {
-        distance = " (" + BusTime.minutesToString(route.minutes()) + ")";
-      } else {
-        distance = " (not reachable)";
-      }
-    } else {
-      distance = "";
-    }
-    return station.getName() + distance;
+    return null;
   }
 
   @Override
