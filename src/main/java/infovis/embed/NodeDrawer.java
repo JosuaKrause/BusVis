@@ -78,6 +78,14 @@ public interface NodeDrawer {
   Shape nodeClickArea(SpringNode n, boolean real);
 
   /**
+   * The radius of the node.
+   * 
+   * @param n The node.
+   * @return The radius.
+   */
+  double nodeRadius(SpringNode n);
+
+  /**
    * Defines the tool-tip text for the given node.
    * 
    * @param n The node.
