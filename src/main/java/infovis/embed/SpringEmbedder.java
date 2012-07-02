@@ -1,5 +1,6 @@
 package infovis.embed;
 
+import infovis.draw.BackgroundRealizer;
 
 /**
  * Simulates a spring embedder.
@@ -84,6 +85,11 @@ public final class SpringEmbedder extends AbstractEmbedder {
    */
   public void setCorrectMovement(final boolean correctMovement) {
     this.correctMovement = correctMovement;
+  }
+
+  @Override
+  public BackgroundRealizer backgroundRealizer() {
+    return BackgroundRealizer.NO_BG;
   }
 
 }

@@ -1,6 +1,7 @@
 package infovis.embed;
 
 import static infovis.util.VecUtil.*;
+import infovis.draw.BackgroundRealizer;
 
 import java.awt.geom.Point2D;
 
@@ -29,8 +30,8 @@ public final class CircularEmbedder extends DirectEmbedder {
   }
 
   @Override
-  public boolean drawCircles() {
-    return true;
+  protected BackgroundRealizer backgroundRealizer() {
+    return BackgroundRealizer.CIRCLES;
   }
 
 }

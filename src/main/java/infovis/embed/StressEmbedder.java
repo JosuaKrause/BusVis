@@ -1,6 +1,7 @@
 package infovis.embed;
 
 import static infovis.util.VecUtil.*;
+import infovis.draw.BackgroundRealizer;
 import infovis.embed.Weighter.WeightedEdge;
 import infovis.util.ArrayUtil;
 
@@ -111,6 +112,11 @@ public class StressEmbedder extends DirectEmbedder {
   protected Point2D getDestination(final SpringNode n, final Point2D pos,
       final SpringNode ref, final Point2D refP, final Point2D diff) {
     return positions[n.getId()];
+  }
+
+  @Override
+  protected BackgroundRealizer backgroundRealizer() {
+    return BackgroundRealizer.NO_BG;
   }
 
   /**

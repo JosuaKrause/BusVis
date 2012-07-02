@@ -8,6 +8,7 @@ import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.data.EdgeMatrix;
 import infovis.data.EdgeMatrix.UndirectedEdge;
+import infovis.draw.BackgroundRealizer;
 import infovis.draw.LabelRealizer;
 import infovis.draw.LineRealizer;
 import infovis.draw.StationRealizer;
@@ -15,9 +16,7 @@ import infovis.gui.Context;
 import infovis.routing.RoutingResult;
 import infovis.util.Interpolator;
 
-import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
@@ -209,8 +208,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
       shapes[++i] = nodeClickArea(cur, true);
       pos = curPos;
     }
-    stationRealize.drawRoute(g, lineRealize, shapes, lines, busLines, numbers,
-        maxNumbers);
+    stationRealize.drawRoute(g, lineRealize, shapes, lines, busLines, numbers, maxNumbers);
   }
 
   /**
@@ -284,27 +282,23 @@ public final class StationDrawer implements NodeDrawer, Fader {
   }
 
   /**
-   * The highest drawn circle interval.
-   */
-  public static final int MAX_INTERVAL = 12;
-
-  /**
    * Getter.
    * 
    * @param i The interval.
+   * @param factor The distance factor.
    * @param center The center of the circle.
    * @return The circle.
    */
-  public Ellipse2D getCircle(final int i, final Point2D center) {
-    final Point2D c = center != null ? center : dist.getReferenceNode().getPos();
-    final double radius = dist.getFactor() * 5 * i;
+  public static Ellipse2D getCircle(final int i, final double factor, final Point2D center) {
+    final Point2D c = center;
+    final double radius = factor * 5 * i;
     final double r2 = radius * 2;
     return new Ellipse2D.Double(c.getX() - radius, c.getY() - radius, r2, r2);
   }
 
   @Override
-  public void drawBackground(final Graphics2D g, final Context ctx, final boolean dc) {
-    if(!dc) return;
+  public void drawBackground(final Graphics2D g, final Context ctx,
+      final BackgroundRealizer background) {
     final SpringNode ref = dist.getReferenceNode();
     if(ref == null && !fade) return;
     Point2D center;
@@ -327,36 +321,18 @@ public final class StationDrawer implements NodeDrawer, Fader {
       alpha = 1;
     }
     if(center == null) return;
-    boolean b = true;
-    g.setColor(Color.WHITE);
-    for(int i = MAX_INTERVAL; i > 0; --i) {
-      final Shape circ = getCircle(i, center);
-      final Graphics2D g2 = (Graphics2D) g.create();
-      if(b) {
-        final double d = (MAX_INTERVAL - i + 2.0) / (MAX_INTERVAL + 2);
-        final double curAlpha = alpha * d;
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-            (float) curAlpha));
-        g2.setColor(Color.LIGHT_GRAY);
-      }
-      b = !b;
-      g2.fill(circ);
-      g2.dispose();
-    }
+    final double factor = dist.getFactor();
+    if(!ctx.getVisibleCanvas().intersects(background.boundingBox(center, factor))) return;
+    background.drawBackground(g, center, factor, alpha);
   }
 
   @Override
-  public void drawLegend(final Graphics2D g, final Context ctx) {
-    // TODO draw legend
-  }
-
-  @Override
-  public Rectangle2D getBoundingBox() {
+  public Rectangle2D getBoundingBox(final BackgroundRealizer background) {
     Rectangle2D bbox = null;
     final BusStation s = predict;
     if(s != null) {
       final Point2D pos = dist.getNode(s).getPos();
-      bbox = getCircle(MAX_INTERVAL, pos).getBounds2D();
+      bbox = background.boundingBox(pos, dist.getFactor());
     } else {
       for(final SpringNode n : nodes()) {
         final Shape shape = nodeClickArea(n, false);

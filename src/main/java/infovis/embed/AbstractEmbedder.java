@@ -1,5 +1,6 @@
 package infovis.embed;
 
+import infovis.draw.BackgroundRealizer;
 import infovis.gui.Context;
 import infovis.gui.PainterAdapter;
 import infovis.gui.Refreshable;
@@ -121,7 +122,7 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
   @Override
   public void draw(final Graphics2D gfx, final Context ctx) {
     final Graphics2D g2 = (Graphics2D) gfx.create();
-    drawer.drawBackground(g2, ctx, drawCircles());
+    drawer.drawBackground(g2, ctx, backgroundRealizer());
     g2.dispose();
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
@@ -145,11 +146,6 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
       drawer.drawLabel(g, ctx, n, hovered.get(n.getId()));
-      g.dispose();
-    }
-    if(!drawCircles()) {
-      final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawLegend(g, ctx);
       g.dispose();
     }
   }
@@ -335,16 +331,14 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
 
   @Override
   public Rectangle2D getBoundingBox() {
-    return drawer.getBoundingBox();
+    return drawer.getBoundingBox(backgroundRealizer());
   }
 
   /**
    * Getter.
    * 
-   * @return Whether to draw distance circles around the reference node.
+   * @return How the background is drawn.
    */
-  public boolean drawCircles() {
-    return false;
-  }
+  protected abstract BackgroundRealizer backgroundRealizer();
 
 }
