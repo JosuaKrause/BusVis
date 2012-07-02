@@ -283,11 +283,22 @@ public class StationDrawer implements NodeDrawer, Fader {
     return nodeClickArea(n, new Point2D.Double(x, y));
   }
 
-  @Override
+  /**
+   * A shape defining the area, where a click is associated with the given node.
+   * The area should be located at the given position.
+   * 
+   * @param n The node.
+   * @param pos The position.
+   * @return The clickable shape of the node.
+   */
   public Shape nodeClickArea(final SpringNode n, final Point2D pos) {
+    return stationRealize.createStationShape(pos.getX(), pos.getY(), nodeRadius(n));
+  }
+
+  @Override
+  public double nodeRadius(final SpringNode n) {
     final BusStation station = dist.getStation(n);
-    final double r = Math.max(2, dist.getMatrix().getMaxLines(station) / 2);
-    return stationRealize.createStationShape(pos.getX(), pos.getY(), r);
+    return Math.max(2, dist.getMatrix().getMaxLines(station) / 2);
   }
 
   /**

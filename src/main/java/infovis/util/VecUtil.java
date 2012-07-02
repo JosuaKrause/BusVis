@@ -98,7 +98,7 @@ public final class VecUtil {
     final double dSq = dist * dist;
     final Point2D rad = subVec(pos, center);
     final double radSq = getLengthSq(rad);
-    if(dSq > 4 * radSq) // throw new IllegalArgumentException("distance too long");
+    if(dSq > 4 * radSq)
       return subVec(center, rad);
     return rotateByAngle(pos, center, f * Math.acos(1 - dSq * 0.5 / radSq));
   }
