@@ -25,8 +25,10 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -220,6 +222,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     });
     box.setMaximumSize(box.getPreferredSize());
     addHor(new JLabel("Stations:"), box);
+    add(new JSeparator(SwingConstants.HORIZONTAL));
 
     // start time
     final CyclicNumberModel hours = new CyclicNumberModel(0, 0, 23);
@@ -303,9 +306,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       }
     });
     addHor(new JLabel("Start Time:"), startHours, startMinutes, btLabel, now, space);
+    add(new JSeparator(SwingConstants.HORIZONTAL));
 
     // change time
-
     final SpinnerNumberModel cMinutes = new SpinnerNumberModel(0, -5, 60, 1);
     changeMinutes = new JSpinner(cMinutes);
     changeMinutes.setMaximumSize(new Dimension(60, 40));
@@ -325,6 +328,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     ctLabel = new JLabel();
     addHor(new JLabel("Change Time:"), changeMinutes, ctLabel, space);
+    add(new JSeparator(SwingConstants.HORIZONTAL));
 
     // time window
     final SpinnerNumberModel tWindow = new SpinnerNumberModel(0, 0, 24, 1);
@@ -346,9 +350,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     twLabel = new JLabel();
     addHor(new JLabel("Max Wait:"), timeWindow, twLabel, space);
+    add(new JSeparator(SwingConstants.HORIZONTAL));
 
     // walk time window
-
     final CyclicNumberModel walkHours = new CyclicNumberModel(0, 0, 23);
     timeWalkHours = new JSpinner(walkHours);
     timeWalkHours.setMaximumSize(new Dimension(60, 40));
@@ -375,9 +379,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
       @Override
       public void stateChanged(final ChangeEvent e) {
-        if(lastWalkMin == 59 && timeWalkMinutes.getValue().equals(0)) {
+        if(lastWalkMin % 60 == 59 && timeWalkMinutes.getValue().equals(0)) {
           timeWalkHours.setValue(timeWalkHours.getNextValue());
-        } else if(lastWalkMin == 60 && timeWalkMinutes.getValue().equals(59)) {
+        } else if(lastWalkMin % 60 == 0 && timeWalkMinutes.getValue().equals(59)) {
           timeWalkHours.setValue(timeWalkHours.getPreviousValue());
         }
         final int walkTime = getWalkTime();
