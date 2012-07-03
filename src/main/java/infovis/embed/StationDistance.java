@@ -211,7 +211,7 @@ public final class StationDistance implements Weighter {
   public ChangeType changes() {
     final ChangeType res = changes;
     changes = NO_CHANGE;
-    return res;
+    return res != null ? res : NO_CHANGE;
   }
 
   /**
