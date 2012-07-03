@@ -78,10 +78,13 @@ public final class Controller implements BusStationEnumerator {
       public void run() {
         if(isStartTimeNow()) {
           final Calendar now = Calendar.getInstance();
-          overwriteDisplayedTime(BusTime.fromCalendar(now), BusTime.isBlinkSecond(now));
-          // we may lose a user update here
-          // but very rare (only if the user clicks _very_ fast)
-          setTime(curStartTime);
+          final BusTime curr = BusTime.fromCalendar(now);
+          overwriteDisplayedTime(curr, BusTime.isBlinkSecond(now));
+          if(curr.getSecond() % 10 == 0) {
+            // we may lose a user update here
+            // but very rare (only if the user clicks _very_ fast)
+            setTime(curStartTime);
+          }
         }
       }
 
