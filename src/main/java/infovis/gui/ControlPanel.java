@@ -3,6 +3,7 @@ package infovis.gui;
 import static infovis.data.BusTime.*;
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
+import infovis.ctrl.Controller.FastForwardThread;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.embed.Embedders;
@@ -22,6 +23,8 @@ import java.util.Hashtable;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -95,6 +98,15 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /** The technique box. */
   protected final JComboBox embedBox;
 
+  /** The ffw slider. */
+  protected final JSlider ffwSlider;
+
+  /** The ffw button. */
+  protected final JButton ffwButton;
+
+  /** The ffw thread. */
+  protected final FastForwardThread ffwThread;
+
   /**
    * A thin wrapper for the bus station name. Also allows the <code>null</code>
    * bus station, representing no selection.
@@ -124,7 +136,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       return name;
     }
 
-  }
+  } // BusStationName
 
   /**
    * Creates a list of all bus station names.
@@ -185,7 +197,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       }
     }
 
-  }
+  } // CyclicMouseWheelListener
 
   /**
    * Mouse wheel listener that corresponds to a JSpinner. Increases / descreases
@@ -235,7 +247,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       }
     }
 
-  }
+  } // SimpleMouseWheelListener
 
   /**
    * Creates a control panel.
@@ -243,6 +255,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * @param ctrl The corresponding controller.
    */
   public ControlPanel(final Controller ctrl) {
+    ffwThread = ctrl.getFfwThread();
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     final Component space = Box.createRigidArea(new Dimension(5, 5));
     // routing selection
@@ -355,6 +368,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     });
 
+    // sets the width of the label
     btLabel = new JLabel("24:00h");
     now = new JCheckBox("now");
     now.addChangeListener(new ChangeListener() {
@@ -376,6 +390,42 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     });
     addHor(new JLabel("Start Time:"), startHours, new JLabel(":"),
         startMinutes, now, btLabel, new JLabel(" "));
+
+    // fast forward
+    ffwSlider = new JSlider(SwingConstants.HORIZONTAL, 1, 60, 1);
+    ffwSlider.setMajorTickSpacing(9);
+    ffwSlider.setMinorTickSpacing(1);
+    ffwSlider.setPaintTicks(true);
+    ffwSlider.setPaintLabels(true);
+    ffwSlider.addChangeListener(new ChangeListener() {
+
+      @Override
+      public void stateChanged(final ChangeEvent e) {
+        ffwSlider.setToolTipText("" + ffwSlider.getValue());
+        ffwThread.setMinute(ffwSlider.getValue());
+      }
+
+    });
+
+    ffwButton = new JButton();
+    ffwButton.setIcon(new ImageIcon("src/main/resources/pics/Fast-forward.gif"));
+    ffwButton.setToolTipText("Fast-Forward");
+    ffwButton.addActionListener(new ActionListener() {
+
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        if(ffwThread.isInFfwMode()) {
+          ffwButton.setIcon(new ImageIcon("src/main/resources/pics/Fast-forward.gif"));
+          ffwButton.setToolTipText("Fast-Forward");
+        } else {
+          ffwButton.setIcon(new ImageIcon("src/main/resources/pics/Stop.gif"));
+          ffwButton.setToolTipText("Stop");
+        }
+        ffwThread.flag(ffwSlider.getValue());
+      }
+
+    });
+    addHor(ffwSlider, ffwButton);
     add(new JSeparator(SwingConstants.HORIZONTAL));
 
     // change time
@@ -413,8 +463,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     changeMinutes = new JSpinner(cMinutes);
     changeMinutes.setMaximumSize(new Dimension(60, 40));
     changeMinutes.setPreferredSize(new Dimension(60, 40));
-    changeMinutes.addMouseWheelListener(new SimpleMouseWheelListener(changeMinutes, -5,
-        60));
+    changeMinutes.addMouseWheelListener(
+        new SimpleMouseWheelListener(changeMinutes, -5, 60));
 
     changeMinutes.addChangeListener(new ChangeListener() {
 
@@ -676,6 +726,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     if(time == null) {
       startHours.setEnabled(false);
       startMinutes.setEnabled(false);
+      ffwSlider.setEnabled(false);
+      ffwButton.setEnabled(false);
+      ffwThread.setFfwMode(false);
+      ffwButton.setIcon(new ImageIcon("src/main/resources/pics/Fast-forward.gif"));
+      ffwButton.setToolTipText("Fast-Forward");
       now.setSelected(true);
       final Calendar cal = Calendar.getInstance();
       btLabel.setText(BusTime.fromCalendar(cal).pretty(isBlinkSecond(cal)));
@@ -683,6 +738,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     }
     startHours.setEnabled(true);
     startMinutes.setEnabled(true);
+    ffwSlider.setEnabled(true);
+    ffwButton.setEnabled(true);
     now.setSelected(false);
     startHours.setValue(time.getHour());
     startMinutes.setValue(time.getMinute());

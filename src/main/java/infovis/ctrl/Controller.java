@@ -52,6 +52,9 @@ public final class Controller implements BusStationEnumerator {
   /** Timer for real-time view. */
   private final Timer timer = new Timer(true);
 
+  /** The ffw thread. */
+  private FastForwardThread ffwThread;
+
   /**
    * Creates a new controller.
    * 
@@ -62,6 +65,16 @@ public final class Controller implements BusStationEnumerator {
     this.manager = manager;
     this.frame = frame;
     startTimer();
+    startFwThread();
+  }
+
+  /**
+   * Start ffw thread.
+   */
+  void startFwThread() {
+    ffwThread = new FastForwardThread();
+    ffwThread.setDaemon(true);
+    ffwThread.start();
   }
 
   /**
@@ -137,13 +150,13 @@ public final class Controller implements BusStationEnumerator {
    * All positioning techniques.
    */
   private static final Embedders[] EMBEDDERS = new Embedders[] {
-      // Embedders.EDGE,
+    // Embedders.EDGE,
 
-      Embedders.CIRCULAR,
+    Embedders.CIRCULAR,
 
-      Embedders.STRESS,
+    Embedders.STRESS,
 
-      // Embedders.SPRING,
+    // Embedders.SPRING,
   };
 
   /**
@@ -427,5 +440,99 @@ public final class Controller implements BusStationEnumerator {
       v.undefinedChange(this);
     }
   }
+
+  /**
+   * Adds given minutes to the actual time.
+   * 
+   * @param min given minutes
+   */
+  public void addTime(final int min) {
+    setTime(getTime().later(min));
+  }
+
+  /**
+   * Gets the ffw thread.
+   * 
+   * @return the ffw thread
+   */
+  public FastForwardThread getFfwThread() {
+    return ffwThread;
+  }
+
+  /**
+   * The Class FastForwardThread.
+   * 
+   * @author Feeras
+   */
+  public class FastForwardThread extends Thread {
+
+    /** Whether we are in ffw mode. */
+    private boolean ffwMode;
+
+    /** The minute. */
+    private int minute;
+
+    /**
+     * Flag.
+     * 
+     * @param minute the minute
+     */
+    public void flag(final int minute) {
+      this.minute = minute;
+      ffwMode = !ffwMode;
+    }
+
+    @Override
+    public void run() {
+      while(!isInterrupted()) {
+        if(ffwMode) {
+          addTime(minute);
+        }
+        try {
+          Thread.sleep(1000);
+        } catch(final InterruptedException e) {
+          interrupt();
+          continue;
+        }
+      }
+    }
+
+    /**
+     * Checks if in fast forward mode.
+     * 
+     * @return <code>true</code>, if in fast forward mode.
+     */
+    public boolean isInFfwMode() {
+      return ffwMode;
+    }
+
+    /**
+     * Sets the mode.
+     * 
+     * @param ffwMode Whether we are in ffw mode.
+     */
+    public void setFfwMode(final boolean ffwMode) {
+      this.ffwMode = ffwMode;
+    }
+
+    /**
+     * Gets the minute.
+     * 
+     * @return the minute
+     */
+    public int getMinute() {
+      return minute;
+    }
+
+    /**
+     * Sets the minute.
+     * 
+     * @param minute the new minute
+     */
+    public void setMinute(final int minute) {
+      this.minute = minute;
+    }
+
+  } // FastForwardThread
 
 }
