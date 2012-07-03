@@ -14,6 +14,9 @@ public final class BusTime implements Comparable<BusTime> {
   /** Midnight. */
   public static final BusTime MIDNIGHT = new BusTime(0);
 
+  /** Bus time for 12:00 AM. */
+  public static final BusTime NOON = new BusTime(12, 0);
+
   /** The number of hours per day. */
   public static final int HOURS_PER_DAY = 24;
 

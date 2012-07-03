@@ -28,8 +28,6 @@ import org.junit.Test;
  * @author Leo Woerteler
  */
 public class RouteFinderTests {
-  /** Bus time for 12:00 AM. */
-  private static final BusTime NOON = new BusTime(12, 00, 00);
 
   /**
    * Checks if the line is changed when advantageous.
