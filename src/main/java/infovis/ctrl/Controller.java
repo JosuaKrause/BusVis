@@ -80,20 +80,15 @@ public final class Controller implements BusStationEnumerator {
     calendar.set(Calendar.MILLISECOND, 0);
     calendar.set(Calendar.SECOND, 0);
     final TimerTask task = new TimerTask() {
-
-      private int minute = calendar.get(Calendar.MINUTE);
-
       @Override
       public void run() {
         if(isStartTimeNow()) {
-          final Calendar now = Calendar.getInstance();
-          final int min = now.get(Calendar.MINUTE);
-          overwriteDisplayedTime(BusTime.fromCalendar(now), BusTime.isBlinkSecond(now));
-          if(min != minute) {
-            // we may lose an user update here
+          final BusTime curr = BusTime.now();
+          overwriteDisplayedTime(curr, curr.isBlinkSecond());
+          if(curr.getSecond() % 10 == 0) {
+            // we may lose a user update here
             // but very rare (only if the user clicks _very_ fast)
             setTime(curStartTime);
-            minute = min;
           }
         } else if(isInFastForwardMode()) {
           BusTime time = getTime();

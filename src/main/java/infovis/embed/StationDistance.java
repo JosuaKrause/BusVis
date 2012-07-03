@@ -39,7 +39,7 @@ public final class StationDistance implements Weighter {
   private volatile RoutingResult[] routes;
 
   /** The current reference time. */
-  private BusTime time = new BusTime(12, 0);
+  private BusTime time = new BusTime(12, 0, 0);
 
   /** The change time for lines. */
   private int changeTime = 5;
@@ -314,7 +314,7 @@ public final class StationDistance implements Weighter {
     if(fr.equals(from)) return 0;
     final BusStation to = getStation(t);
     if(to.equals(from) && getRoute(fr).isReachable()) return factor
-        * getRoute(fr).minutes();
+        * getRoute(fr).seconds() / BusTime.SECONDS_PER_MINUTE;
     return -minDist;
   }
 
@@ -375,7 +375,8 @@ public final class StationDistance implements Weighter {
     for(final BusEdge be : e) {
       final BusTime end = be.getEnd();
       final SpringNode next = getNode(be.getTo());
-      edges[i++] = new WeightedEdge(cur, next, factor * start.minutesTo(end));
+      edges[i++] = new WeightedEdge(cur, next, factor * start.secondsTo(end)
+          / BusTime.SECONDS_PER_MINUTE);
       start = end;
       cur = next;
     }

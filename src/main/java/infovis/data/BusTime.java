@@ -11,40 +11,27 @@ import java.util.Comparator;
  */
 public final class BusTime implements Comparable<BusTime> {
 
-  /**
-   * Midnight.
-   */
-  public static final BusTime MIDNIGHT = new BusTime(0, 0);
+  /** Midnight. */
+  public static final BusTime MIDNIGHT = new BusTime(0);
 
-  /**
-   * The number of hours per day.
-   */
+  /** The number of hours per day. */
   public static final int HOURS_PER_DAY = 24;
 
-  /**
-   * The number of minutes in an hour.
-   */
+  /** The number of minutes in an hour. */
   public static final int MINUTES_PER_HOUR = 60;
 
-  /**
-   * The number of seconds in one minute.
-   */
+  /** The number of seconds in one minute. */
   public static final int SECONDS_PER_MINUTE = 60;
 
-  /**
-   * The number of milliseconds in one second.
-   */
+  /** The number of milliseconds in one second. */
   public static final int MILLISECONDS_PER_SECOND = 1000;
 
-  /**
-   * The hour of the time.
-   */
-  private final int hour;
+  /** The number of seconds in one day. */
+  private static final int SECONDS_PER_DAY = HOURS_PER_DAY * MINUTES_PER_HOUR
+      * SECONDS_PER_MINUTE;
 
-  /**
-   * The minute of the time.
-   */
-  private final int minute;
+  /** Number of seconds since midnight. */
+  private final int seconds;
 
   /**
    * Creates a new bus time.
@@ -53,12 +40,43 @@ public final class BusTime implements Comparable<BusTime> {
    * @param minute The minute ranging from 0 to 59.
    */
   public BusTime(final int hour, final int minute) {
-    if(hour < 0 || hour >= HOURS_PER_DAY) throw new IllegalArgumentException(
-        "hour out of range: " + hour);
-    if(minute < 0 || minute >= MINUTES_PER_HOUR) throw new IllegalArgumentException(
-        "minute out of range: " + minute);
-    this.hour = hour;
-    this.minute = minute;
+    this(hour, minute, 0);
+  }
+
+  /**
+   * Creates a new bus time.
+   * 
+   * @param hour The hour ranging from 0 to 23.
+   * @param minute The minute ranging from 0 to 59.
+   * @param second The second ranging from 0 to 59.
+   */
+  public BusTime(final int hour, final int minute, final int second) {
+    this((checkRange("hour", hour, HOURS_PER_DAY) * MINUTES_PER_HOUR
+        + checkRange("minute", minute, MINUTES_PER_HOUR)) * SECONDS_PER_MINUTE
+        + checkRange("second", second, SECONDS_PER_MINUTE));
+  }
+
+  /**
+   * Private constructor takind the number of seconds since midnight.
+   * 
+   * @param secondsSinceMidnight seconds since midnight
+   */
+  private BusTime(final int secondsSinceMidnight) {
+    seconds = checkRange("seconds since midnight", secondsSinceMidnight, SECONDS_PER_DAY);
+  }
+
+  /**
+   * Checks if the given value lies within the range {@code [0,max)}.
+   * 
+   * @param desc description of the value
+   * @param val the value
+   * @param max exclusive upper bound
+   * @return the value for convenience
+   * @throws IllegalArgumentException if the value lies outside the range
+   */
+  private static int checkRange(final String desc, final int val, final int max) {
+    if(0 <= val && val < max) return val;
+    throw new IllegalArgumentException(desc + " out of range: " + val);
   }
 
   /**
@@ -67,7 +85,7 @@ public final class BusTime implements Comparable<BusTime> {
    * @return The hour.
    */
   public int getHour() {
-    return hour;
+    return seconds / (SECONDS_PER_MINUTE * MINUTES_PER_HOUR);
   }
 
   /**
@@ -76,7 +94,28 @@ public final class BusTime implements Comparable<BusTime> {
    * @return The minute.
    */
   public int getMinute() {
-    return minute;
+    return (seconds / SECONDS_PER_MINUTE) % MINUTES_PER_HOUR;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The minute.
+   */
+  public int getSecond() {
+    return seconds % SECONDS_PER_MINUTE;
+  }
+
+  /**
+   * Calculates the time until the given end. This method always returns
+   * positive values even when the end time is before this time. The values are
+   * wrapped around 24 hours.
+   * 
+   * @param end The end time.
+   * @return The time until the end in seconds.
+   */
+  public int secondsTo(final BusTime end) {
+    return (end.seconds - seconds + SECONDS_PER_DAY) % SECONDS_PER_DAY;
   }
 
   /**
@@ -88,37 +127,29 @@ public final class BusTime implements Comparable<BusTime> {
    * @return The time until the end in minutes.
    */
   public int minutesTo(final BusTime end) {
-    if(hour < end.hour) return (end.hour - hour) * MINUTES_PER_HOUR + end.minute - minute;
-    if(end.hour < hour) return (HOURS_PER_DAY + end.hour - hour) * MINUTES_PER_HOUR
-        + end.minute - minute;
-    if(minute <= end.minute) return end.minute - minute;
-    return HOURS_PER_DAY * MINUTES_PER_HOUR + end.minute - minute;
+    return (secondsTo(end) + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE;
   }
 
   /**
    * Getter.
    * 
-   * @param min The difference in minutes.
-   * @return The time that is the given amount of minutes later.
+   * @param min minutes
+   * @param seconds seconds
+   * @return The time that is the given amount of time later.
+   */
+  public BusTime later(final int min, final int seconds) {
+    final int newSecs = this.seconds + min * SECONDS_PER_MINUTE + seconds;
+    return new BusTime(((newSecs % SECONDS_PER_DAY) + SECONDS_PER_DAY) % SECONDS_PER_DAY);
+  }
+
+  /**
+   * Getter.
+   * 
+   * @param min minutes
+   * @return The time that is the given amount of time later.
    */
   public BusTime later(final int min) {
-    final int newMin = minute + min;
-    if(min < 0) {
-      if(newMin >= 0) return new BusTime(hour, newMin);
-      int nh = hour;
-      int nm = newMin;
-      // slow but secure :)
-      while(nm < 0) {
-        --nh;
-        nm += MINUTES_PER_HOUR;
-      }
-      while(nh < 0) {
-        nh += HOURS_PER_DAY;
-      }
-      return new BusTime(nh, nm);
-    }
-    final int newHour = hour + newMin / MINUTES_PER_HOUR;
-    return new BusTime(newHour % HOURS_PER_DAY, newMin % MINUTES_PER_HOUR);
+    return later(min, 0);
   }
 
   /**
@@ -129,47 +160,43 @@ public final class BusTime implements Comparable<BusTime> {
    * @return The comparator.
    */
   public Comparator<BusTime> createRelativeComparator() {
-    final int curHour = hour;
-    final int curMin = minute;
     return new Comparator<BusTime>() {
-
       @Override
       public int compare(final BusTime o1, final BusTime o2) {
-        final int h1 = (o1.getHour() < curHour) ? HOURS_PER_DAY + o1.getHour()
-            : ((o1.getHour() == curHour && o1.getMinute() < curMin) ? HOURS_PER_DAY
-                + o1.getHour() : o1.getHour());
-        final int h2 = (o2.getHour() < curHour) ? HOURS_PER_DAY + o2.getHour()
-            : ((o2.getHour() == curHour && o2.getMinute() < curMin) ? HOURS_PER_DAY
-                + o2.getHour() : o2.getHour());
-        if(h1 != h2) return ((Integer) h1).compareTo(h2);
-        // minutes can easily be compared
-        return ((Integer) o1.getMinute()).compareTo(o2.getMinute());
+        return BusTime.this.secondsTo(o1) - BusTime.this.secondsTo(o2);
       }
-
     };
   }
 
   @Override
   public int compareTo(final BusTime o) {
-    if(hour != o.hour) return ((Integer) hour).compareTo(o.hour);
-    return ((Integer) minute).compareTo(o.minute);
+    return seconds - o.seconds;
   }
 
   @Override
   public boolean equals(final Object obj) {
-    if(obj == null) return false;
-    final BusTime time = (BusTime) obj;
-    return hour == time.hour && minute == time.minute;
+    return obj instanceof BusTime && seconds == ((BusTime) obj).seconds;
   }
 
   @Override
   public int hashCode() {
-    return hour * MINUTES_PER_HOUR + minute;
+    return seconds;
+  }
+
+  /**
+   * Whether the given time represents a blink second, ie a second when the
+   * colon is not printed.
+   * 
+   * @return Whether it is a blink second.
+   */
+  public boolean isBlinkSecond() {
+    return seconds % 2 != 0;
   }
 
   @Override
   public String toString() {
-    return String.format("%s[%dh, %dmin]", getClass().getSimpleName(), hour, minute);
+    return String.format("%s[%dh, %dmin, %dsec]", getClass().getSimpleName(), getHour(),
+        getMinute(), getSecond());
   }
 
   /**
@@ -188,8 +215,8 @@ public final class BusTime implements Comparable<BusTime> {
    * @return A pretty representation.
    */
   public String pretty(final boolean blink) {
-    final String min = "0" + minute;
-    return hour + (blink ? " " : ":") + min.substring(min.length() - 2) + "h";
+    final String min = "0" + getMinute();
+    return getHour() + (blink ? " " : ":") + min.substring(min.length() - 2) + "h";
   }
 
   /**
@@ -213,18 +240,8 @@ public final class BusTime implements Comparable<BusTime> {
    * @return The converted time.
    */
   public static BusTime fromCalendar(final Calendar calendar) {
-    return new BusTime(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
-  }
-
-  /**
-   * Whether the given time represents a blink second, ie a second when the
-   * colon is not printed.
-   * 
-   * @param calendar The time.
-   * @return Whether it is a blink second.
-   */
-  public static boolean isBlinkSecond(final Calendar calendar) {
-    return calendar.get(Calendar.SECOND) % 2 != 0;
+    return new BusTime(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE),
+        calendar.get(Calendar.SECOND));
   }
 
   /**

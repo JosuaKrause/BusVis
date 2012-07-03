@@ -1,6 +1,5 @@
 package infovis.gui;
 
-import static infovis.data.BusTime.*;
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
@@ -15,7 +14,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Hashtable;
@@ -726,8 +724,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     ffwButton.setEnabled(!nowMode);
     now.setSelected(nowMode);
     if(nowMode) {
-      final Calendar cal = Calendar.getInstance();
-      btLabel.setText(BusTime.fromCalendar(cal).pretty(isBlinkSecond(cal)));
+      final BusTime now = BusTime.now();
+      btLabel.setText(now.pretty(now.isBlinkSecond()));
     } else {
       startHours.setValue(time.getHour());
       startMinutes.setValue(time.getMinute());

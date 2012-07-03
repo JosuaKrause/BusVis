@@ -16,29 +16,19 @@ import java.util.Collections;
  */
 public final class RoutingResult {
 
-  /**
-   * The start bus station.
-   */
+  /** The start bus station. */
   private final BusStation from;
 
-  /**
-   * The end bus station.
-   */
+  /** The end bus station. */
   private final BusStation to;
 
-  /**
-   * The travel time.
-   */
-  private final int minutes;
+  /** The travel time. */
+  private final int seconds;
 
-  /**
-   * The edges used by this route.
-   */
+  /** The edges used by this route. */
   private final Collection<BusEdge> edges;
 
-  /**
-   * The start time.
-   */
+  /** The start time. */
   private final BusTime startTime;
 
   /**
@@ -46,13 +36,13 @@ public final class RoutingResult {
    * 
    * @param from The start station.
    * @param to The end station.
-   * @param minutes The travel time.
    * @param edges The edges used by this route.
    * @param startTime The start time.
+   * @param seconds The travel time.
    */
-  public RoutingResult(final BusStation from, final BusStation to, final int minutes,
-      final BusEdge[] edges, final BusTime startTime) {
-    this(from, to, minutes, Arrays.asList(edges), startTime);
+  public RoutingResult(final BusStation from, final BusStation to, final BusEdge[] edges,
+      final BusTime startTime, final int seconds) {
+    this(from, to, Arrays.asList(edges), startTime, seconds);
   }
 
   /**
@@ -60,15 +50,15 @@ public final class RoutingResult {
    * 
    * @param from The start station.
    * @param to The end station.
-   * @param minutes The travel time.
    * @param edges The edges used by this route.
    * @param startTime The start time.
+   * @param seconds The travel time.
    */
-  public RoutingResult(final BusStation from, final BusStation to, final int minutes,
-      final Collection<BusEdge> edges, final BusTime startTime) {
+  public RoutingResult(final BusStation from, final BusStation to,
+      final Collection<BusEdge> edges, final BusTime startTime, final int seconds) {
     this.from = from;
     this.to = to;
-    this.minutes = minutes;
+    this.seconds = seconds;
     this.edges = Collections.unmodifiableCollection(edges);
     this.startTime = startTime;
   }
@@ -82,7 +72,7 @@ public final class RoutingResult {
   public RoutingResult(final BusStation from, final BusStation to) {
     this.from = from;
     this.to = to;
-    minutes = from != to ? -1 : 0;
+    seconds = from != to ? -1 : 0;
     edges = null;
     startTime = null;
   }
@@ -117,11 +107,20 @@ public final class RoutingResult {
   /**
    * Getter.
    * 
+   * @return The travel time in seconds.
+   */
+  public int seconds() {
+    if(seconds < 0) throw new IllegalStateException("has no time");
+    return seconds;
+  }
+
+  /**
+   * Getter.
+   * 
    * @return The travel time in minutes.
    */
   public int minutes() {
-    if(minutes < 0) throw new IllegalStateException("has no time");
-    return minutes;
+    return (seconds + BusTime.SECONDS_PER_MINUTE - 1) / BusTime.SECONDS_PER_MINUTE;
   }
 
   /**
@@ -166,7 +165,7 @@ public final class RoutingResult {
    * @return The end time.
    */
   public BusTime getEndTime() {
-    return startTime.later(minutes());
+    return startTime.later(0, seconds());
   }
 
   @Override
@@ -189,18 +188,18 @@ public final class RoutingResult {
 
           if(curr.getLine() == BusLine.WALK) {
             sb.append(",\n    walk ").append(
-                BusTime.minutesToString(curr.travelMinutes())).append(" to ");
+                BusTime.minutesToString(curr.travelSeconds() / 60)).append(" to ");
           } else {
             sb.append(",\n    wait for ").append(wait).append(" minutes, take bus line ").append(
                 curr.getLine().getName()).append(" for ").append(
-                    BusTime.minutesToString(curr.travelMinutes())).append(" to ");
+                    BusTime.minutesToString(curr.travelSeconds() / 60)).append(" to ");
           }
         }
         prev = curr;
       }
       sb.append(prev.getTo().getName());
     }
-    return sb.append("\n  ],\n  time=").append(BusTime.minutesToString(minutes)).append(
+    return sb.append("\n  ],\n  time=").append(BusTime.minutesToString(seconds / 60)).append(
         "\n]").toString();
   }
 }

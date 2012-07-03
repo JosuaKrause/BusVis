@@ -23,7 +23,7 @@ public final class RouteFinder implements RoutingAlgorithm {
       final int timeDiff = o1.travelTime - o2.travelTime;
       if(timeDiff != 0) return timeDiff;
       final int stepsDiff = o1.getLength() - o2.getLength();
-      return stepsDiff != 0 ? timeDiff : o1.walkTime() - o2.walkTime();
+      return stepsDiff != 0 ? timeDiff : o1.walkTimeSecs() - o2.walkTimeSecs();
     }
   };
 
@@ -46,8 +46,8 @@ public final class RouteFinder implements RoutingAlgorithm {
         res[id] = new RoutingResult(station, to);
         continue;
       }
-      res[id] = new RoutingResult(station, to,
-          start.minutesTo(list[list.length - 1].getEnd()), list, start);
+      res[id] = new RoutingResult(station, to, list, start,
+          start.secondsTo(list[list.length - 1].getEnd()));
     }
     return res;
   }
@@ -73,7 +73,8 @@ public final class RouteFinder implements RoutingAlgorithm {
       final BusStationEnumerator bse, final BusStation station, final BitSet dests,
       final BusTime start, final int wait, final int maxDuration, final int maxWalk)
           throws InterruptedException {
-    final int maxWalkSecs = maxWalk * BusTime.SECONDS_PER_MINUTE;
+    final int maxWalkSecs = maxWalk * BusTime.SECONDS_PER_MINUTE, maxDurSecs = maxDuration
+        * BusTime.SECONDS_PER_MINUTE, waitSecs = wait * BusTime.SECONDS_PER_MINUTE;
     // set of stations yet to be found
     final BitSet notFound = dests == null ? new BitSet() : (BitSet) dests.clone();
     if(dests == null) {
@@ -87,7 +88,7 @@ public final class RouteFinder implements RoutingAlgorithm {
     final PriorityQueue<Route> queue = new PriorityQueue<Route>(16, CMP);
     for(final BusEdge e : station.getEdges(start)) {
       final Route route = new Route(start, e);
-      if(route.travelTime <= maxDuration) {
+      if(route.travelTime <= maxDurSecs) {
         queue.add(route);
       }
     }
@@ -96,10 +97,9 @@ public final class RouteFinder implements RoutingAlgorithm {
       if(!dest.equals(station)) {
         final int walkSecs = station.walkingSeconds(dest);
         if(0 <= walkSecs && walkSecs <= maxWalkSecs) {
-          final BusTime end = start.later((walkSecs + BusTime.SECONDS_PER_MINUTE - 1)
-              / BusTime.SECONDS_PER_MINUTE);
+          final BusTime end = start.later(0, walkSecs);
           final Route route = new Route(start, BusEdge.walking(station, dest, start, end));
-          if(route.travelTime <= maxDuration) {
+          if(route.travelTime <= maxDurSecs) {
             queue.add(route);
           }
         }
@@ -119,19 +119,19 @@ public final class RouteFinder implements RoutingAlgorithm {
 
       final BusTime arrival = last.getEnd();
       for(final BusEdge e : dest.getEdges(arrival)) {
-        if(current.timePlus(e) > maxDuration || current.contains(e.getTo())) {
+        if(current.timePlus(e) > maxDurSecs || current.contains(e.getTo())) {
           // violates general invariants
           continue;
         }
 
         final boolean sameTour = last.sameTour(e);
-        if(!sameTour && arrival.minutesTo(e.getStart()) < wait) {
+        if(!sameTour && arrival.secondsTo(e.getStart()) < waitSecs) {
           // bus is missed
           continue;
         }
 
         if(best != null
-            && !(sameTour && best.last.getEnd().minutesTo(last.getEnd()) < wait)) {
+            && !(sameTour && best.last.getEnd().secondsTo(last.getEnd()) < waitSecs)) {
           // one could just change the bus from the optimal previous route
           continue;
         }
@@ -147,11 +147,10 @@ public final class RouteFinder implements RoutingAlgorithm {
               continue;
             }
 
-            final BusTime mid = last.getEnd(), end = mid.later(
-                (secs + BusTime.SECONDS_PER_MINUTE - 1) / BusTime.SECONDS_PER_MINUTE);
+            final BusTime mid = last.getEnd(), end = mid.later(0, secs);
             final BusEdge e = BusEdge.walking(dest, st, mid, end);
 
-            if(current.timePlus(e) > maxDuration) {
+            if(current.timePlus(e) > maxDurSecs) {
               // violates general invariants
               continue;
             }
@@ -210,7 +209,7 @@ public final class RouteFinder implements RoutingAlgorithm {
     protected final Route before;
     /** Last edge in the route. */
     protected final BusEdge last;
-    /** Overall travel time in minutes. */
+    /** Overall travel time in seconds. */
     protected final int travelTime;
     /** The length of this route. */
     private final int length;
@@ -226,7 +225,7 @@ public final class RouteFinder implements RoutingAlgorithm {
     Route(final BusTime start, final BusEdge first) {
       before = null;
       last = first;
-      travelTime = start.minutesTo(first.getStart()) + first.travelMinutes();
+      travelTime = start.secondsTo(first.getStart()) + first.travelSeconds();
       stations = new BitSet();
       stations.set(first.getFrom().getId());
       stations.set(first.getTo().getId());
@@ -297,13 +296,13 @@ public final class RouteFinder implements RoutingAlgorithm {
     /**
      * Total time walked in this route.
      * 
-     * @return number of minutes spent walking
+     * @return number of seconds spent walking
      */
-    public int walkTime() {
+    public int walkTimeSecs() {
       int walked = 0;
       for(Route route = this; route != null; route = route.before) {
         if(route.last.getLine() == BusLine.WALK) {
-          walked += route.last.travelMinutes();
+          walked += route.last.travelSeconds();
         }
       }
       return walked;
@@ -314,10 +313,10 @@ public final class RouteFinder implements RoutingAlgorithm {
      * edge.
      * 
      * @param next next edge
-     * @return time in minutes
+     * @return time in seconds
      */
     public int timePlus(final BusEdge next) {
-      return travelTime + last.getEnd().minutesTo(next.getStart()) + next.travelMinutes();
+      return travelTime + last.getEnd().secondsTo(next.getStart()) + next.travelSeconds();
     }
 
     /**

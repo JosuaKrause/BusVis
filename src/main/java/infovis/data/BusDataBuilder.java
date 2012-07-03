@@ -124,7 +124,7 @@ public final class BusDataBuilder {
    */
   private static BusTime parseTime(final String time) {
     final String[] parts = time.split(":");
-    return new BusTime(parseInt(parts[0]), parseInt(parts[1]));
+    return new BusTime(parseInt(parts[0]), parseInt(parts[1]), 0);
   }
 
   /**
