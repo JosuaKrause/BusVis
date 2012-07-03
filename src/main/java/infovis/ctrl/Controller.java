@@ -41,7 +41,7 @@ public final class Controller implements BusStationEnumerator {
   private BusStation curSelection;
 
   /** The current start time. */
-  protected volatile BusTime curStartTime = BusTime.now();
+  protected volatile BusTime curStartTime = BusTime.NOON;
 
   /** The current change time. */
   private volatile int curChangeTime = 3;

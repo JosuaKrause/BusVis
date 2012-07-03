@@ -74,7 +74,14 @@ public final class MainWindow extends JFrame {
       }
 
     });
-    setExtendedState(Frame.NORMAL);
+    SwingUtilities.invokeLater(new Runnable() {
+
+      @Override
+      public void run() {
+        over.loadSVG(ctrl);
+      }
+
+    });
   }
 
   @Override

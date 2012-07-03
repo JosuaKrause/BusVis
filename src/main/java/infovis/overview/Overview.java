@@ -28,6 +28,8 @@ import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.swing.JSVGCanvas;
+import org.apache.batik.swing.gvt.GVTTreeRendererAdapter;
+import org.apache.batik.swing.gvt.GVTTreeRendererEvent;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.w3c.dom.svg.SVGDocument;
 
@@ -51,7 +53,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   /**
    * The bounding box of the abstract map of Konstanz.
    */
-  protected final Rectangle2D boundingBox;
+  private Rectangle2D boundingBox;
 
   /**
    * Weather the overview is drawn the first time.
@@ -84,6 +86,38 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     focusSign.curveTo(-5, -30, 5, -30, 15, -40);
     focusSign.closePath();
 
+    setPreferredSize(new Dimension(width, height));
+    setDisableInteractions(true);
+    selectableText = false;
+
+    // mouse listener
+    mouse = new OverviewMouse(this, ctrl);
+    addMouseListener(mouse);
+    addMouseWheelListener(mouse);
+    addMouseMotionListener(mouse);
+
+    // resize listener
+    addComponentListener(new ComponentAdapter() {
+
+      @Override
+      public void componentResized(final ComponentEvent e) {
+        final Rectangle2D boundingBox = getSVGBoundingRect();
+        if(boundingBox != null) {
+          mouse.visibleRectChanged(boundingBox);
+        }
+      }
+
+    });
+
+    ctrl.addBusVisualization(this);
+  }
+
+  /**
+   * Loads the svg image.
+   * 
+   * @param ctrl The controller.
+   */
+  public void loadSVG(final Controller ctrl) {
     // calculate bounding box
     final String parser = XMLResourceDescriptor.getXMLParserClassName();
     final SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
@@ -100,28 +134,17 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     final GraphicsNode gvtRoot = builder.build(ctx, doc);
     boundingBox = gvtRoot.getBounds();
 
-    setURI(new File(ctrl.getResourcePath() + "abstract.svg").toURI().toString());
-    setPreferredSize(new Dimension(width, height));
-    setDisableInteractions(true);
-    selectableText = false;
-
-    // mouse listener
-    mouse = new OverviewMouse(this, ctrl);
-    addMouseListener(mouse);
-    addMouseWheelListener(mouse);
-    addMouseMotionListener(mouse);
-
-    // resize listener
-    addComponentListener(new ComponentAdapter() {
+    addGVTTreeRendererListener(new GVTTreeRendererAdapter() {
 
       @Override
-      public void componentResized(final ComponentEvent e) {
-        mouse.visibleRectChanged(boundingBox);
+      public void gvtRenderingPrepare(final GVTTreeRendererEvent e) {
+        reset();
+        removeGVTTreeRendererListener(this);
       }
 
     });
 
-    ctrl.addBusVisualization(this);
+    setURI(new File(ctrl.getResourcePath() + "abstract.svg").toURI().toString());
   }
 
   @Override

@@ -184,9 +184,11 @@ public final class OverviewMouse extends MouseAdapter {
    * @param y the y offset.
    */
   public void setOffset(final double x, final double y) {
+    final Rectangle2D svgBB = over.getSVGBoundingRect();
+    if(svgBB == null) return;
+
     offX = x;
     offY = y;
-    final Rectangle2D svgBB = over.getSVGBoundingRect();
     final Rectangle2D visBB = getVisibleCanvas();
 
     // snap back
@@ -269,6 +271,9 @@ public final class OverviewMouse extends MouseAdapter {
    * @param factor The factor to alter the zoom level.
    */
   public void zoomTo(final double x, final double y, final double factor) {
+    final Rectangle2D svgBB = over.getSVGBoundingRect();
+    if(svgBB == null) return;
+
     double f = factor;
     double newZoom = zoom * factor;
     if(newZoom < minZoom) {
