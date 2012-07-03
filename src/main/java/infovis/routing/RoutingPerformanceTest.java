@@ -41,7 +41,7 @@ public final class RoutingPerformanceTest {
    * @throws Exception No-exceptions
    */
   public static void main(final String[] args) throws Exception {
-    final BusStationManager man = BusDataBuilder.load("src/main/resources");
+    final BusStationManager man = BusDataBuilder.load("src/main/resources/konstanz/");
     final BitSet set = new BitSet();
     for(final BusStation a : man.getStations()) {
       set.set(a.getId());

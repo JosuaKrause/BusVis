@@ -47,10 +47,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   /** The fast forward mode icon. */
   private static final Icon FFW_MODE =
-      new ImageIcon("src/main/resources/pics/Fast-forward.gif");
+      new ImageIcon("src/main/resources/pics/ffw.gif");
 
   /** The fast forward stop icon. */
-  private static final Icon FFW_STOP = new ImageIcon("src/main/resources/pics/Stop.gif");
+  private static final Icon FFW_STOP = new ImageIcon("src/main/resources/pics/stop0.gif");
 
   /** The station box. */
   protected final JComboBox box;

@@ -81,7 +81,7 @@ public class RoutingManagerTests {
    */
   @Test
   public void findRoutes() throws Exception {
-    final BusStationManager man = BusDataBuilder.load("src/main/resources/");
+    final BusStationManager man = BusDataBuilder.load("src/main/resources/konstanz/");
     final RoutingManager rm = RoutingManager.newInstance();
     final Semaphore sem = new Semaphore(0);
     final AtomicReference<RoutingResult[]> ref = new AtomicReference<RoutingResult[]>();
@@ -106,7 +106,7 @@ public class RoutingManagerTests {
    */
   @Test
   public void terminateRouting() throws Exception {
-    final BusStationManager man = BusDataBuilder.load("src/main/resources/");
+    final BusStationManager man = BusDataBuilder.load("src/main/resources/konstanz/");
     final CountDownLatch cd = new CountDownLatch(2);
     final AtomicBoolean ref = new AtomicBoolean(false);
     final RoutingManager rm = RoutingManager.newInstance();
