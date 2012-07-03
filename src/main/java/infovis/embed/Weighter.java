@@ -86,6 +86,9 @@ public interface Weighter {
   /** Signals that an animation until the next second should be used. */
   int FAST_FORWARD_CHANGE = 4;
 
+  /** Signals that an animation for realtime should be used. */
+  int REALTIME_CHANGE = 8;
+
   /**
    * Getter.
    * 

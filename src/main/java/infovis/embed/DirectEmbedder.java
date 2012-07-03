@@ -1,6 +1,7 @@
 package infovis.embed;
 
 import static infovis.util.VecUtil.*;
+import infovis.ctrl.Controller;
 import infovis.data.BusTime;
 import infovis.util.Interpolator;
 
@@ -73,6 +74,9 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
           n.startAnimationTo(dest, Interpolator.LINEAR, Interpolator.FAST);
         } else if((changes & Weighter.FAST_FORWARD_CHANGE) != 0) {
           n.startAnimationTo(dest, Interpolator.LINEAR, duration);
+        } else if((changes & Weighter.REALTIME_CHANGE) != 0) {
+          n.startAnimationTo(dest, Interpolator.LINEAR, Controller.REALTIME
+              * BusTime.MILLISECONDS_PER_SECOND);
         } else {
           n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.NORMAL);
         }

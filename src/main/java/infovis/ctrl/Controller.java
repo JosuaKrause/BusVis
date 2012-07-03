@@ -25,6 +25,9 @@ import javax.swing.JFrame;
  */
 public final class Controller implements BusStationEnumerator {
 
+  /** How many seconds are considered realtime. */
+  public static final int REALTIME = 10;
+
   /** The list of active visualizations. */
   private final List<BusVisualization> vis = new ArrayList<BusVisualization>();
 
@@ -85,15 +88,13 @@ public final class Controller implements BusStationEnumerator {
         if(isStartTimeNow()) {
           final BusTime curr = BusTime.now();
           overwriteDisplayedTime(curr, curr.isBlinkSecond());
-          if(curr.getSecond() % 10 == 0) {
-            // we may lose a user update here
-            // but very rare (only if the user clicks _very_ fast)
+          if(curr.getSecond() % REALTIME == 0) {
             setTime(curStartTime);
           }
         } else if(isInFastForwardMode()) {
           BusTime time = getTime();
           if(time == null) {
-            // we stop now mode here
+            // we stop now-mode here
             time = BusTime.now();
           }
           setTime(time.later(getFastForwardStep()));

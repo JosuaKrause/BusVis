@@ -44,6 +44,9 @@ public final class StationDistance implements Weighter {
   /** The change time for lines. */
   private int changeTime = 5;
 
+  /** Whether we are in fast forward mode. */
+  private boolean ffw;
+
   /** The start bus station or <code>null</code> if there is none. */
   private BusStation from;
 
@@ -105,18 +108,20 @@ public final class StationDistance implements Weighter {
    * @param from The reference station.
    * @param time The reference time.
    * @param changeTime The change time.
+   * @param ffw Whether we are in fast forward mode.
    */
-  public void set(final BusStation from, final BusTime time, final int changeTime) {
+  public void set(final BusStation from, final BusTime time,
+      final int changeTime, final boolean ffw) {
     fader.setPredict(from);
     if(from == null) {
-      putSettings(dummyRoutes, from, time, changeTime);
+      putSettings(dummyRoutes, from, time, changeTime, ffw);
       return;
     }
     final CallBack<RoutingResult[]> cb = new CallBack<RoutingResult[]>() {
 
       @Override
       public void callBack(final RoutingResult[] result) {
-        putSettings(result, from, time, changeTime);
+        putSettings(result, from, time, changeTime, ffw);
       }
 
     };
@@ -132,20 +137,29 @@ public final class StationDistance implements Weighter {
    * @param from The start station.
    * @param time The start time.
    * @param changeTime The change time.
+   * @param ffw Whether we are in fast forward mode.
    */
   protected synchronized void putSettings(final RoutingResult[] route,
-      final BusStation from, final BusTime time, final int changeTime) {
+      final BusStation from, final BusTime time, final int changeTime, final boolean ffw) {
     routes = route;
     matrix.refreshHighlights(routes);
-    if(from != StationDistance.this.from) {
-      fader.initialize(StationDistance.this.from, Interpolator.NORMAL);
+    if(from != this.from) {
+      fader.initialize(this.from, Interpolator.NORMAL);
     }
-    changes = ((time != null && StationDistance.this.time != null) &&
-        (StationDistance.this.time != time || StationDistance.this.changeTime != changeTime))
-        ? FAST_ANIMATION_CHANGE : NORMAL_CHANGE;
-    StationDistance.this.from = from;
-    StationDistance.this.time = time;
-    StationDistance.this.changeTime = changeTime;
+    final BusTime old = this.time;
+    if(ffw) {
+      changes = FAST_FORWARD_CHANGE;
+    } else if(time == null) {
+      changes = REALTIME_CHANGE;
+    } else if(old != null && (old != time || this.changeTime != changeTime)) {
+      changes = FAST_ANIMATION_CHANGE;
+    } else {
+      changes = NORMAL_CHANGE;
+    }
+    this.from = from;
+    this.time = time;
+    this.changeTime = changeTime;
+    this.ffw = ffw;
     animator.forceNextFrame();
   }
 
@@ -203,7 +217,7 @@ public final class StationDistance implements Weighter {
    * Signals undefined changes.
    */
   public void changeUndefined() {
-    set(from, time, changeTime);
+    set(from, time, changeTime, ffw);
   }
 
   /**
@@ -212,7 +226,7 @@ public final class StationDistance implements Weighter {
    * @param from Sets the reference station.
    */
   public void setFrom(final BusStation from) {
-    set(from, time, changeTime);
+    set(from, time, changeTime, ffw);
   }
 
   /**
@@ -228,9 +242,10 @@ public final class StationDistance implements Weighter {
    * Setter.
    * 
    * @param time Sets the reference time.
+   * @param ffw Whether we are in fast forward mode.
    */
-  public void setTime(final BusTime time) {
-    set(from, time, changeTime);
+  public void setTime(final BusTime time, final boolean ffw) {
+    set(from, time, changeTime, ffw);
   }
 
   /**
@@ -248,7 +263,7 @@ public final class StationDistance implements Weighter {
    * @param changeTime Sets the change time.
    */
   public void setChangeTime(final int changeTime) {
-    set(from, time, changeTime);
+    set(from, time, changeTime, ffw);
   }
 
   /**

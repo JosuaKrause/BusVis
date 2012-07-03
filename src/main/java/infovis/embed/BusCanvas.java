@@ -146,7 +146,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
   @Override
   public void setStartTime(final BusTime time, final boolean ffwMode) {
-    dist.setTime(time);
+    dist.setTime(time, ffwMode);
   }
 
   @Override
@@ -174,7 +174,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
     if(p instanceof AbstractEmbedder) {
       setPainter((AbstractEmbedder) p);
     }
-    throw new IllegalArgumentException("p must be a "
+    throw new IllegalArgumentException("p must be an "
         + AbstractEmbedder.class.getSimpleName());
   }
 
