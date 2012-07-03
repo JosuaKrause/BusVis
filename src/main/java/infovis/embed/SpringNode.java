@@ -222,6 +222,11 @@ public final class SpringNode {
    */
   public void startAnimationTo(final Point2D pos, final Interpolator pol,
       final int duration) {
+    clearAnimation();
+    if(duration <= 0) {
+      setPosition(pos);
+      return;
+    }
     final long millis = System.currentTimeMillis();
     startTime = millis;
     endTime = millis + duration;
@@ -262,6 +267,7 @@ public final class SpringNode {
    * Aborts the current animation and keeps the current position.
    */
   public void clearAnimation() {
+    animate();
     pol = null;
     start = null;
     end = null;

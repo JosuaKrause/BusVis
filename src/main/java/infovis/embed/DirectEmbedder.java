@@ -1,9 +1,11 @@
 package infovis.embed;
 
 import static infovis.util.VecUtil.*;
+import infovis.data.BusTime;
 import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
+import java.util.Calendar;
 import java.util.Collection;
 
 /**
@@ -32,8 +34,15 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
 
   @Override
   protected boolean step() {
-    final SpringNode ref = weighter.getReferenceNode();
     final int changes = weighter.changes();
+    final int duration;
+    if((changes & Weighter.FAST_FORWARD_CHANGE) != 0) {
+      duration = BusTime.MILLISECONDS_PER_SECOND
+          - Calendar.getInstance().get(Calendar.MILLISECOND) - 1;
+    } else {
+      duration = 0;
+    }
+    final SpringNode ref = weighter.getReferenceNode();
     if(changes != Weighter.NO_CHANGE) {
       final Point2D diff;
       final Point2D refP;
@@ -62,6 +71,8 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
         }
         if((changes & Weighter.FAST_ANIMATION_CHANGE) != 0) {
           n.startAnimationTo(dest, Interpolator.LINEAR, Interpolator.FAST);
+        } else if((changes & Weighter.FAST_FORWARD_CHANGE) != 0) {
+          n.startAnimationTo(dest, Interpolator.LINEAR, duration);
         } else {
           n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.NORMAL);
         }

@@ -278,7 +278,7 @@ public final class Controller implements BusStationEnumerator {
     for(final BusVisualization v : vis) {
       v.setStartTime(start, ffwMode);
     }
-    if(start == null) {
+    if(ffwMode && start == null) {
       setFastForwardMode(false);
     }
     setTitle(null);
