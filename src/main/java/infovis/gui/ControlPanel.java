@@ -32,6 +32,7 @@ import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -354,6 +355,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     final JPanel choosers = new JPanel();
     choosers.setLayout(new BoxLayout(choosers, BoxLayout.Y_AXIS));
+    // fix for two JPanels over each other creating more left margin than wanted
+    choosers.setBorder(new EmptyBorder(0, -5, 0, 0));
 
     // routing selection
     final RoutingAlgorithm[] algos = Controller.getRoutingAlgorithms();

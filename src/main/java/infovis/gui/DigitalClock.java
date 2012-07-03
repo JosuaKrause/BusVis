@@ -21,7 +21,7 @@ public class DigitalClock extends JPanel {
   /** The hour text field. */
   private final JTextField hours;
 
-  /** The minute text field */
+  /** The minute text field. */
   private final JTextField minutes;
 
   /** Space label that displays the ":". */
