@@ -64,9 +64,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /** The last start minute time (used for changing the hours). */
   protected int lastStartMin = -1;
 
-  /** The bus time label. */
-  private final JLabel btLabel;
-
   /** The check box to select now as start time. */
   protected final JCheckBox now;
 
@@ -472,8 +469,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     });
 
-    // sets the width of the label
-    btLabel = new JLabel("24:00h");
     now = new JCheckBox("now");
     now.addChangeListener(new ChangeListener() {
 
@@ -493,7 +488,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     });
     addHor(new JLabel("Start Time:"), startHours, new JLabel(":"),
-        startMinutes, now, btLabel, new JLabel(" "));
+        startMinutes, now, new JLabel(" "));
 
     // fast forward
     final SpinnerNumberModel ffwModel = new SpinnerNumberModel(1, 1, 60, 1);
@@ -824,9 +819,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   }
 
   /**
-   * Adds a number of components to the panel.
+   * Adds a number of components to the given panel.
    * 
-   * @param panel The panel to add the compentens to.
+   * @param panel The panel to add the components to.
    * @param comps The components to add.
    */
   private static void addHorToPanel(final JPanel panel, final Component... comps) {
@@ -876,17 +871,17 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     now.setSelected(nowMode);
     if(nowMode) {
       final BusTime now = BusTime.now();
-      btLabel.setText(now.pretty(now.isBlinkSecond()));
+      clock.setTime(now.getHour(), now.getMinute(), now.isBlinkSecond());
     } else {
       startHours.setValue(time.getHour());
       startMinutes.setValue(time.getMinute());
-      btLabel.setText(ffwMode ? time.pretty() : "");
+      clock.setTime(time.getHour(), time.getMinute(), false);
     }
   }
 
   @Override
   public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
-    btLabel.setText(now.isSelected() ? time.pretty(blink) : "");
+    clock.setTime(time.getHour(), time.getMinute(), blink);
   }
 
   @Override
