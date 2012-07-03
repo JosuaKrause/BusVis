@@ -623,17 +623,15 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     });
 
     timeWalkSlider = new JSlider(0, 119, 0);
-    timeWalkSlider.setMajorTickSpacing(20);
+    timeWalkSlider.setMajorTickSpacing(30);
     timeWalkSlider.setMinorTickSpacing(5);
     timeWalkSlider.setPaintTicks(true);
 
     final Hashtable<Integer, JLabel> twLabels = new Hashtable<Integer, JLabel>();
     twLabels.put(0, new JLabel("0"));
-    twLabels.put(20, new JLabel("20"));
-    twLabels.put(40, new JLabel("40"));
+    twLabels.put(30, new JLabel("30"));
     twLabels.put(60, new JLabel("60"));
-    twLabels.put(80, new JLabel("80"));
-    twLabels.put(100, new JLabel("100"));
+    twLabels.put(90, new JLabel("90"));
     twLabels.put(119, new JLabel("120"));
     timeWalkSlider.setLabelTable(twLabels);
 

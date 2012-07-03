@@ -23,6 +23,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.BitSet;
 import java.util.Collection;
 
 /**
@@ -223,10 +224,10 @@ public final class StationDrawer implements NodeDrawer, Fader {
 
   @Override
   public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n,
-      final boolean hovered) {
+      final boolean hovered, final String addText) {
     final BusStation station = dist.getStation(n);
 
-    if(!hovered) {
+    if(!hovered && addText == null) {
       final int degree = dist.getMatrix().getDegree(station);
       if(degree > LOW_DEGREE && degree < HIGH_DEGREE) return;
     }
@@ -239,7 +240,9 @@ public final class StationDrawer implements NodeDrawer, Fader {
 
     final BusStation from = dist.getFrom();
     String distance;
-    if(from != null && from != station) {
+    if(addText != null) {
+      distance = " (" + addText + ")";
+    } else if(from != null && from != station) {
       final RoutingResult route = dist.getRoute(station);
       if(route.isReachable()) {
         distance = " (" + BusTime.minutesToString(route.minutes()) + ")";
@@ -252,6 +255,38 @@ public final class StationDrawer implements NodeDrawer, Fader {
 
     labelRealize.drawLabel(g, ctx.getVisibleComponent(), ctx.toComponentLength(1),
         pos, station.getName() + distance);
+  }
+
+  @Override
+  public void drawRouteLabels(final Graphics2D g, final Context ctx, final SpringNode n,
+      final BitSet visited) {
+    final BusStation s = dist.getStation(n);
+    final RoutingResult route = dist.getRoute(s);
+    if(route == null || !route.isReachable()) return;
+
+    final Collection<BusEdge> edges = route.getEdges();
+    if(edges == null) return;
+
+    final SpringNode start = dist.getReferenceNode();
+    final Graphics2D gfx = (Graphics2D) g.create();
+    drawLabel(gfx, ctx, start, false, route.getStartTime().pretty());
+    gfx.dispose();
+    visited.set(start.getId());
+
+    for(final BusEdge e : edges) {
+      final SpringNode to = dist.getNode(e.getTo());
+      final Graphics2D g2 = (Graphics2D) g.create();
+      final BusLine line = e.getLine();
+      drawLabel(g2, ctx, to, false, e.getEnd().pretty() + " - "
+          + (BusLine.WALK.equals(line) ? "" : "Line ") + line.getName());
+      g2.dispose();
+      visited.set(to.getId());
+    }
+  }
+
+  @Override
+  public SpringNode getNode(final int i) {
+    return dist.getNode(i);
   }
 
   @Override
@@ -368,20 +403,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
 
   @Override
   public String getTooltipText(final SpringNode node) {
-    final BusStation station = dist.getStation(node);
-    final BusStation from = dist.getFrom();
-    String distance;
-    if(from != null && from != station) {
-      final RoutingResult route = dist.getRoute(station);
-      if(route.isReachable()) {
-        distance = " (" + BusTime.minutesToString(route.minutes()) + ")";
-      } else {
-        distance = " (not reachable)";
-      }
-    } else {
-      distance = "";
-    }
-    return station.getName() + distance;
+    return null;
   }
 
   @Override
