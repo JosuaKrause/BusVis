@@ -115,6 +115,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /** The ffw button. */
   protected final JButton ffwButton;
 
+  /** The prominent clock. */
+  private final DigitalClock clock;
+
   /**
    * A thin wrapper for the bus station name. Also allows the <code>null</code>
    * bus station, representing no selection.
@@ -351,6 +354,10 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   public ControlPanel(final Controller ctrl) {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     final Component space = Box.createRigidArea(new Dimension(5, 5));
+
+    final JPanel choosers = new JPanel();
+    choosers.setLayout(new BoxLayout(choosers, BoxLayout.Y_AXIS));
+
     // routing selection
     final RoutingAlgorithm[] algos = Controller.getRoutingAlgorithms();
     if(algos.length != 1) {
@@ -368,7 +375,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
       });
       algoBox.setMaximumSize(algoBox.getPreferredSize());
-      addHor(new JLabel("Routing:"), algoBox);
+      addHorToPanel(choosers, new JLabel("Routing:"), algoBox);
     } else {
       algoBox = null;
     }
@@ -389,7 +396,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       });
       final Dimension size = embedBox.getPreferredSize();
       embedBox.setMaximumSize(new Dimension(200, size.height));
-      addHor(new JLabel("Positioning:"), embedBox);
+      addHorToPanel(choosers, new JLabel("Positioning:"), embedBox);
     } else {
       embedBox = null;
     }
@@ -416,7 +423,12 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     });
     box.setMaximumSize(box.getPreferredSize());
-    addHor(new JLabel("Stations:"), box);
+    addHorToPanel(choosers, new JLabel("Stations:"), box);
+
+    // clock
+    clock = new DigitalClock();
+
+    addHor(choosers, Box.createRigidArea(new Dimension(15, 5)), clock);
     add(new JSeparator(SwingConstants.HORIZONTAL));
 
     // start time
@@ -809,6 +821,25 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    */
   protected int getChangeTime() {
     return ((Integer) changeMinutes.getValue()).intValue();
+  }
+
+  /**
+   * Adds a number of components to the panel.
+   * 
+   * @param panel The panel to add the compentens to.
+   * @param comps The components to add.
+   */
+  private static void addHorToPanel(final JPanel panel, final Component... comps) {
+    final JPanel hor = new JPanel();
+    hor.setLayout(new BoxLayout(hor, BoxLayout.X_AXIS));
+    for(final Component c : comps) {
+      hor.add(Box.createRigidArea(new Dimension(5, 5)));
+      if(c != null) {
+        hor.add(c);
+      }
+    }
+    hor.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.add(hor);
   }
 
   /**
