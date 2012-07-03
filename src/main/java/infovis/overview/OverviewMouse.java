@@ -184,9 +184,11 @@ public final class OverviewMouse extends MouseAdapter {
    * @param y the y offset.
    */
   public void setOffset(final double x, final double y) {
+    final Rectangle2D svgBB = over.getSVGBoundingRect();
+    if(svgBB == null) return;
+
     offX = x;
     offY = y;
-    final Rectangle2D svgBB = over.getSVGBoundingRect();
     final Rectangle2D visBB = getVisibleCanvas();
 
     // snap back
