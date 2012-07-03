@@ -127,8 +127,8 @@ public final class BusEdge implements Comparable<BusEdge> {
    * 
    * @return time needed from start to end
    */
-  public int travelMinutes() {
-    return start.minutesTo(end);
+  public int travelSeconds() {
+    return start.secondsTo(end);
   }
 
   /**

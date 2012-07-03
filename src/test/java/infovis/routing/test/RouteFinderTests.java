@@ -29,7 +29,7 @@ import org.junit.Test;
  */
 public class RouteFinderTests {
   /** Bus time for 12:00 AM. */
-  private static final BusTime NOON = new BusTime(12, 00);
+  private static final BusTime NOON = new BusTime(12, 00, 00);
 
   /**
    * Checks if the line is changed when advantageous.
@@ -297,7 +297,7 @@ public class RouteFinderTests {
 
     final RoutingResult res = routes[107];
     assertNotNull(res);
-    assertEquals(2, res.minutes());
+    assertEquals(109, res.seconds());
     assertSame(res.getEdges().iterator().next().getLine(), BusLine.WALK);
   }
 

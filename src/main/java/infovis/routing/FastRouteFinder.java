@@ -85,8 +85,8 @@ public final class FastRouteFinder implements RoutingAlgorithm {
       if(r.isNotReachable()) {
         res.add(new RoutingResult(from, r.getStation()));
       } else {
-        res.add(new RoutingResult(from, r.getStation(), r.minutes(), convertRoutes(r),
-            startTime));
+        res.add(new RoutingResult(from, r.getStation(), convertRoutes(r),
+            startTime, r.seconds()));
       }
     }
     return res;
@@ -135,7 +135,7 @@ public final class FastRouteFinder implements RoutingAlgorithm {
     addAllEdges(edges, from, start, changeTime, null, start, maxTime);
     for(BusEdge e; (e = edges.poll()) != null;) {
       // sanity check
-      if(start.minutesTo(e.getStart()) > start.minutesTo(e.getEnd())) {
+      if(start.secondsTo(e.getStart()) > start.secondsTo(e.getEnd())) {
         // edge starts before start
         continue;
       }
@@ -194,9 +194,9 @@ public final class FastRouteFinder implements RoutingAlgorithm {
         edges.add(edge);
       }
     }
-    final BusTime nt = time.later(changeTime);
+    final BusTime nt = time.later(changeTime, 0);
     for(final BusEdge edge : station.getEdges(nt)) {
-      if(!validEdge(edge, nt, maxTime - changeTime, max.later(-changeTime))) {
+      if(!validEdge(edge, nt, maxTime - changeTime, max.later(-changeTime, 0))) {
         continue;
       }
       if(edge.getLine().equals(line)) {
@@ -217,8 +217,7 @@ public final class FastRouteFinder implements RoutingAlgorithm {
    */
   private static boolean validEdge(final BusEdge edge, final BusTime start,
       final int maxTime, final BusTime max) {
-    final int time = start.minutesTo(edge.getStart());
-    final int maxMin = start.minutesTo(max);
+    final int time = start.secondsTo(edge.getStart()), maxMin = start.secondsTo(max);
     return time < maxTime && (maxMin == 0 || maxMin > time);
   }
 
@@ -329,18 +328,18 @@ public final class FastRouteFinder implements RoutingAlgorithm {
     /**
      * The cached minutes value.
      */
-    private int min = -1;
+    private int secs = -1;
 
     /**
      * Getter.
      * 
      * @return The minutes that are needed to arrive this bus station.
      */
-    public int minutes() {
-      if(min == -1) {
-        min = start.minutesTo(from.getEnd());
+    public int seconds() {
+      if(secs == -1) {
+        secs = start.secondsTo(from.getEnd());
       }
-      return min;
+      return secs;
     }
 
     /**
@@ -388,7 +387,7 @@ public final class FastRouteFinder implements RoutingAlgorithm {
     public void setStart() {
       from = null;
       parent = this;
-      min = 0;
+      secs = 0;
     }
 
   }

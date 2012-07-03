@@ -74,21 +74,14 @@ public final class Controller implements BusStationEnumerator {
     calendar.set(Calendar.MILLISECOND, 0);
     calendar.set(Calendar.SECOND, 0);
     final TimerTask task = new TimerTask() {
-
-      private int minute = calendar.get(Calendar.MINUTE);
-
       @Override
       public void run() {
         if(isStartTimeNow()) {
           final Calendar now = Calendar.getInstance();
-          final int min = now.get(Calendar.MINUTE);
           overwriteDisplayedTime(BusTime.fromCalendar(now), BusTime.isBlinkSecond(now));
-          if(min != minute) {
-            // we may lose a user update here
-            // but very rare (only if the user clicks _very_ fast)
-            setTime(curStartTime);
-            minute = min;
-          }
+          // we may lose a user update here
+          // but very rare (only if the user clicks _very_ fast)
+          setTime(curStartTime);
         }
       }
 
@@ -137,13 +130,13 @@ public final class Controller implements BusStationEnumerator {
    * All positioning techniques.
    */
   private static final Embedders[] EMBEDDERS = new Embedders[] {
-      // Embedders.EDGE,
+    // Embedders.EDGE,
 
-      Embedders.CIRCULAR,
+    Embedders.CIRCULAR,
 
-      Embedders.STRESS,
+    Embedders.STRESS,
 
-      // Embedders.SPRING,
+    // Embedders.SPRING,
   };
 
   /**
