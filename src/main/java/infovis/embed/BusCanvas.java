@@ -145,7 +145,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   }
 
   @Override
-  public void setStartTime(final BusTime time) {
+  public void setStartTime(final BusTime time, final boolean ffwMode) {
     dist.setTime(time);
   }
 
@@ -197,6 +197,12 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
   @Override
   public void overwriteDisplayedTime(final BusTime time, final boolean blink) {
+    // no-op
+  }
+
+  @Override
+  public void fastForwardChange(final boolean fastForwardMode,
+      final int fastForwardMinutes) {
     // no-op
   }
 

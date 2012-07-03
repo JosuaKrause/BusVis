@@ -3,7 +3,6 @@ package infovis.gui;
 import static infovis.data.BusTime.*;
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
-import infovis.ctrl.Controller.FastForwardThread;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.embed.Embedders;
@@ -23,6 +22,7 @@ import java.util.Hashtable;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -46,6 +46,13 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   /** SVUID. */
   private static final long serialVersionUID = 1644268841480928696L;
+
+  /** The fast forward mode icon. */
+  private static final Icon FFW_MODE =
+      new ImageIcon("src/main/resources/pics/Fast-forward.gif");
+
+  /** The fast forward stop icon. */
+  private static final Icon FFW_STOP = new ImageIcon("src/main/resources/pics/Stop.gif");
 
   /** The station box. */
   protected final JComboBox box;
@@ -103,9 +110,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   /** The ffw button. */
   protected final JButton ffwButton;
-
-  /** The ffw thread. */
-  protected final FastForwardThread ffwThread;
 
   /**
    * A thin wrapper for the bus station name. Also allows the <code>null</code>
@@ -250,12 +254,48 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   } // SimpleMouseWheelListener
 
   /**
+   * A cyclic number spinner for a JSpinner.
+   * 
+   * @author Marc Spicker
+   */
+  private class CyclicNumberModel extends SpinnerNumberModel {
+
+    /**
+     * Serial version ID.
+     */
+    private static final long serialVersionUID = 3042013777179841232L;
+
+    /**
+     * Constructor.
+     * 
+     * @param value Initial value.
+     * @param min Minimum.
+     * @param max Maximum.
+     */
+    public CyclicNumberModel(final int value, final int min, final int max) {
+      super(value, min, max, 1);
+    }
+
+    @Override
+    public Object getNextValue() {
+      if(getValue().equals(getMaximum())) return getMinimum();
+      return super.getNextValue();
+    }
+
+    @Override
+    public Object getPreviousValue() {
+      if(getValue().equals(getMinimum())) return getMaximum();
+      return super.getPreviousValue();
+    }
+
+  } // CyclicNumberModel
+
+  /**
    * Creates a control panel.
    * 
    * @param ctrl The corresponding controller.
    */
   public ControlPanel(final Controller ctrl) {
-    ffwThread = ctrl.getFfwThread();
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     final Component space = Box.createRigidArea(new Dimension(5, 5));
     // routing selection
@@ -344,9 +384,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       @Override
       public void stateChanged(final ChangeEvent e) {
         final BusTime startTime = getStartTime();
-        if(!ctrl.getTime().equals(startTime)) {
-          ctrl.setTime(startTime);
-        }
+        if(ctrl.getTime().equals(startTime)) return;
+        ctrl.setTime(startTime);
       }
 
     });
@@ -393,7 +432,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
     // fast forward
     ffwSlider = new JSlider(SwingConstants.HORIZONTAL, 1, 60, 1);
-    ffwSlider.setMajorTickSpacing(9);
+    ffwSlider.setMajorTickSpacing(10);
     ffwSlider.setMinorTickSpacing(1);
     ffwSlider.setPaintTicks(true);
     ffwSlider.setPaintLabels(true);
@@ -401,27 +440,20 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
       @Override
       public void stateChanged(final ChangeEvent e) {
-        ffwSlider.setToolTipText("" + ffwSlider.getValue());
-        ffwThread.setMinute(ffwSlider.getValue());
+        final int min = ffwSlider.getValue();
+        if(ctrl.getFastForwardStep() != min) {
+          ctrl.setFastForwardStep(min);
+        }
       }
 
     });
 
-    ffwButton = new JButton();
-    ffwButton.setIcon(new ImageIcon("src/main/resources/pics/Fast-forward.gif"));
-    ffwButton.setToolTipText("Fast-Forward");
+    ffwButton = new JButton(FFW_MODE);
     ffwButton.addActionListener(new ActionListener() {
 
       @Override
       public void actionPerformed(final ActionEvent e) {
-        if(ffwThread.isInFfwMode()) {
-          ffwButton.setIcon(new ImageIcon("src/main/resources/pics/Fast-forward.gif"));
-          ffwButton.setToolTipText("Fast-Forward");
-        } else {
-          ffwButton.setIcon(new ImageIcon("src/main/resources/pics/Stop.gif"));
-          ffwButton.setToolTipText("Stop");
-        }
-        ffwThread.flag(ffwSlider.getValue());
+        ctrl.setFastForwardMode(!ctrl.isInFastForwardMode());
       }
 
     });
@@ -631,43 +663,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   }
 
   /**
-   * A cyclic number spinner for a JSpinner.
-   * 
-   * @author Marc Spicker
-   */
-  private class CyclicNumberModel extends SpinnerNumberModel {
-
-    /**
-     * Serial version ID.
-     */
-    private static final long serialVersionUID = 3042013777179841232L;
-
-    /**
-     * Constructor.
-     * 
-     * @param value Initial value.
-     * @param min Minimum.
-     * @param max Maximum.
-     */
-    public CyclicNumberModel(final int value, final int min, final int max) {
-      super(value, min, max, 1);
-    }
-
-    @Override
-    public Object getNextValue() {
-      if(super.getValue().equals(super.getMaximum())) return super.getMinimum();
-      return super.getNextValue();
-    }
-
-    @Override
-    public Object getPreviousValue() {
-      if(super.getValue().equals(super.getMinimum())) return super.getMaximum();
-      return super.getPreviousValue();
-    }
-
-  }
-
-  /**
    * Returns the start time that is currently entered in the two spinners.
    * 
    * @return The current bus starting time.
@@ -722,28 +717,22 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   }
 
   @Override
-  public void setStartTime(final BusTime time) {
-    if(time == null) {
-      startHours.setEnabled(false);
-      startMinutes.setEnabled(false);
-      ffwSlider.setEnabled(false);
-      ffwButton.setEnabled(false);
-      ffwThread.setFfwMode(false);
-      ffwButton.setIcon(new ImageIcon("src/main/resources/pics/Fast-forward.gif"));
-      ffwButton.setToolTipText("Fast-Forward");
-      now.setSelected(true);
+  public void setStartTime(final BusTime time, final boolean ffwMode) {
+    final boolean nowMode = time == null;
+    final boolean canEdit = !nowMode && !ffwMode;
+    startHours.setEnabled(canEdit);
+    startMinutes.setEnabled(canEdit);
+    ffwSlider.setEnabled(!nowMode);
+    ffwButton.setEnabled(!nowMode);
+    now.setSelected(nowMode);
+    if(nowMode) {
       final Calendar cal = Calendar.getInstance();
       btLabel.setText(BusTime.fromCalendar(cal).pretty(isBlinkSecond(cal)));
-      return;
+    } else {
+      startHours.setValue(time.getHour());
+      startMinutes.setValue(time.getMinute());
+      btLabel.setText("");
     }
-    startHours.setEnabled(true);
-    startMinutes.setEnabled(true);
-    ffwSlider.setEnabled(true);
-    ffwButton.setEnabled(true);
-    now.setSelected(false);
-    startHours.setValue(time.getHour());
-    startMinutes.setValue(time.getMinute());
-    btLabel.setText("");
   }
 
   @Override
@@ -778,6 +767,19 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     if(algoBox != null) {
       algoBox.setSelectedItem(ctrl.getRoutingAlgorithm());
     }
+  }
+
+  @Override
+  public void fastForwardChange(final boolean ffwMode, final int ffwMinutes) {
+    if(ffwMode) {
+      ffwButton.setIcon(FFW_STOP);
+      ffwButton.setToolTipText("Stop");
+    } else {
+      ffwButton.setIcon(FFW_MODE);
+      ffwButton.setToolTipText("Fast-Forward");
+    }
+    ffwSlider.setValue(ffwMinutes);
+    ffwSlider.setToolTipText(ffwMinutes + "min");
   }
 
   @Override

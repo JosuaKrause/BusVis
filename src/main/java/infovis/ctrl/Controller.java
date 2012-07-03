@@ -49,11 +49,14 @@ public final class Controller implements BusStationEnumerator {
   /** Current positioning technique. */
   private Embedders embed = EMBEDDERS[0];
 
-  /** Timer for real-time view. */
+  /** Timer for real-time view and ffw mode. */
   private final Timer timer = new Timer(true);
 
-  /** The ffw thread. */
-  private FastForwardThread ffwThread;
+  /** Whether we are in ffw mode. */
+  private volatile boolean ffwMode;
+
+  /** The minutes that are forwarded per second in ffw mode. */
+  private volatile int ffwMinutes = 1;
 
   /**
    * Creates a new controller.
@@ -65,16 +68,6 @@ public final class Controller implements BusStationEnumerator {
     this.manager = manager;
     this.frame = frame;
     startTimer();
-    startFwThread();
-  }
-
-  /**
-   * Start ffw thread.
-   */
-  void startFwThread() {
-    ffwThread = new FastForwardThread();
-    ffwThread.setDaemon(true);
-    ffwThread.start();
   }
 
   /**
@@ -82,7 +75,7 @@ public final class Controller implements BusStationEnumerator {
    * {@link #isStartTimeNow()} returns <code>true</code>. The refresh happens
    * exact at the beginning of a minute.
    */
-  protected void startTimer() {
+  private void startTimer() {
     final Calendar calendar = Calendar.getInstance();
     calendar.set(Calendar.MILLISECOND, 0);
     calendar.set(Calendar.SECOND, 0);
@@ -97,11 +90,18 @@ public final class Controller implements BusStationEnumerator {
           final int min = now.get(Calendar.MINUTE);
           overwriteDisplayedTime(BusTime.fromCalendar(now), BusTime.isBlinkSecond(now));
           if(min != minute) {
-            // we may lose a user update here
+            // we may lose an user update here
             // but very rare (only if the user clicks _very_ fast)
             setTime(curStartTime);
             minute = min;
           }
+        } else if(isInFastForwardMode()) {
+          BusTime time = getTime();
+          if(time == null) {
+            // we stop now mode here
+            time = BusTime.now();
+          }
+          setTime(time.later(getFastForwardStep()));
         }
       }
 
@@ -273,9 +273,13 @@ public final class Controller implements BusStationEnumerator {
    * @param start The starting time.
    */
   public void setTime(final BusTime start) {
+    final boolean ffwMode = this.ffwMode;
     curStartTime = start;
     for(final BusVisualization v : vis) {
-      v.setStartTime(start);
+      v.setStartTime(start, ffwMode);
+    }
+    if(start == null) {
+      setFastForwardMode(false);
     }
     setTitle(null);
   }
@@ -373,8 +377,9 @@ public final class Controller implements BusStationEnumerator {
     vis.add(v);
     v.setEmbedder(embed);
     v.setChangeTime(curChangeTime);
-    v.setStartTime(curStartTime);
+    v.setStartTime(curStartTime, ffwMode);
     v.selectBusStation(curSelection);
+    v.fastForwardChange(ffwMode, ffwMinutes);
     v.undefinedChange(this);
   }
 
@@ -442,97 +447,56 @@ public final class Controller implements BusStationEnumerator {
   }
 
   /**
-   * Adds given minutes to the actual time.
+   * Getter.
    * 
-   * @param min given minutes
+   * @return Whether we are in fast forward mode.
    */
-  public void addTime(final int min) {
-    setTime(getTime().later(min));
+  public boolean isInFastForwardMode() {
+    return ffwMode;
   }
 
   /**
-   * Gets the ffw thread.
+   * Setter.
    * 
-   * @return the ffw thread
+   * @param ffwMode Fast forward mode.
    */
-  public FastForwardThread getFfwThread() {
-    return ffwThread;
+  public void setFastForwardMode(final boolean ffwMode) {
+    this.ffwMode = ffwMode;
+    ffwChange();
+    if(!ffwMode) {
+      setTime(getTime());
+    }
   }
 
   /**
-   * The Class FastForwardThread.
+   * Getter.
    * 
-   * @author Feeras
+   * @return The fast forward step in minutes.
    */
-  public class FastForwardThread extends Thread {
+  public int getFastForwardStep() {
+    return ffwMinutes;
+  }
 
-    /** Whether we are in ffw mode. */
-    private boolean ffwMode;
+  /**
+   * Setter.
+   * 
+   * @param ffwMinutes The fast forward step in minutes.
+   */
+  public void setFastForwardStep(final int ffwMinutes) {
+    if(ffwMinutes < 1) throw new IllegalArgumentException("ffMinutes < 1: " + ffwMinutes);
+    this.ffwMinutes = ffwMinutes;
+    ffwChange();
+  }
 
-    /** The minute. */
-    private int minute;
-
-    /**
-     * Flag.
-     * 
-     * @param minute the minute
-     */
-    public void flag(final int minute) {
-      this.minute = minute;
-      ffwMode = !ffwMode;
+  /**
+   * Signals a change to the fast forward mode.
+   */
+  private void ffwChange() {
+    final boolean ffwMode = this.ffwMode;
+    final int ffwMinutes = this.ffwMinutes;
+    for(final BusVisualization v : vis) {
+      v.fastForwardChange(ffwMode, ffwMinutes);
     }
-
-    @Override
-    public void run() {
-      while(!isInterrupted()) {
-        if(ffwMode) {
-          addTime(minute);
-        }
-        try {
-          Thread.sleep(1000);
-        } catch(final InterruptedException e) {
-          interrupt();
-          continue;
-        }
-      }
-    }
-
-    /**
-     * Checks if in fast forward mode.
-     * 
-     * @return <code>true</code>, if in fast forward mode.
-     */
-    public boolean isInFfwMode() {
-      return ffwMode;
-    }
-
-    /**
-     * Sets the mode.
-     * 
-     * @param ffwMode Whether we are in ffw mode.
-     */
-    public void setFfwMode(final boolean ffwMode) {
-      this.ffwMode = ffwMode;
-    }
-
-    /**
-     * Gets the minute.
-     * 
-     * @return the minute
-     */
-    public int getMinute() {
-      return minute;
-    }
-
-    /**
-     * Sets the minute.
-     * 
-     * @param minute the new minute
-     */
-    public void setMinute(final int minute) {
-      this.minute = minute;
-    }
-
-  } // FastForwardThread
+  }
 
 }
