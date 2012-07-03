@@ -143,10 +143,26 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
 
   @Override
   public void drawHUD(final Graphics2D gfx, final Context ctx) {
-    for(final SpringNode n : drawer.nodes()) {
-      final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawLabel(g, ctx, n, hovered.get(n.getId()));
-      g.dispose();
+    if(!secSel.isEmpty()) {
+      final BitSet tmp = new BitSet();
+      for(final SpringNode n : secSel) {
+        final Graphics2D g = (Graphics2D) gfx.create();
+        drawer.drawRouteLabels(g, ctx, n, tmp);
+        g.dispose();
+      }
+      tmp.xor(hovered);
+      tmp.and(hovered);
+      for(int i = tmp.nextSetBit(0); i >= 0; i = tmp.nextSetBit(i + 1)) {
+        final Graphics2D g = (Graphics2D) gfx.create();
+        drawer.drawLabel(g, ctx, drawer.getNode(i), true, null);
+        g.dispose();
+      }
+    } else {
+      for(final SpringNode n : drawer.nodes()) {
+        final Graphics2D g = (Graphics2D) gfx.create();
+        drawer.drawLabel(g, ctx, n, hovered.get(n.getId()), null);
+        g.dispose();
+      }
     }
   }
 
