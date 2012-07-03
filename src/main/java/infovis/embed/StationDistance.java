@@ -1,5 +1,6 @@
 package infovis.embed;
 
+import static infovis.embed.Weighter.ChangeType.*;
 import infovis.ctrl.Controller;
 import infovis.data.BusEdge;
 import infovis.data.BusStation;
@@ -148,9 +149,9 @@ public final class StationDistance implements Weighter {
     }
     final BusTime old = this.time;
     if(ffw) {
-      changes = FAST_FORWARD_CHANGE;
+      changes = this.ffw ? FAST_FORWARD_CHANGE : FAST_ANIMATION_CHANGE;
     } else if(time == null) {
-      changes = REALTIME_CHANGE;
+      changes = old == null ? REALTIME_CHANGE : FAST_ANIMATION_CHANGE;
     } else if(old != null && (old != time || this.changeTime != changeTime)) {
       changes = FAST_ANIMATION_CHANGE;
     } else {
@@ -204,11 +205,11 @@ public final class StationDistance implements Weighter {
   /**
    * Whether the weights have changed.
    */
-  protected volatile int changes;
+  protected volatile ChangeType changes;
 
   @Override
-  public int changes() {
-    final int res = changes;
+  public ChangeType changes() {
+    final ChangeType res = changes;
     changes = NO_CHANGE;
     return res;
   }

@@ -1,8 +1,10 @@
 package infovis.embed;
 
+import static infovis.embed.Weighter.ChangeType.*;
 import static infovis.util.VecUtil.*;
 import infovis.ctrl.Controller;
 import infovis.data.BusTime;
+import infovis.embed.Weighter.ChangeType;
 import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
@@ -35,16 +37,16 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
 
   @Override
   protected boolean step() {
-    final int changes = weighter.changes();
+    final ChangeType change = weighter.changes();
     final int duration;
-    if((changes & Weighter.FAST_FORWARD_CHANGE) != 0) {
+    if(change == FAST_FORWARD_CHANGE) {
       duration = BusTime.MILLISECONDS_PER_SECOND
           - Calendar.getInstance().get(Calendar.MILLISECOND) - 1;
     } else {
       duration = 0;
     }
     final SpringNode ref = weighter.getReferenceNode();
-    if(changes != Weighter.NO_CHANGE) {
+    if(change != NO_CHANGE) {
       final Point2D diff;
       final Point2D refP;
       if(ref != null) {
@@ -70,15 +72,19 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
         } else {
           dest = getDestination(n, pos, ref, refP, diff);
         }
-        if((changes & Weighter.FAST_ANIMATION_CHANGE) != 0) {
-          n.startAnimationTo(dest, Interpolator.LINEAR, Interpolator.FAST);
-        } else if((changes & Weighter.FAST_FORWARD_CHANGE) != 0) {
-          n.startAnimationTo(dest, Interpolator.LINEAR, duration);
-        } else if((changes & Weighter.REALTIME_CHANGE) != 0) {
-          n.startAnimationTo(dest, Interpolator.LINEAR, Controller.REALTIME
-              * BusTime.MILLISECONDS_PER_SECOND);
-        } else {
-          n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.NORMAL);
+        switch(change) {
+          case FAST_ANIMATION_CHANGE:
+            n.startAnimationTo(dest, Interpolator.LINEAR, Interpolator.FAST);
+            break;
+          case FAST_FORWARD_CHANGE:
+            n.startAnimationTo(dest, Interpolator.LINEAR, duration);
+            break;
+          case REALTIME_CHANGE:
+            n.startAnimationTo(dest, Interpolator.LINEAR, Controller.REALTIME
+                * BusTime.MILLISECONDS_PER_SECOND);
+            break;
+          default:
+            n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.NORMAL);
         }
       }
     }

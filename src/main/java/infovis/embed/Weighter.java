@@ -69,25 +69,33 @@ public interface Weighter {
    * This method returns how the weights have changed. The change status is
    * cleared after this call.
    * 
-   * @return How the weights have changed. The result is a combination of change
-   *         types.
+   * @return How the weights have changed. The result is a change type.
    */
-  int changes();
+  ChangeType changes();
 
-  /** Signals no change. */
-  int NO_CHANGE = 0;
+  /**
+   * The type of weight changes.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  enum ChangeType {
 
-  /** Signals a normal change. */
-  int NORMAL_CHANGE = 1;
+    /** Signals no change. */
+    NO_CHANGE,
 
-  /** Signals that a fast animation should be used. */
-  int FAST_ANIMATION_CHANGE = 2;
+    /** Signals a normal change. */
+    NORMAL_CHANGE,
 
-  /** Signals that an animation until the next second should be used. */
-  int FAST_FORWARD_CHANGE = 4;
+    /** Signals that a fast animation should be used. */
+    FAST_ANIMATION_CHANGE,
 
-  /** Signals that an animation for realtime should be used. */
-  int REALTIME_CHANGE = 8;
+    /** Signals that an animation until the next second should be used. */
+    FAST_FORWARD_CHANGE,
+
+    /** Signals that an animation for realtime should be used. */
+    REALTIME_CHANGE,
+
+  }
 
   /**
    * Getter.
