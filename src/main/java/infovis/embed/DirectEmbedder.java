@@ -83,6 +83,9 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
             n.startAnimationTo(dest, Interpolator.LINEAR, Controller.REALTIME
                 * BusTime.MILLISECONDS_PER_SECOND);
             break;
+          case PREPARE_CHANGE:
+            n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.LONG);
+            break;
           default:
             n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.NORMAL);
         }

@@ -149,9 +149,9 @@ public final class StationDistance implements Weighter {
     }
     final BusTime old = this.time;
     if(ffw) {
-      changes = this.ffw ? FAST_FORWARD_CHANGE : FAST_ANIMATION_CHANGE;
+      changes = this.ffw ? FAST_FORWARD_CHANGE : PREPARE_CHANGE;
     } else if(time == null) {
-      changes = old == null ? REALTIME_CHANGE : FAST_ANIMATION_CHANGE;
+      changes = old == null ? REALTIME_CHANGE : PREPARE_CHANGE;
     } else if(old != null && (old != time || this.changeTime != changeTime)) {
       changes = FAST_ANIMATION_CHANGE;
     } else {

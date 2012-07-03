@@ -41,7 +41,7 @@ public final class Controller implements BusStationEnumerator {
   private BusStation curSelection;
 
   /** The current start time. */
-  protected volatile BusTime curStartTime = BusTime.NOON;
+  private volatile BusTime curStartTime = BusTime.NOON;
 
   /** The current change time. */
   private volatile int curChangeTime = 3;
@@ -60,6 +60,8 @@ public final class Controller implements BusStationEnumerator {
 
   /** The minutes that are forwarded per second in ffw mode. */
   private volatile int ffwMinutes = 1;
+
+  protected int mod;
 
   /**
    * Creates a new controller.
@@ -88,8 +90,8 @@ public final class Controller implements BusStationEnumerator {
         if(isStartTimeNow()) {
           final BusTime curr = BusTime.now();
           overwriteDisplayedTime(curr, curr.isBlinkSecond());
-          if(curr.getSecond() % REALTIME == 0) {
-            setTime(curStartTime);
+          if(curr.getSecond() % REALTIME == mod) {
+            setTime(getTime());
           }
         } else if(isInFastForwardMode()) {
           BusTime time = getTime();
@@ -270,6 +272,9 @@ public final class Controller implements BusStationEnumerator {
    */
   public void setTime(final BusTime start) {
     final boolean ffwMode = this.ffwMode;
+    if(start == null) {
+      mod = (BusTime.now().getSecond() + 3) % REALTIME;
+    }
     curStartTime = start;
     for(final BusVisualization v : vis) {
       v.setStartTime(start, ffwMode);

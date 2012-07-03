@@ -32,14 +32,13 @@ public interface Interpolator {
     }
   };
 
-  /**
-   * The standard animation duration.
-   */
+  /** The long animation duration. */
+  int LONG = 2000;
+
+  /** The standard animation duration. */
   int NORMAL = 1000;
 
-  /**
-   * Fast animation duration.
-   */
+  /** Fast animation duration. */
   int FAST = 100;
 
 }

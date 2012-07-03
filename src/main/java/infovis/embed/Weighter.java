@@ -95,6 +95,9 @@ public interface Weighter {
     /** Signals that an animation for realtime should be used. */
     REALTIME_CHANGE,
 
+    /** Signals that the current transition is only a preparation. */
+    PREPARE_CHANGE,
+
   }
 
   /**
