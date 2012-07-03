@@ -10,6 +10,7 @@ import infovis.data.EdgeMatrix;
 import infovis.data.EdgeMatrix.UndirectedEdge;
 import infovis.draw.BackgroundRealizer;
 import infovis.draw.LabelRealizer;
+import infovis.draw.LegendRealizer;
 import infovis.draw.LineRealizer;
 import infovis.draw.StationRealizer;
 import infovis.gui.Context;
@@ -19,12 +20,15 @@ import infovis.util.Interpolator;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Draws the network.
@@ -44,6 +48,9 @@ public final class StationDrawer implements NodeDrawer, Fader {
 
   /** The realizer to actually draw the labels. */
   private final LabelRealizer labelRealize;
+
+  /** The realizer to actually draw the legend. */
+  private final LegendRealizer legendRealize;
 
   /** The predicted next bus station. */
   private volatile BusStation predict;
@@ -67,13 +74,16 @@ public final class StationDrawer implements NodeDrawer, Fader {
    * @param stationRealize The realizer to draw the stations.
    * @param lineRealize The realizer to draw the lines.
    * @param labelRealize The realizer to draw labels.
+   * @param legendRealize The realizer to draw legends.
    */
   public StationDrawer(final StationDistance dist, final StationRealizer stationRealize,
-      final LineRealizer lineRealize, final LabelRealizer labelRealize) {
+      final LineRealizer lineRealize, final LabelRealizer labelRealize,
+      final LegendRealizer legendRealize) {
     this.dist = dist;
     this.stationRealize = stationRealize;
     this.lineRealize = lineRealize;
     this.labelRealize = labelRealize;
+    this.legendRealize = legendRealize;
     dist.setFader(this);
   }
 
@@ -106,9 +116,11 @@ public final class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public void drawEdges(final Graphics2D g, final Context ctx, final SpringNode n,
-      final boolean secSel) {
+  public void drawEdges(final Graphics2D g, final Context ctx,
+      final SpringNode n, final Set<BusLine> visibleLines, final boolean secSel) {
     final Rectangle2D visible = ctx.getVisibleCanvas();
+    final Area vis = new Area(visible);
+
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
     if(route != null && !route.isReachable()) return;
@@ -132,9 +144,16 @@ public final class StationDrawer implements NodeDrawer, Fader {
       final double x2 = node.getX();
       final double y2 = node.getY();
       final Line2D line = new Line2D.Double(x1, y1, x2, y2);
-      final Rectangle2D bbox =
-          lineRealize.createLineShape(line, -1, e.getLineDegree()).getBounds2D();
+      final Shape lineShape = lineRealize.createLineShape(line, -1, e.getLineDegree());
+      final Rectangle2D bbox = lineShape.getBounds2D();
       if(!visible.intersects(bbox)) {
+        continue;
+      }
+
+      final Area lineArea = new Area(lineShape);
+      lineArea.intersect(vis);
+      // also ensures that only on screen lines are marked visible
+      if(lineArea.isEmpty()) {
         continue;
       }
 
@@ -154,6 +173,12 @@ public final class StationDrawer implements NodeDrawer, Fader {
         unused = e.getLines();
         used = null;
       }
+
+      if(used != null) {
+        visibleLines.addAll(Arrays.asList(used));
+      }
+      visibleLines.addAll(Arrays.asList(unused));
+
       lineRealize.drawLines(g, line, unused, used);
     }
   }
@@ -253,8 +278,15 @@ public final class StationDrawer implements NodeDrawer, Fader {
       distance = "";
     }
 
-    labelRealize.drawLabel(g, ctx.getVisibleComponent(), ctx.toComponentLength(1),
-        pos, station.getName() + distance);
+    labelRealize.drawLabel(g, ctx.getVisibleComponent(),
+        ctx.toComponentLength(1), pos, station.getName() + distance);
+  }
+
+  @Override
+  public void drawLegend(final Graphics2D g2, final Context ctx, final Set<BusLine> lines) {
+    final BusLine[] ls = lines.toArray(new BusLine[lines.size()]);
+    Arrays.sort(ls);
+    legendRealize.drawLegend(g2, ctx.getVisibleComponent(), ls);
   }
 
   @Override
@@ -277,8 +309,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
       final SpringNode to = dist.getNode(e.getTo());
       final Graphics2D g2 = (Graphics2D) g.create();
       final BusLine line = e.getLine();
-      drawLabel(g2, ctx, to, false, e.getEnd().pretty() + " - "
-          + (BusLine.WALK.equals(line) ? "" : "Line ") + line.getName());
+      drawLabel(g2, ctx, to, false, e.getEnd().pretty() + " - " + line.getFullName());
       g2.dispose();
       visited.set(to.getId());
     }

@@ -2,10 +2,10 @@ package infovis.draw;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 
 /**
  * Realizes the actual painting of labels.
@@ -31,14 +31,8 @@ public interface LabelRealizer {
     @Override
     public void drawLabel(final Graphics2D g, final Rectangle2D view, final double scale,
         final Point2D pos, final String label) {
-      final double x = pos.getX();
-      final double y = pos.getY();
-
-      final FontMetrics fm = g.getFontMetrics();
-      final Rectangle2D bbox = fm.getStringBounds(label, g);
-      // translate the rectangle
-      bbox.setRect(x + bbox.getMinX(), y + bbox.getMinY(), bbox.getWidth(),
-          bbox.getHeight());
+      final StringDrawer sd = new StringDrawer(g, label, pos);
+      final Rectangle2D bbox = sd.getBounds();
 
       if(!view.intersects(bbox)) return;
 
@@ -48,15 +42,17 @@ public interface LabelRealizer {
       g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f *
           (d < 1 ? d : 1)));
       g2.setColor(Color.WHITE);
-      g2.fill(bbox);
+      final double arc = bbox.getHeight() / 3;
+      final double space = bbox.getHeight() / 6;
+      g2.fill(new RoundRectangle2D.Double(bbox.getMinX() - space, bbox.getMinY() - space,
+          bbox.getWidth() + 2 * space, bbox.getHeight() + 2 * space, arc, arc));
       g2.dispose();
 
-      g.translate(x, y);
       if(d < 1) {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, d));
       }
       g.setColor(Color.BLACK);
-      g.drawString(label, 0, 0);
+      sd.draw();
     }
 
   };

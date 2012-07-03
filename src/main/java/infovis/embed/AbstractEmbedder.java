@@ -1,5 +1,6 @@
 package infovis.embed;
 
+import infovis.data.BusLine;
 import infovis.draw.BackgroundRealizer;
 import infovis.gui.Context;
 import infovis.gui.PainterAdapter;
@@ -119,14 +120,20 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
     receivers.add(r);
   }
 
+  /**
+   * Accumulates all visible lines.
+   */
+  private final Set<BusLine> visibleLines = new HashSet<BusLine>();
+
   @Override
   public void draw(final Graphics2D gfx, final Context ctx) {
+    visibleLines.clear();
     final Graphics2D g2 = (Graphics2D) gfx.create();
     drawer.drawBackground(g2, ctx, backgroundRealizer());
     g2.dispose();
     for(final SpringNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawEdges(g, ctx, n, !secSel.isEmpty());
+      drawer.drawEdges(g, ctx, n, visibleLines, !secSel.isEmpty());
       g.dispose();
     }
     for(final SpringNode sel : secSel) {
@@ -164,6 +171,9 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
         g.dispose();
       }
     }
+    final Graphics2D g2 = (Graphics2D) gfx.create();
+    drawer.drawLegend(g2, ctx, visibleLines);
+    g2.dispose();
   }
 
   /**

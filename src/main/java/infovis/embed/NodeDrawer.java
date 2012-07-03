@@ -1,5 +1,6 @@
 package infovis.embed;
 
+import infovis.data.BusLine;
 import infovis.draw.BackgroundRealizer;
 import infovis.gui.Context;
 
@@ -8,6 +9,7 @@ import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.BitSet;
+import java.util.Set;
 
 /**
  * Draws spring nodes and interacts with them.
@@ -42,10 +44,12 @@ public interface NodeDrawer {
    * @param g The device.
    * @param ctx The canvas context.
    * @param n The node.
+   * @param visibleLines Accumulates all visible lines.
    * @param secondarySelection If a secondary selection is made, this value is
    *          <code>true</code>.
    */
-  void drawEdges(Graphics2D g, Context ctx, SpringNode n, boolean secondarySelection);
+  void drawEdges(Graphics2D g, Context ctx, SpringNode n,
+      Set<BusLine> visibleLines, boolean secondarySelection);
 
   /**
    * Draws the label of a given node. Note that the coordinates are in component
@@ -78,6 +82,15 @@ public interface NodeDrawer {
    * @param visited The method sets all nodes that are visited.
    */
   void drawRouteLabels(Graphics2D g, Context ctx, SpringNode n, BitSet visited);
+
+  /**
+   * Draws the legend.
+   * 
+   * @param g The graphics context.
+   * @param ctx The canvas context.
+   * @param visibleLines The set of visible bus lines.
+   */
+  void drawLegend(Graphics2D g, Context ctx, Set<BusLine> visibleLines);
 
   /**
    * A shape defining the area, where a click is associated with the given node.
