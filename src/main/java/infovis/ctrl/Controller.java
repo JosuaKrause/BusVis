@@ -61,6 +61,7 @@ public final class Controller implements BusStationEnumerator {
   /** The minutes that are forwarded per second in ffw mode. */
   private volatile int ffwMinutes = 1;
 
+  /** The second when the now-mode refreshes. */
   protected int mod;
 
   /**
