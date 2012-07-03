@@ -20,6 +20,7 @@ import infovis.util.Interpolator;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -118,6 +119,8 @@ public final class StationDrawer implements NodeDrawer, Fader {
   public void drawEdges(final Graphics2D g, final Context ctx,
       final SpringNode n, final Set<BusLine> visibleLines, final boolean secSel) {
     final Rectangle2D visible = ctx.getVisibleCanvas();
+    final Area vis = new Area(visible);
+
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
     if(route != null && !route.isReachable()) return;
@@ -144,6 +147,13 @@ public final class StationDrawer implements NodeDrawer, Fader {
       final Shape lineShape = lineRealize.createLineShape(line, -1, e.getLineDegree());
       final Rectangle2D bbox = lineShape.getBounds2D();
       if(!visible.intersects(bbox)) {
+        continue;
+      }
+
+      final Area lineArea = new Area(lineShape);
+      lineArea.intersect(vis);
+      // also ensures that only on screen lines are marked visible
+      if(lineArea.isEmpty()) {
         continue;
       }
 
@@ -268,14 +278,15 @@ public final class StationDrawer implements NodeDrawer, Fader {
       distance = "";
     }
 
-    labelRealize.drawLabel(g, ctx.getVisibleComponent(), ctx.toComponentLength(1),
-        pos, station.getName() + distance);
+    labelRealize.drawLabel(g, ctx.getVisibleComponent(),
+        ctx.toComponentLength(1), pos, station.getName() + distance);
   }
 
   @Override
   public void drawLegend(final Graphics2D g2, final Context ctx, final Set<BusLine> lines) {
-    legendRealize.drawLegend(g2, ctx.getVisibleComponent(),
-        lines.toArray(new BusLine[lines.size()]));
+    final BusLine[] ls = lines.toArray(new BusLine[lines.size()]);
+    Arrays.sort(ls);
+    legendRealize.drawLegend(g2, ctx.getVisibleComponent(), ls);
   }
 
   @Override

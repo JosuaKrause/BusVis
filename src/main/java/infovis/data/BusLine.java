@@ -7,8 +7,8 @@ import java.awt.Color;
  * 
  * @author Leo Woerteler
  */
-public final class BusLine {
-  /** Bus line ued for walked sections of a route. */
+public final class BusLine implements Comparable<BusLine> {
+  /** Bus line used for walked sections of a route. */
   public static final BusLine WALK = new BusLine("Walk", Color.BLACK);
 
   /** Bus line name. */
@@ -16,6 +16,9 @@ public final class BusLine {
 
   /** Bus color. */
   private final Color color;
+
+  /** The hidden sorting name. */
+  private final String hiddenSortingName;
 
   /**
    * Constructor taking the name and the color.
@@ -27,6 +30,9 @@ public final class BusLine {
     if(name == null || color == null) throw new NullPointerException();
     this.name = name;
     this.color = color;
+    final String tmp = "0000000000" + name;
+    final int l = tmp.length();
+    hiddenSortingName = tmp.substring(l - 10, l);
   }
 
   /**
@@ -69,6 +75,11 @@ public final class BusLine {
   @Override
   public int hashCode() {
     return name.hashCode();
+  }
+
+  @Override
+  public int compareTo(final BusLine o) {
+    return -hiddenSortingName.compareTo(o.hiddenSortingName);
   }
 
 }
