@@ -41,6 +41,15 @@ public final class BusLine {
   /**
    * Getter.
    * 
+   * @return The full bus line name.
+   */
+  public String getFullName() {
+    return (this == WALK ? "" : "Line ") + getName();
+  }
+
+  /**
+   * Getter.
+   * 
    * @return bus line color
    */
   public Color getColor() {

@@ -2,7 +2,6 @@ package infovis.draw;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -31,14 +30,8 @@ public interface LabelRealizer {
     @Override
     public void drawLabel(final Graphics2D g, final Rectangle2D view, final double scale,
         final Point2D pos, final String label) {
-      final double x = pos.getX();
-      final double y = pos.getY();
-
-      final FontMetrics fm = g.getFontMetrics();
-      final Rectangle2D bbox = fm.getStringBounds(label, g);
-      // translate the rectangle
-      bbox.setRect(x + bbox.getMinX(), y + bbox.getMinY(), bbox.getWidth(),
-          bbox.getHeight());
+      final StringDrawer sd = new StringDrawer(g, label, pos);
+      final Rectangle2D bbox = sd.getBounds();
 
       if(!view.intersects(bbox)) return;
 
@@ -51,12 +44,11 @@ public interface LabelRealizer {
       g2.fill(bbox);
       g2.dispose();
 
-      g.translate(x, y);
       if(d < 1) {
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, d));
       }
       g.setColor(Color.BLACK);
-      g.drawString(label, 0, 0);
+      sd.draw();
     }
 
   };
