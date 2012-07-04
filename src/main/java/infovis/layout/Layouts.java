@@ -1,11 +1,14 @@
-package infovis.embed;
+package infovis.layout;
+
+import infovis.busvis.NodeDrawer;
+import infovis.busvis.Weighter;
 
 /**
- * The embedder technique, ie all subclasses of {@link AbstractEmbedder}.
+ * The embedder technique, ie all subclasses of {@link AbstractLayouter}.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public enum Embedders {
+public enum Layouts {
 
   /** Radial positioning technique. */
   CIRCULAR("Radial Positioning"),
@@ -36,7 +39,7 @@ public enum Embedders {
    * 
    * @param name The name of the technique.
    */
-  private Embedders(final String name) {
+  private Layouts(final String name) {
     this.name = name;
   }
 
@@ -54,17 +57,17 @@ public enum Embedders {
    * @return The embedder.
    */
   @SuppressWarnings("deprecation")
-  public static AbstractEmbedder createFor(final Embedders embed,
+  public static AbstractLayouter createFor(final Layouts embed,
       final NodeDrawer drawer, final Weighter weighter) {
     switch(embed) {
       case EDGE:
-        return new EdgeEmbedder(weighter, drawer);
+        return new EdgeLayouter(weighter, drawer);
       case CIRCULAR:
-        return new CircularEmbedder(weighter, drawer);
+        return new CircularLayouter(weighter, drawer);
       case STRESS:
-        return new StressEmbedder(weighter, drawer);
+        return new StressLayout(weighter, drawer);
       case SPRING:
-        return new SpringEmbedder(weighter, drawer);
+        return new SpringLayout(weighter, drawer);
     }
     throw new InternalError();
   }

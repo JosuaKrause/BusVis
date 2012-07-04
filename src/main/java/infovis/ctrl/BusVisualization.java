@@ -2,7 +2,7 @@ package infovis.ctrl;
 
 import infovis.data.BusStation;
 import infovis.data.BusTime;
-import infovis.embed.Embedders;
+import infovis.layout.Layouts;
 
 /**
  * A bus visualization.
@@ -68,6 +68,6 @@ public interface BusVisualization {
    * 
    * @param embed The embedder technique.
    */
-  void setEmbedder(Embedders embed);
+  void setEmbedder(Layouts embed);
 
 }

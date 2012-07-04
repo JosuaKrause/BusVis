@@ -1,6 +1,6 @@
-package infovis.embed;
+package infovis.busvis;
 
-import static infovis.embed.Weighter.ChangeType.*;
+import static infovis.busvis.Weighter.ChangeType.*;
 import infovis.ctrl.Controller;
 import infovis.data.BusEdge;
 import infovis.data.BusStation;
@@ -9,7 +9,6 @@ import infovis.data.EdgeMatrix;
 import infovis.routing.RoutingManager;
 import infovis.routing.RoutingManager.CallBack;
 import infovis.routing.RoutingResult;
-import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
 import java.util.Arrays;
@@ -22,7 +21,7 @@ import java.util.List;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class StationDistance implements Weighter {
+public final class BusvisWeighter implements Weighter {
 
   /** The backing map for the spring nodes. */
   private final BusStation[] map;
@@ -74,7 +73,7 @@ public final class StationDistance implements Weighter {
    * 
    * @param ctrl The controller.
    */
-  public StationDistance(final Controller ctrl) {
+  public BusvisWeighter(final Controller ctrl) {
     this.ctrl = ctrl;
     matrix = new EdgeMatrix(ctrl.getBusStationManager());
     dummyRoutes = new RoutingResult[ctrl.maxId() + 1];
@@ -145,7 +144,7 @@ public final class StationDistance implements Weighter {
     routes = route;
     matrix.refreshHighlights(routes);
     if(from != this.from) {
-      fader.initialize(this.from, Interpolator.NORMAL);
+      fader.initialize(this.from, SpringNode.NORMAL);
     }
     final BusTime old = this.time;
     if(ffw) {

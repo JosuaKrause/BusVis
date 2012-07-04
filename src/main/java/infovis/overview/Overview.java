@@ -4,7 +4,7 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
-import infovis.embed.Embedders;
+import infovis.layout.Layouts;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -219,7 +219,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   }
 
   @Override
-  public void setEmbedder(final Embedders embed) {
+  public void setEmbedder(final Layouts embed) {
     // no-op
   }
 

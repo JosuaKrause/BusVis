@@ -1,5 +1,8 @@
-package infovis.embed;
+package infovis.layout;
 
+import infovis.busvis.Animator;
+import infovis.busvis.NodeDrawer;
+import infovis.busvis.SpringNode;
 import infovis.data.BusLine;
 import infovis.draw.BackgroundRealizer;
 import infovis.gui.Context;
@@ -20,11 +23,11 @@ import java.util.Set;
 import javax.swing.SwingUtilities;
 
 /**
- * An abstract embedding visualization.
+ * An abstract visualization.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public abstract class AbstractEmbedder extends PainterAdapter implements Animator {
+public abstract class AbstractLayouter extends PainterAdapter implements Animator {
 
   /**
    * The frame rate of the spring embedder.
@@ -57,11 +60,11 @@ public abstract class AbstractEmbedder extends PainterAdapter implements Animato
   protected final NodeDrawer drawer;
 
   /**
-   * Creates an abstract embedder.
+   * Creates an abstract layouter.
    * 
    * @param drawer The node drawer.
    */
-  public AbstractEmbedder(final NodeDrawer drawer) {
+  public AbstractLayouter(final NodeDrawer drawer) {
     this.drawer = drawer;
     final List<Refreshable> receivers = new LinkedList<Refreshable>();
     animator = new Thread() {

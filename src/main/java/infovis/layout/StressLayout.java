@@ -1,8 +1,11 @@
-package infovis.embed;
+package infovis.layout;
 
 import static infovis.util.VecUtil.*;
+import infovis.busvis.NodeDrawer;
+import infovis.busvis.SpringNode;
+import infovis.busvis.Weighter;
+import infovis.busvis.Weighter.WeightedEdge;
 import infovis.draw.BackgroundRealizer;
-import infovis.embed.Weighter.WeightedEdge;
 import infovis.util.ArrayUtil;
 
 import java.awt.geom.Point2D;
@@ -19,7 +22,7 @@ import mdsj.StressMinimization;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class StressEmbedder extends DirectEmbedder {
+public class StressLayout extends DirectLayouter {
   /** Weight of the whole route's length. */
   private static final double ROUTE_WEIGHT = 0.01;
   /** Weight of each edges length. */
@@ -39,7 +42,7 @@ public class StressEmbedder extends DirectEmbedder {
    * @param weighter The weighter.
    * @param drawer The drawer.
    */
-  public StressEmbedder(final Weighter weighter, final NodeDrawer drawer) {
+  public StressLayout(final Weighter weighter, final NodeDrawer drawer) {
     super(weighter, drawer);
 
     final List<SpringNode> nodes = weighter.nodes();

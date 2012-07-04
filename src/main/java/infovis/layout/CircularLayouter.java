@@ -1,6 +1,9 @@
-package infovis.embed;
+package infovis.layout;
 
 import static infovis.util.VecUtil.*;
+import infovis.busvis.NodeDrawer;
+import infovis.busvis.SpringNode;
+import infovis.busvis.Weighter;
 import infovis.draw.BackgroundRealizer;
 
 import java.awt.geom.Point2D;
@@ -11,7 +14,7 @@ import java.util.Collection;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class CircularEmbedder extends DirectEmbedder {
+public final class CircularLayouter extends DirectLayouter {
 
   /**
    * The positions of the nodes.
@@ -24,7 +27,7 @@ public final class CircularEmbedder extends DirectEmbedder {
    * @param weighter The weighter.
    * @param drawer The drawer.
    */
-  public CircularEmbedder(final Weighter weighter, final NodeDrawer drawer) {
+  public CircularLayouter(final Weighter weighter, final NodeDrawer drawer) {
     super(weighter, drawer);
     posMap = new Point2D[weighter.nodes().size()];
   }

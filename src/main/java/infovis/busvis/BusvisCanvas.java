@@ -1,4 +1,4 @@
-package infovis.embed;
+package infovis.busvis;
 
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
@@ -10,6 +10,8 @@ import infovis.draw.LineRealizer;
 import infovis.draw.StationRealizer;
 import infovis.gui.Canvas;
 import infovis.gui.Painter;
+import infovis.layout.AbstractLayouter;
+import infovis.layout.Layouts;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -23,7 +25,7 @@ import javax.swing.SwingUtilities;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class BusCanvas extends Canvas implements BusVisualization {
+public final class BusvisCanvas extends Canvas implements BusVisualization {
 
   /**
    * SVUID.
@@ -33,22 +35,22 @@ public final class BusCanvas extends Canvas implements BusVisualization {
   /**
    * The distance measure.
    */
-  protected final StationDistance dist;
+  protected final BusvisWeighter dist;
 
   /**
    * The drawer.
    */
-  private final StationDrawer draw;
+  private final BusvisDrawer draw;
 
   /**
    * The embedder.
    */
-  protected AbstractEmbedder embed;
+  protected AbstractLayouter embed;
 
   /**
    * The embedding technique.
    */
-  private Embedders embedder;
+  private Layouts embedder;
 
   /**
    * Creates a bus canvas.
@@ -58,16 +60,16 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    * @param height The height.
    * @return The bus canvas.
    */
-  public static BusCanvas createBusCanvas(final Controller ctrl, final int width,
+  public static BusvisCanvas createBusCanvas(final Controller ctrl, final int width,
       final int height) {
-    final StationDistance dist = new StationDistance(ctrl);
-    final StationDrawer draw = new StationDrawer(dist, StationRealizer.STANDARD,
+    final BusvisWeighter dist = new BusvisWeighter(ctrl);
+    final BusvisDrawer draw = new BusvisDrawer(dist, StationRealizer.STANDARD,
         LineRealizer.ADVANCED, LabelRealizer.STANDARD, LegendRealizer.STANDARD);
     dist.setMinDist(60.0);
     dist.setFactor(10);
-    final Embedders e = Embedders.CIRCULAR;
-    final AbstractEmbedder embed = Embedders.createFor(e, draw, dist);
-    final BusCanvas res = new BusCanvas(ctrl, e, embed, dist, draw, width, height);
+    final Layouts e = Layouts.CIRCULAR;
+    final AbstractLayouter embed = Layouts.createFor(e, draw, dist);
+    final BusvisCanvas res = new BusvisCanvas(ctrl, e, embed, dist, draw, width, height);
     ctrl.addBusVisualization(res);
     res.setBackground(Color.WHITE);
     return res;
@@ -84,9 +86,9 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    * @param width The width.
    * @param height The height.
    */
-  private BusCanvas(final Controller ctrl, final Embedders e,
-      final AbstractEmbedder embed,
-      final StationDistance dist, final StationDrawer draw,
+  private BusvisCanvas(final Controller ctrl, final Layouts e,
+      final AbstractLayouter embed,
+      final BusvisWeighter dist, final BusvisDrawer draw,
       final int width, final int height) {
     super(embed, width, height);
     this.embed = embed;
@@ -134,7 +136,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
       @SuppressWarnings("synthetic-access")
       @Override
       public void run() {
-        BusCanvas.super.reset();
+        BusvisCanvas.super.reset();
       }
 
     });
@@ -160,7 +162,7 @@ public final class BusCanvas extends Canvas implements BusVisualization {
    * 
    * @param embed The embedder.
    */
-  public void setPainter(final AbstractEmbedder embed) {
+  public void setPainter(final AbstractLayouter embed) {
     if(this.embed != null) {
       this.embed.dispose();
     }
@@ -172,18 +174,18 @@ public final class BusCanvas extends Canvas implements BusVisualization {
 
   @Override
   public void setPainter(final Painter p) {
-    if(p instanceof AbstractEmbedder) {
-      setPainter((AbstractEmbedder) p);
+    if(p instanceof AbstractLayouter) {
+      setPainter((AbstractLayouter) p);
     }
     throw new IllegalArgumentException("p must be an "
-        + AbstractEmbedder.class.getSimpleName());
+        + AbstractLayouter.class.getSimpleName());
   }
 
   @Override
-  public void setEmbedder(final Embedders embedder) {
+  public void setEmbedder(final Layouts embedder) {
     if(this.embedder == embedder) return;
     this.embedder = embedder;
-    setPainter(Embedders.createFor(embedder, draw, dist));
+    setPainter(Layouts.createFor(embedder, draw, dist));
   }
 
   @Override

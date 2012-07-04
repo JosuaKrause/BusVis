@@ -1,10 +1,13 @@
-package infovis.embed;
+package infovis.layout;
 
-import static infovis.embed.Weighter.ChangeType.*;
+import static infovis.busvis.Weighter.ChangeType.*;
 import static infovis.util.VecUtil.*;
+import infovis.busvis.NodeDrawer;
+import infovis.busvis.SpringNode;
+import infovis.busvis.Weighter;
+import infovis.busvis.Weighter.ChangeType;
 import infovis.ctrl.Controller;
 import infovis.data.BusTime;
-import infovis.embed.Weighter.ChangeType;
 import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
@@ -17,7 +20,7 @@ import java.util.Collection;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public abstract class DirectEmbedder extends AbstractEmbedder {
+public abstract class DirectLayouter extends AbstractLayouter {
 
   /**
    * The weighter.
@@ -30,7 +33,7 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
    * @param weighter The weighter.
    * @param drawer The drawer.
    */
-  public DirectEmbedder(final Weighter weighter, final NodeDrawer drawer) {
+  public DirectLayouter(final Weighter weighter, final NodeDrawer drawer) {
     super(drawer);
     this.weighter = weighter;
   }
@@ -74,7 +77,7 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
         }
         switch(change) {
           case FAST_ANIMATION_CHANGE:
-            n.startAnimationTo(dest, Interpolator.LINEAR, Interpolator.FAST);
+            n.startAnimationTo(dest, Interpolator.LINEAR, SpringNode.FAST);
             break;
           case FAST_FORWARD_CHANGE:
             n.startAnimationTo(dest, Interpolator.LINEAR, duration);
@@ -84,10 +87,10 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
                 * BusTime.MILLISECONDS_PER_SECOND);
             break;
           case PREPARE_CHANGE:
-            n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.LONG);
+            n.startAnimationTo(dest, Interpolator.SMOOTH, SpringNode.LONG);
             break;
           default:
-            n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.NORMAL);
+            n.startAnimationTo(dest, Interpolator.SMOOTH, SpringNode.NORMAL);
         }
       }
     }

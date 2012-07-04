@@ -4,7 +4,7 @@ import infovis.data.BusStation;
 import infovis.data.BusStationEnumerator;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
-import infovis.embed.Embedders;
+import infovis.layout.Layouts;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 
@@ -50,7 +50,7 @@ public final class Controller implements BusStationEnumerator {
   private volatile int currWalkTime = 5;
 
   /** Current positioning technique. */
-  private Embedders embed = EMBEDDERS[0];
+  private Layouts embed = EMBEDDERS[0];
 
   /** Timer for real-time view and ffw mode. */
   private final Timer timer = new Timer(true);
@@ -148,12 +148,12 @@ public final class Controller implements BusStationEnumerator {
   /**
    * All positioning techniques.
    */
-  private static final Embedders[] EMBEDDERS = new Embedders[] {
+  private static final Layouts[] EMBEDDERS = new Layouts[] {
     // Embedders.EDGE,
 
-    Embedders.CIRCULAR,
+    Layouts.CIRCULAR,
 
-    Embedders.STRESS,
+    Layouts.STRESS,
 
     // Embedders.SPRING,
   };
@@ -163,7 +163,7 @@ public final class Controller implements BusStationEnumerator {
    * 
    * @return All registered positioning techniques.
    */
-  public static Embedders[] getEmbedders() {
+  public static Layouts[] getEmbedders() {
     return EMBEDDERS;
   }
 
@@ -351,7 +351,7 @@ public final class Controller implements BusStationEnumerator {
    * 
    * @param embed The technique.
    */
-  public void setEmbedder(final Embedders embed) {
+  public void setEmbedder(final Layouts embed) {
     if(this.embed == embed) return;
     this.embed = embed;
     for(final BusVisualization v : vis) {
@@ -364,7 +364,7 @@ public final class Controller implements BusStationEnumerator {
    * 
    * @return The currently used positioning technique.
    */
-  public Embedders getEmbedder() {
+  public Layouts getEmbedder() {
     return embed;
   }
 

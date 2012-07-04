@@ -1,4 +1,5 @@
-package infovis.embed;
+package infovis.busvis;
+
 
 import java.awt.geom.Point2D;
 import java.util.List;

@@ -1,6 +1,6 @@
 package infovis.draw;
 
-import static infovis.embed.StationDrawer.*;
+import static infovis.busvis.BusvisDrawer.*;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;

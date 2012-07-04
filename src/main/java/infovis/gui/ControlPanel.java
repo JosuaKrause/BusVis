@@ -4,7 +4,7 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
-import infovis.embed.Embedders;
+import infovis.layout.Layouts;
 import infovis.routing.RoutingAlgorithm;
 
 import java.awt.Component;
@@ -380,14 +380,14 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       algoBox = null;
     }
     // embedder selection
-    final Embedders[] embeds = Controller.getEmbedders();
+    final Layouts[] embeds = Controller.getEmbedders();
     if(embeds.length != 1) {
       embedBox = new JComboBox(embeds);
       embedBox.addActionListener(new ActionListener() {
 
         @Override
         public void actionPerformed(final ActionEvent ae) {
-          final Embedders e = (Embedders) embedBox.getSelectedItem();
+          final Layouts e = (Layouts) embedBox.getSelectedItem();
           if(e != ctrl.getEmbedder()) {
             ctrl.setEmbedder(e);
           }
@@ -893,7 +893,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   }
 
   @Override
-  public void setEmbedder(final Embedders embed) {
+  public void setEmbedder(final Layouts embed) {
     if(embedBox != null) {
       embedBox.setSelectedItem(embed);
     }

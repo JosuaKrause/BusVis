@@ -1,4 +1,4 @@
-package infovis.embed;
+package infovis.busvis;
 
 import static infovis.util.VecUtil.*;
 import infovis.ctrl.Controller;
@@ -35,10 +35,10 @@ import java.util.Set;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class StationDrawer implements NodeDrawer, Fader {
+public final class BusvisDrawer implements NodeDrawer, Fader {
 
   /** The corresponding station distance. */
-  private final StationDistance dist;
+  private final BusvisWeighter dist;
 
   /** The realizer to actually draw the stations. */
   private final StationRealizer stationRealize;
@@ -76,7 +76,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
    * @param labelRealize The realizer to draw labels.
    * @param legendRealize The realizer to draw legends.
    */
-  public StationDrawer(final StationDistance dist, final StationRealizer stationRealize,
+  public BusvisDrawer(final BusvisWeighter dist, final StationRealizer stationRealize,
       final LineRealizer lineRealize, final LabelRealizer labelRealize,
       final LegendRealizer legendRealize) {
     this.dist = dist;

@@ -1,8 +1,11 @@
-package infovis.embed;
+package infovis.layout;
 
 import static infovis.util.VecUtil.*;
+import infovis.busvis.NodeDrawer;
+import infovis.busvis.SpringNode;
+import infovis.busvis.Weighter;
+import infovis.busvis.Weighter.WeightedEdge;
 import infovis.draw.BackgroundRealizer;
-import infovis.embed.Weighter.WeightedEdge;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -16,7 +19,7 @@ import java.util.Map;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class EdgeEmbedder extends DirectEmbedder {
+public class EdgeLayouter extends DirectLayouter {
 
   /**
    * Creates an edge based positioner.
@@ -24,7 +27,7 @@ public class EdgeEmbedder extends DirectEmbedder {
    * @param weighter The weighter.
    * @param drawer The drawer.
    */
-  public EdgeEmbedder(final Weighter weighter, final NodeDrawer drawer) {
+  public EdgeLayouter(final Weighter weighter, final NodeDrawer drawer) {
     super(weighter, drawer);
   }
 

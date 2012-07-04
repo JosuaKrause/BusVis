@@ -1,4 +1,4 @@
-package infovis.embed;
+package infovis.busvis;
 
 import infovis.data.BusLine;
 import infovis.draw.BackgroundRealizer;

@@ -1,4 +1,4 @@
-package infovis.embed;
+package infovis.busvis;
 
 import infovis.util.Interpolator;
 
@@ -212,6 +212,15 @@ public final class SpringNode {
   public void setPosition(final Point2D pos) {
     setPosition(pos.getX(), pos.getY());
   }
+
+  /** The long animation duration. */
+  public static final int LONG = 2000;
+
+  /** The standard animation duration. */
+  public static final int NORMAL = 1000;
+
+  /** Fast animation duration. */
+  public static final int FAST = 100;
 
   /**
    * Starts an animation to the given point.

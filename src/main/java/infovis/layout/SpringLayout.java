@@ -1,5 +1,8 @@
-package infovis.embed;
+package infovis.layout;
 
+import infovis.busvis.NodeDrawer;
+import infovis.busvis.SpringNode;
+import infovis.busvis.Weighter;
 import infovis.draw.BackgroundRealizer;
 
 /**
@@ -7,7 +10,7 @@ import infovis.draw.BackgroundRealizer;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class SpringEmbedder extends AbstractEmbedder {
+public final class SpringLayout extends AbstractLayouter {
 
   /**
    * The weighter, defining edges between nodes.
@@ -22,7 +25,7 @@ public final class SpringEmbedder extends AbstractEmbedder {
    * @deprecated The use of this positioner is now deprecated.
    */
   @Deprecated
-  public SpringEmbedder(final Weighter weighter, final NodeDrawer drawer) {
+  public SpringLayout(final Weighter weighter, final NodeDrawer drawer) {
     super(drawer);
     this.weighter = weighter;
   }
