@@ -120,6 +120,9 @@ public interface LineRealizer {
 
     @Override
     public Shape createLineShape(final Line2D line, final int number, final int maxNumber) {
+      if(Double.isNaN(line.getX1()) || Double.isNaN(line.getX2())
+          || Double.isNaN(line.getY1()) || Double.isNaN(line.getY2())) return new Line2D.Double();
+
       if(number < 0) return new BasicStroke(maxNumber).createStrokedShape(line);
 
       // calculate normal vector

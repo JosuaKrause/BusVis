@@ -3,7 +3,6 @@ package infovis.data;
 import java.util.Calendar;
 import java.util.Comparator;
 
-
 /**
  * A bus time consists of an hour and a minute.
  * 
@@ -30,8 +29,8 @@ public final class BusTime implements Comparable<BusTime> {
   public static final int MILLISECONDS_PER_SECOND = 1000;
 
   /** The number of seconds in one day. */
-  private static final int SECONDS_PER_DAY = HOURS_PER_DAY * MINUTES_PER_HOUR
-      * SECONDS_PER_MINUTE;
+  private static final int SECONDS_PER_DAY =
+      HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
 
   /** Number of seconds since midnight. */
   private final int seconds;
@@ -60,7 +59,7 @@ public final class BusTime implements Comparable<BusTime> {
   }
 
   /**
-   * Private constructor takind the number of seconds since midnight.
+   * Private constructor taking the number of seconds since midnight.
    * 
    * @param secondsSinceMidnight seconds since midnight
    */
@@ -164,10 +163,12 @@ public final class BusTime implements Comparable<BusTime> {
    */
   public Comparator<BusTime> createRelativeComparator() {
     return new Comparator<BusTime>() {
+
       @Override
       public int compare(final BusTime o1, final BusTime o2) {
         return BusTime.this.secondsTo(o1) - BusTime.this.secondsTo(o2);
       }
+
     };
   }
 
@@ -198,8 +199,8 @@ public final class BusTime implements Comparable<BusTime> {
 
   @Override
   public String toString() {
-    return String.format("%s[%dh, %dmin, %dsec]", getClass().getSimpleName(), getHour(),
-        getMinute(), getSecond());
+    return String.format("%s[%dh, %dmin, %dsec]", getClass().getSimpleName(),
+        getHour(), getMinute(), getSecond());
   }
 
   /**
@@ -243,8 +244,8 @@ public final class BusTime implements Comparable<BusTime> {
    * @return The converted time.
    */
   public static BusTime fromCalendar(final Calendar calendar) {
-    return new BusTime(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE),
-        calendar.get(Calendar.SECOND));
+    return new BusTime(calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND));
   }
 
   /**

@@ -21,14 +21,10 @@ import javax.swing.SwingUtilities;
  */
 public final class OverviewMouse extends MouseAdapter {
 
-  /**
-   * The overview visualization.
-   */
+  /** The overview visualization. */
   private final Overview over;
 
-  /**
-   * Controller.
-   */
+  /** Controller. */
   private final Controller ctrl;
 
   /**
@@ -37,9 +33,7 @@ public final class OverviewMouse extends MouseAdapter {
    */
   private double minZoom = -1;
 
-  /**
-   * The maximal zoom factor.
-   */
+  /** The maximal zoom factor. */
   private final double maxZoom = 2.5;
 
   /**
@@ -53,44 +47,28 @@ public final class OverviewMouse extends MouseAdapter {
     this.ctrl = ctrl;
   }
 
-  /**
-   * The x offset.
-   */
+  /** The x offset. */
   private double offX;
 
-  /**
-   * The y offset.
-   */
+  /** The y offset. */
   private double offY;
 
-  /**
-   * The zoom level.
-   */
+  /** The zoom level. */
   private double zoom = 1;
 
-  /**
-   * If dragging is in process.
-   */
+  /** If dragging is in process. */
   private boolean drag;
 
-  /**
-   * The starting x coordinate.
-   */
+  /** The starting x coordinate. */
   private int startx;
 
-  /**
-   * The starting y coordinate.
-   */
+  /** The starting y coordinate. */
   private int starty;
 
-  /**
-   * The original x coordinate.
-   */
+  /** The original x coordinate. */
   private double origX;
 
-  /**
-   * The original y coordinate.
-   */
+  /** The original y coordinate. */
   private double origY;
 
   @Override
@@ -110,9 +88,7 @@ public final class OverviewMouse extends MouseAdapter {
     }
   }
 
-  /**
-   * The radius in which, if clicked, the station is selected.
-   */
+  /** The radius in which, if clicked, the station is selected. */
   public static final int STATION_RADIUS = 10;
 
   /**
@@ -230,9 +206,7 @@ public final class OverviewMouse extends MouseAdapter {
         inReal(rect.getWidth()), inReal(rect.getHeight()));
   }
 
-  /**
-   * Updates the SVG rendering transformation.
-   */
+  /** Updates the SVG rendering transformation. */
   private void updateTransformation() {
     final AffineTransform at = new AffineTransform();
     at.translate(offX, offY);
@@ -329,31 +303,7 @@ public final class OverviewMouse extends MouseAdapter {
   }
 
   /**
-   * The margin for the viewport reset. The default is <code>10.0</code>.
-   */
-  private double margin;
-
-  /**
-   * Getter.
-   * 
-   * @return The margin for viewport resets.
-   */
-  public double getMargin() {
-    return margin;
-  }
-
-  /**
-   * Setter.
-   * 
-   * @param margin Sets the margin for viewport resets.
-   */
-  public void setMargin(final double margin) {
-    this.margin = margin;
-  }
-
-  /**
-   * Resets the viewport to show exactly the given rectangle expanded by the
-   * margin given by {@link #getMargin()}.
+   * Resets the viewport to show exactly the given rectangle.
    * 
    * @param bbox The rectangle that is visible.
    */
@@ -361,14 +311,13 @@ public final class OverviewMouse extends MouseAdapter {
     if(bbox == null) {
       reset();
     } else {
-      final double margin = getMargin();
       final Rectangle2D rect = over.getVisibleRect();
-      final int nw = (int) (rect.getWidth() - 2 * margin);
-      final int nh = (int) (rect.getHeight() - 2 * margin);
+      final int nw = (int) (rect.getWidth());
+      final int nh = (int) (rect.getHeight());
       zoom = 1.0;
       // does repaint
-      setOffset(margin + (nw - bbox.getWidth()) / 2 - bbox.getMinX(), margin
-          + (nh - bbox.getHeight()) / 2 - bbox.getMinY());
+      setOffset((nw - bbox.getWidth()) / 2 - bbox.getMinX(),
+          (nh - bbox.getHeight()) / 2 - bbox.getMinY());
       final double rw = nw / bbox.getWidth();
       final double rh = nh / bbox.getHeight();
       final double factor = rw > rh ? rw : rh;

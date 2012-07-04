@@ -1,8 +1,8 @@
 package infovis.gui;
 
+import infovis.busvis.BusvisCanvas;
 import infovis.ctrl.Controller;
 import infovis.data.BusStationManager;
-import infovis.embed.BusCanvas;
 import infovis.overview.Overview;
 
 import java.awt.Frame;
@@ -41,7 +41,7 @@ public final class MainWindow extends JFrame {
         new ControlPanel(ctrl));
     left.setDividerLocation(400);
     left.setOneTouchExpandable(true);
-    final BusCanvas mainCanvas = BusCanvas.createBusCanvas(ctrl, 900, 900);
+    final BusvisCanvas mainCanvas = BusvisCanvas.createBusCanvas(ctrl, 900, 900);
     final JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, mainCanvas);
     add(pane);
     pack();

@@ -11,9 +11,7 @@ import java.awt.geom.Point2D;
  */
 public final class VecUtil {
 
-  /**
-   * No constructor.
-   */
+  /** No constructor. */
   private VecUtil() {
     // nothing to construct
   }

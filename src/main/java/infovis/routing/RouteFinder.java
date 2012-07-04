@@ -16,6 +16,7 @@ import java.util.PriorityQueue;
  * @author Leo Woerteler
  */
 public final class RouteFinder implements RoutingAlgorithm {
+
   /** Comparator for comparing Routes by travel time, length an walking time. */
   private static final Comparator<Route> CMP = new Comparator<Route>() {
     @Override
@@ -205,6 +206,7 @@ public final class RouteFinder implements RoutingAlgorithm {
    * @author Leo Woerteler
    */
   private static final class Route {
+
     /** Route up to this point, possibly {@code null}. */
     protected final Route before;
     /** Last edge in the route. */
@@ -340,6 +342,6 @@ public final class RouteFinder implements RoutingAlgorithm {
       return last.toString();
     }
 
-  }
+  } // Route
 
 }

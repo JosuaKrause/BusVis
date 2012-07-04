@@ -8,6 +8,7 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Realizes the actual painting of bus stations.
@@ -17,7 +18,7 @@ import java.awt.geom.Line2D;
 public interface StationRealizer {
 
   /**
-   * The shape of the depiction of the bus station. This is also the are that
+   * The shape of the depiction of the bus station. This is also the area that
    * can be clicked on.
    * 
    * @param x The x translation.
@@ -63,7 +64,8 @@ public interface StationRealizer {
     @Override
     public Shape createStationShape(final double x, final double y, final double r) {
       // JVM-bug #7180110
-      if(Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(r)) return null;
+      if(Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(r)) return new Rectangle2D.Double();
+
       return new Ellipse2D.Double(x - r, y - r, r * 2, r * 2);
     }
 
@@ -71,7 +73,7 @@ public interface StationRealizer {
     public void drawStation(final Graphics2D g, final Shape node, final Stroke stroke,
         final boolean referenceNode, final boolean secondarySelected) {
       g.setColor(secondarySelected ? Color.BLUE :
-          (!referenceNode ? Color.WHITE : Color.RED));
+        (!referenceNode ? Color.WHITE : Color.RED));
       g.fill(node);
       g.setStroke(stroke);
       g.setColor(Color.BLACK);
