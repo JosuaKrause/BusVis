@@ -380,7 +380,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
       algoBox = null;
     }
     // embedder selection
-    final Layouts[] embeds = Controller.getEmbedders();
+    final Layouts[] embeds = Controller.getLayouts();
     if(embeds.length != 1) {
       embedBox = new JComboBox(embeds);
       embedBox.addActionListener(new ActionListener() {

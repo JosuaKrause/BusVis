@@ -50,7 +50,7 @@ public final class Controller implements BusStationEnumerator {
   private volatile int currWalkTime = 5;
 
   /** Current positioning technique. */
-  private Layouts embed = EMBEDDERS[0];
+  private Layouts embed = LAYOUTS[0];
 
   /** Timer for real-time view and ffw mode. */
   private final Timer timer = new Timer(true);
@@ -148,9 +148,7 @@ public final class Controller implements BusStationEnumerator {
   }
 
   /** All positioning techniques. */
-  private static final Layouts[] EMBEDDERS = new Layouts[] {
-    // Embedders.EDGE,
-
+  private static final Layouts[] LAYOUTS = new Layouts[] {
     Layouts.CIRCULAR,
 
     Layouts.STRESS,
@@ -161,8 +159,8 @@ public final class Controller implements BusStationEnumerator {
    * 
    * @return All registered positioning techniques.
    */
-  public static Layouts[] getEmbedders() {
-    return EMBEDDERS;
+  public static Layouts[] getLayouts() {
+    return LAYOUTS;
   }
 
   /** All routing algorithms. */

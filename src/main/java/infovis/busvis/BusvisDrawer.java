@@ -145,6 +145,7 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
       final double y2 = node.getY();
       final Line2D line = new Line2D.Double(x1, y1, x2, y2);
       final Shape lineShape = lineRealize.createLineShape(line, -1, e.getLineDegree());
+
       final Rectangle2D bbox = lineShape.getBounds2D();
       if(!visible.intersects(bbox)) {
         continue;
@@ -191,7 +192,6 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
     if(route != null && !route.isReachable()) return;
 
     final Shape shape = nodeClickArea(n, true);
-    if(shape == null) return;
     final BasicStroke stroke = new BasicStroke(.5f);
     final Rectangle2D bbox = stroke.createStrokedShape(shape).getBounds2D();
     if(!ctx.getVisibleCanvas().intersects(bbox)) return;
@@ -254,7 +254,6 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
     }
 
     final Shape s = nodeClickArea(n, true);
-    if(s == null) return;
     final Rectangle2D node = s.getBounds2D();
     final Point2D pos = ctx.toComponentCoordinates(
         new Point2D.Double(node.getMaxX(), node.getMinY()));
@@ -414,9 +413,6 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
     } else {
       for(final LayoutNode n : nodes()) {
         final Shape shape = nodeClickArea(n, false);
-        if(shape == null) {
-          continue;
-        }
         final Rectangle2D b = shape.getBounds2D();
         if(bbox == null) {
           bbox = b;

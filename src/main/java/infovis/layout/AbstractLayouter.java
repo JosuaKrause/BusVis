@@ -173,9 +173,6 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
     drawer.moveMouse(cur);
     for(final LayoutNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
-      if(s == null) {
-        continue;
-      }
       hovered.set(n.getId(), s.contains(cur));
     }
     if(!hovered.isEmpty()) {
@@ -221,9 +218,6 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
     selected.clear();
     for(final LayoutNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
-      if(s == null) {
-        continue;
-      }
       if(s.contains(p)) {
         selected.add(new SelectedNode(n));
       }
@@ -252,9 +246,6 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
     if(doesDrag()) return false;
     for(final LayoutNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
-      if(s == null) {
-        continue;
-      }
       if(s.contains(p)) {
         drawer.selectNode(n);
         return true;

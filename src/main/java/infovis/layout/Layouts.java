@@ -13,16 +13,8 @@ public enum Layouts {
   /** Radial positioning technique. */
   CIRCULAR("Radial Layout"),
 
-  /** Edge based technique. */
-  @Deprecated
-  EDGE("Edge Based Layout"),
-
   /** Stress based technique. */
   STRESS("Stress Layout"),
-
-  /** Spring embedding technique. */
-  @Deprecated
-  SPRING("Spring Embedder"),
 
   /* end of declaration */;
 
@@ -51,18 +43,13 @@ public enum Layouts {
    * @param weighter The weighter.
    * @return The layout.
    */
-  @SuppressWarnings("deprecation")
   public static AbstractLayouter createFor(final Layouts embed,
       final NodeDrawer drawer, final Weighter weighter) {
     switch(embed) {
-      case EDGE:
-        return new EdgeLayouter(weighter, drawer);
       case CIRCULAR:
         return new CircularLayouter(weighter, drawer);
       case STRESS:
         return new StressLayout(weighter, drawer);
-      case SPRING:
-        return new SpringLayout(weighter, drawer);
     }
     throw new InternalError();
   }

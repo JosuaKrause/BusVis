@@ -302,31 +302,8 @@ public final class OverviewMouse extends MouseAdapter {
     setOffset(rect.getCenterX(), rect.getCenterY());
   }
 
-  /** The margin for the viewport reset. The default is <code>0.0</code>. */
-  private double margin;
-
   /**
-   * Getter.
-   * 
-   * @return The margin for viewport resets.
-   */
-  public double getMargin() {
-    return margin;
-  }
-
-  /**
-   * Setter.
-   * 
-   * @param margin Sets the margin for viewport resets.
-   */
-  @Deprecated
-  public void setMargin(final double margin) {
-    this.margin = margin;
-  }
-
-  /**
-   * Resets the viewport to show exactly the given rectangle expanded by the
-   * margin given by {@link #getMargin()}.
+   * Resets the viewport to show exactly the given rectangle.
    * 
    * @param bbox The rectangle that is visible.
    */
@@ -334,14 +311,13 @@ public final class OverviewMouse extends MouseAdapter {
     if(bbox == null) {
       reset();
     } else {
-      final double margin = getMargin();
       final Rectangle2D rect = over.getVisibleRect();
-      final int nw = (int) (rect.getWidth() - 2 * margin);
-      final int nh = (int) (rect.getHeight() - 2 * margin);
+      final int nw = (int) (rect.getWidth());
+      final int nh = (int) (rect.getHeight());
       zoom = 1.0;
       // does repaint
-      setOffset(margin + (nw - bbox.getWidth()) / 2 - bbox.getMinX(), margin
-          + (nh - bbox.getHeight()) / 2 - bbox.getMinY());
+      setOffset((nw - bbox.getWidth()) / 2 - bbox.getMinX(),
+          (nh - bbox.getHeight()) / 2 - bbox.getMinY());
       final double rw = nw / bbox.getWidth();
       final double rh = nh / bbox.getHeight();
       final double factor = rw > rh ? rw : rh;

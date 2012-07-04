@@ -8,6 +8,7 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Realizes the actual painting of bus stations.
@@ -63,7 +64,8 @@ public interface StationRealizer {
     @Override
     public Shape createStationShape(final double x, final double y, final double r) {
       // JVM-bug #7180110
-      if(Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(r)) return null;
+      if(Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(r)) return new Rectangle2D.Double();
+
       return new Ellipse2D.Double(x - r, y - r, r * 2, r * 2);
     }
 
