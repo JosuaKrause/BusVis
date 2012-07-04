@@ -6,11 +6,11 @@ import java.awt.geom.Point2D;
 import java.util.Random;
 
 /**
- * A node in a spring embedder system.
+ * A node in a layout.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class SpringNode {
+public final class LayoutNode {
 
   /** The dense id of the node. */
   private final int id;
@@ -47,7 +47,7 @@ public final class SpringNode {
    * 
    * @param id The dense id.
    */
-  public SpringNode(final int id) {
+  public LayoutNode(final int id) {
     this.id = id;
   }
 
@@ -66,11 +66,12 @@ public final class SpringNode {
    * @param w The weighter, determining the weights of the edges between the
    *          nodes.
    */
+  @Deprecated
   public void move(final Weighter w) {
     boolean rnd = false;
     double dx = 0;
     double dy = 0;
-    for(final SpringNode n : w.nodes()) {
+    for(final LayoutNode n : w.nodes()) {
       if(n == this) {
         continue;
       }
@@ -107,9 +108,8 @@ public final class SpringNode {
     this.dy += dy * c;
   }
 
-  /**
-   * Actually moves the node and resets the movement values.
-   */
+  /** Actually moves the node and resets the movement values. */
+  @Deprecated
   public void step() {
     x += dx;
     y += dy;
@@ -122,6 +122,7 @@ public final class SpringNode {
    * 
    * @return The current x movement.
    */
+  @Deprecated
   public double getDx() {
     return dx;
   }
@@ -131,6 +132,7 @@ public final class SpringNode {
    * 
    * @return The current y movement.
    */
+  @Deprecated
   public double getDy() {
     return dy;
   }
@@ -186,6 +188,7 @@ public final class SpringNode {
    * @param dx The x movement.
    * @param dy The y movement.
    */
+  @Deprecated
   public void addMove(final double dx, final double dy) {
     this.dx += dx;
     this.dy += dy;
@@ -244,9 +247,7 @@ public final class SpringNode {
     end = pos;
   }
 
-  /**
-   * Animates the position.
-   */
+  /** Animates the position. */
   public void animate() {
     if(!inAnimation()) return;
     final long millis = System.currentTimeMillis();
@@ -272,9 +273,7 @@ public final class SpringNode {
     return pol != null;
   }
 
-  /**
-   * Aborts the current animation and keeps the current position.
-   */
+  /** Aborts the current animation and keeps the current position. */
   public void clearAnimation() {
     animate();
     pol = null;
@@ -284,7 +283,7 @@ public final class SpringNode {
 
   @Override
   public boolean equals(final Object obj) {
-    return obj instanceof SpringNode && ((SpringNode) obj).id == id;
+    return obj instanceof LayoutNode && ((LayoutNode) obj).id == id;
   }
 
   @Override

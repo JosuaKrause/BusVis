@@ -1,8 +1,8 @@
 package infovis.layout;
 
 import infovis.busvis.Animator;
+import infovis.busvis.LayoutNode;
 import infovis.busvis.NodeDrawer;
-import infovis.busvis.SpringNode;
 import infovis.data.BusLine;
 import infovis.draw.BackgroundRealizer;
 import infovis.gui.Context;
@@ -29,34 +29,22 @@ import javax.swing.SwingUtilities;
  */
 public abstract class AbstractLayouter extends PainterAdapter implements Animator {
 
-  /**
-   * The frame rate of the spring embedder.
-   */
+  /** The frame rate of the layouter. */
   public static final long FRAMERATE = 60;
 
-  /**
-   * The waiting time resulting from the {@link #FRAMERATE}.
-   */
+  /** The waiting time resulting from the {@link #FRAMERATE}. */
   protected static final long FRAMEWAIT = Math.max(1000 / FRAMERATE, 1);
 
-  /**
-   * A list of refreshables that are refreshed, when a step has occured.
-   */
+  /** A list of refreshables that are refreshed, when a frame can be drawn. */
   private final List<Refreshable> receivers;
 
-  /**
-   * The animator thread.
-   */
+  /** The animator thread. */
   private final Thread animator;
 
-  /**
-   * Whether this object is already disposed or can still be used.
-   */
+  /** Whether this object is already disposed or can still be used. */
   private volatile boolean disposed;
 
-  /**
-   * The drawer, drawing nodes.
-   */
+  /** The drawer, drawing nodes. */
   protected final NodeDrawer drawer;
 
   /**
@@ -123,9 +111,7 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
     receivers.add(r);
   }
 
-  /**
-   * Accumulates all visible lines.
-   */
+  /** Accumulates all visible lines. */
   private final Set<BusLine> visibleLines = new HashSet<BusLine>();
 
   @Override
@@ -134,17 +120,17 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
     final Graphics2D g2 = (Graphics2D) gfx.create();
     drawer.drawBackground(g2, ctx, backgroundRealizer());
     g2.dispose();
-    for(final SpringNode n : drawer.nodes()) {
+    for(final LayoutNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
       drawer.drawEdges(g, ctx, n, visibleLines, !secSel.isEmpty());
       g.dispose();
     }
-    for(final SpringNode sel : secSel) {
+    for(final LayoutNode sel : secSel) {
       final Graphics2D g = (Graphics2D) gfx.create();
       drawer.drawSecondarySelected(g, ctx, sel);
       g.dispose();
     }
-    for(final SpringNode n : drawer.nodes()) {
+    for(final LayoutNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
       drawer.drawNode(g, ctx, n, secSel.contains(n));
       g.dispose();
@@ -155,7 +141,7 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
   public void drawHUD(final Graphics2D gfx, final Context ctx) {
     if(!secSel.isEmpty()) {
       final BitSet tmp = new BitSet();
-      for(final SpringNode n : secSel) {
+      for(final LayoutNode n : secSel) {
         final Graphics2D g = (Graphics2D) gfx.create();
         drawer.drawRouteLabels(g, ctx, n, tmp);
         g.dispose();
@@ -168,7 +154,7 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
         g.dispose();
       }
     } else {
-      for(final SpringNode n : drawer.nodes()) {
+      for(final LayoutNode n : drawer.nodes()) {
         final Graphics2D g = (Graphics2D) gfx.create();
         drawer.drawLabel(g, ctx, n, hovered.get(n.getId()), null);
         g.dispose();
@@ -179,15 +165,13 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
     g2.dispose();
   }
 
-  /**
-   * The lookup for hovered nodes.
-   */
+  /** The lookup for hovered nodes. */
   private final BitSet hovered = new BitSet();
 
   @Override
   public void moveMouse(final Point2D cur) {
     drawer.moveMouse(cur);
-    for(final SpringNode n : drawer.nodes()) {
+    for(final LayoutNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
       if(s == null) {
         continue;
@@ -206,19 +190,13 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
    */
   private static final class SelectedNode {
 
-    /**
-     * The actual node.
-     */
-    public final SpringNode node;
+    /** The actual node. */
+    public final LayoutNode node;
 
-    /**
-     * The x position at the time of selection.
-     */
+    /** The x position at the time of selection. */
     public final double x;
 
-    /**
-     * The y position at the time of selection.
-     */
+    /** The y position at the time of selection. */
     public final double y;
 
     /**
@@ -226,24 +204,22 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
      * 
      * @param node The selected node.
      */
-    public SelectedNode(final SpringNode node) {
+    public SelectedNode(final LayoutNode node) {
       this.node = node;
       x = node.getX();
       y = node.getY();
     }
 
-  }
+  } // SelectedNode
 
-  /**
-   * A list of all currently selected nodes.
-   */
+  /** A list of all currently selected nodes. */
   private final List<SelectedNode> selected = new LinkedList<SelectedNode>();
 
   @Override
   public boolean acceptDrag(final Point2D p) {
     if(!doesDrag()) return false;
     selected.clear();
-    for(final SpringNode n : drawer.nodes()) {
+    for(final LayoutNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
       if(s == null) {
         continue;
@@ -255,16 +231,14 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
     return !selected.isEmpty();
   }
 
-  /**
-   * A list of all secondary selected nodes.
-   */
-  private final Set<SpringNode> secSel = new HashSet<SpringNode>();
+  /** A list of all secondary selected nodes. */
+  private final Set<LayoutNode> secSel = new HashSet<LayoutNode>();
 
   @Override
   public boolean click(final Point2D p, final MouseEvent e) {
     if(SwingUtilities.isRightMouseButton(e)) {
       secSel.clear();
-      for(final SpringNode n : drawer.nodes()) {
+      for(final LayoutNode n : drawer.nodes()) {
         final Shape s = drawer.nodeClickArea(n, true);
         if(s.contains(p)) {
           secSel.add(n);
@@ -276,7 +250,7 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
       return true;
     }
     if(doesDrag()) return false;
-    for(final SpringNode n : drawer.nodes()) {
+    for(final LayoutNode n : drawer.nodes()) {
       final Shape s = drawer.nodeClickArea(n, true);
       if(s == null) {
         continue;
@@ -296,24 +270,6 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
    */
   protected boolean doesDrag() {
     return true;
-  }
-
-  @Override
-  public String getTooltip(final Point2D p) {
-    String str = null;
-    for(final SpringNode n : drawer.nodes()) {
-      final Shape s = drawer.nodeClickArea(n, true);
-      if(s == null) {
-        continue;
-      }
-      if(s.contains(p)) {
-        final String text = drawer.getTooltipText(n);
-        if(text != null) {
-          str = text;
-        }
-      }
-    }
-    return str;
   }
 
   @Override
@@ -350,7 +306,7 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
   }
 
   /**
-   * Tests whether this spring embedder is disposed.
+   * Tests whether this layouter is disposed.
    * 
    * @return If it is disposed.
    */

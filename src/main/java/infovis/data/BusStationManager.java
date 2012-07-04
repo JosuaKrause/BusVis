@@ -11,7 +11,7 @@ import java.util.Collections;
  */
 public final class BusStationManager implements BusStationEnumerator {
 
-  /** A fast lookup table. BusStation ids are generally dense. */
+  /** A fast lookup table. BusStation ids are dense. */
   private final BusStation[] fastLookup;
 
   /** An unmodifiable collection of all bus stations. */

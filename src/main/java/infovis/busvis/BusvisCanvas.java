@@ -27,30 +27,20 @@ import javax.swing.SwingUtilities;
  */
 public final class BusvisCanvas extends Canvas implements BusVisualization {
 
-  /**
-   * SVUID.
-   */
+  /** SVUID. */
   private static final long serialVersionUID = 5517376336494016259L;
 
-  /**
-   * The distance measure.
-   */
+  /** The distance measure. */
   protected final BusvisWeighter dist;
 
-  /**
-   * The drawer.
-   */
+  /** The drawer. */
   private final BusvisDrawer draw;
 
-  /**
-   * The embedder.
-   */
-  protected AbstractLayouter embed;
+  /** The layouter. */
+  protected AbstractLayouter layout;
 
-  /**
-   * The embedding technique.
-   */
-  private Layouts embedder;
+  /** The layout technique. */
+  private Layouts layouter;
 
   /**
    * Creates a bus canvas.
@@ -67,9 +57,9 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
         LineRealizer.ADVANCED, LabelRealizer.STANDARD, LegendRealizer.STANDARD);
     dist.setMinDist(60.0);
     dist.setFactor(10);
-    final Layouts e = Layouts.CIRCULAR;
-    final AbstractLayouter embed = Layouts.createFor(e, draw, dist);
-    final BusvisCanvas res = new BusvisCanvas(ctrl, e, embed, dist, draw, width, height);
+    final Layouts l = Layouts.CIRCULAR;
+    final AbstractLayouter embed = Layouts.createFor(l, draw, dist);
+    final BusvisCanvas res = new BusvisCanvas(ctrl, l, embed, dist, draw, width, height);
     ctrl.addBusVisualization(res);
     res.setBackground(Color.WHITE);
     return res;
@@ -79,22 +69,21 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
    * Private constructor.
    * 
    * @param ctrl The controller.
-   * @param e The embedder enum.
-   * @param embed The corresponding embedder.
+   * @param layouter The layouter enum.
+   * @param layout The corresponding layout.
    * @param dist The distance measure.
    * @param draw The drawer.
    * @param width The width.
    * @param height The height.
    */
-  private BusvisCanvas(final Controller ctrl, final Layouts e,
-      final AbstractLayouter embed,
-      final BusvisWeighter dist, final BusvisDrawer draw,
-      final int width, final int height) {
-    super(embed, width, height);
-    this.embed = embed;
+  private BusvisCanvas(final Controller ctrl, final Layouts layouter,
+      final AbstractLayouter layout, final BusvisWeighter dist,
+      final BusvisDrawer draw, final int width, final int height) {
+    super(layout, width, height);
+    this.layout = layout;
     this.dist = dist;
     this.draw = draw;
-    embedder = e;
+    this.layouter = layouter;
     addAction(KeyEvent.VK_R, new AbstractAction() {
 
       private static final long serialVersionUID = 1648614278684353766L;
@@ -126,7 +115,7 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
       }
 
     });
-    embed.addRefreshable(this);
+    layout.addRefreshable(this);
   }
 
   @Override
@@ -158,17 +147,17 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
   }
 
   /**
-   * Sets the currently used embedder.
+   * Sets the currently used layouter.
    * 
-   * @param embed The embedder.
+   * @param l The layouter.
    */
-  public void setPainter(final AbstractLayouter embed) {
-    if(this.embed != null) {
-      this.embed.dispose();
+  public void setPainter(final AbstractLayouter l) {
+    if(layout != null) {
+      layout.dispose();
     }
-    this.embed = embed;
-    embed.addRefreshable(this);
-    super.setPainter(embed);
+    layout = l;
+    l.addRefreshable(this);
+    super.setPainter(l);
     dist.changeUndefined();
   }
 
@@ -182,10 +171,10 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
   }
 
   @Override
-  public void setEmbedder(final Layouts embedder) {
-    if(this.embedder == embedder) return;
-    this.embedder = embedder;
-    setPainter(Layouts.createFor(embedder, draw, dist));
+  public void setLayout(final Layouts layout) {
+    if(layouter == layout) return;
+    layouter = layout;
+    setPainter(Layouts.createFor(layout, draw, dist));
   }
 
   @Override

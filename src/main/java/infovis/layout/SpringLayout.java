@@ -1,7 +1,7 @@
 package infovis.layout;
 
+import infovis.busvis.LayoutNode;
 import infovis.busvis.NodeDrawer;
-import infovis.busvis.SpringNode;
 import infovis.busvis.Weighter;
 import infovis.draw.BackgroundRealizer;
 
@@ -35,11 +35,12 @@ public final class SpringLayout extends AbstractLayouter {
    */
   private boolean reset;
 
+  @SuppressWarnings("deprecation")
   @Override
   protected boolean step() {
     if(weighter.getReferenceNode() == null) {
       if(!reset) {
-        for(final SpringNode n : weighter.nodes()) {
+        for(final LayoutNode n : weighter.nodes()) {
           n.setPosition(weighter.getDefaultPosition(n));
         }
         reset = true;
@@ -50,7 +51,7 @@ public final class SpringLayout extends AbstractLayouter {
     double mx = 0;
     double my = 0;
     double m = 0;
-    for(final SpringNode n : weighter.nodes()) {
+    for(final LayoutNode n : weighter.nodes()) {
       n.move(weighter);
       mx += n.getDx();
       my += n.getDy();
@@ -58,7 +59,7 @@ public final class SpringLayout extends AbstractLayouter {
     }
     mx /= -m;
     my /= -m;
-    for(final SpringNode n : weighter.nodes()) {
+    for(final LayoutNode n : weighter.nodes()) {
       if(correctMovement) {
         n.addMove(mx, my);
       }

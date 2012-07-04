@@ -27,10 +27,10 @@ public final class BusvisWeighter implements Weighter {
   private final BusStation[] map;
 
   /** The reverse backing map for the spring nodes. */
-  private final SpringNode[] rev;
+  private final LayoutNode[] rev;
 
-  /** Collection of all {@link SpringNode}s. */
-  private final List<SpringNode> nodes;
+  /** Collection of all {@link LayoutNode}s. */
+  private final List<LayoutNode> nodes;
 
   /** Dummy routes for uninitialized routings. */
   private final RoutingResult[] dummyRoutes;
@@ -83,10 +83,10 @@ public final class BusvisWeighter implements Weighter {
     routes = dummyRoutes;
     final int length = ctrl.maxId() + 1;
     map = new BusStation[length];
-    rev = new SpringNode[length];
+    rev = new LayoutNode[length];
     nodes = Collections.unmodifiableList(Arrays.asList(rev));
     for(final BusStation s : ctrl.getStations()) {
-      final SpringNode node = new SpringNode(s.getId());
+      final LayoutNode node = new LayoutNode(s.getId());
       node.setPosition(s.getDefaultX(), s.getDefaultY());
       map[node.getId()] = s;
       rev[s.getId()] = node;
@@ -144,7 +144,7 @@ public final class BusvisWeighter implements Weighter {
     routes = route;
     matrix.refreshHighlights(routes);
     if(from != this.from) {
-      fader.initialize(this.from, SpringNode.NORMAL);
+      fader.initialize(this.from, LayoutNode.NORMAL);
     }
     final BusTime old = this.time;
     if(ffw) {
@@ -188,7 +188,7 @@ public final class BusvisWeighter implements Weighter {
    * @param n The spring node.
    * @return The corresponding station.
    */
-  public BusStation getStation(final SpringNode n) {
+  public BusStation getStation(final LayoutNode n) {
     return map[n.getId()];
   }
 
@@ -201,9 +201,7 @@ public final class BusvisWeighter implements Weighter {
     return matrix;
   }
 
-  /**
-   * Whether the weights have changed.
-   */
+  /** Whether the weights have changed. */
   protected volatile ChangeType changes;
 
   @Override
@@ -213,9 +211,7 @@ public final class BusvisWeighter implements Weighter {
     return res != null ? res : NO_CHANGE;
   }
 
-  /**
-   * Signals undefined changes.
-   */
+  /** Signals undefined changes. */
   public void changeUndefined() {
     set(from, time, changeTime, ffw);
   }
@@ -289,9 +285,7 @@ public final class BusvisWeighter implements Weighter {
     return factor;
   }
 
-  /**
-   * The minimal distance between nodes.
-   */
+  /** The minimal distance between nodes. */
   private double minDist = 15;
 
   /**
@@ -323,7 +317,7 @@ public final class BusvisWeighter implements Weighter {
   }
 
   @Override
-  public double weight(final SpringNode f, final SpringNode t) {
+  public double weight(final LayoutNode f, final LayoutNode t) {
     if(from == null || t == f) return 0;
     final BusStation fr = getStation(f);
     if(fr.equals(from)) return 0;
@@ -334,7 +328,7 @@ public final class BusvisWeighter implements Weighter {
   }
 
   @Override
-  public boolean hasWeight(final SpringNode f, final SpringNode t) {
+  public boolean hasWeight(final LayoutNode f, final LayoutNode t) {
     if(from == null || t == f) return false;
     final BusStation fr = getStation(f);
     if(fr.equals(from)) return false;
@@ -344,7 +338,7 @@ public final class BusvisWeighter implements Weighter {
   }
 
   @Override
-  public List<SpringNode> nodes() {
+  public List<LayoutNode> nodes() {
     return nodes;
   }
 
@@ -354,13 +348,13 @@ public final class BusvisWeighter implements Weighter {
   }
 
   @Override
-  public Point2D getDefaultPosition(final SpringNode node) {
+  public Point2D getDefaultPosition(final LayoutNode node) {
     final BusStation station = getStation(node);
     return new Point2D.Double(station.getDefaultX(), station.getDefaultY());
   }
 
   @Override
-  public SpringNode getReferenceNode() {
+  public LayoutNode getReferenceNode() {
     return getNode(from);
   }
 
@@ -370,7 +364,7 @@ public final class BusvisWeighter implements Weighter {
    * @param station The station.
    * @return The corresponding node.
    */
-  public SpringNode getNode(final BusStation station) {
+  public LayoutNode getNode(final BusStation station) {
     return station == null ? null : rev[station.getId()];
   }
 
@@ -380,12 +374,12 @@ public final class BusvisWeighter implements Weighter {
    * @param i The node id.
    * @return The node.
    */
-  public SpringNode getNode(final int i) {
+  public LayoutNode getNode(final int i) {
     return rev[i];
   }
 
   @Override
-  public List<WeightedEdge> edgesTo(final SpringNode to) {
+  public List<WeightedEdge> edgesTo(final LayoutNode to) {
     final BusStation station = getStation(to);
     final RoutingResult r = getRoute(station);
     if(r.isStartNode() || !r.isReachable()) return Collections.emptyList();
@@ -395,11 +389,11 @@ public final class BusvisWeighter implements Weighter {
     if(start == null) {
       start = BusTime.now();
     }
-    SpringNode cur = getReferenceNode();
+    LayoutNode cur = getReferenceNode();
     int i = 0;
     for(final BusEdge be : e) {
       final BusTime end = be.getEnd();
-      final SpringNode next = getNode(be.getTo());
+      final LayoutNode next = getNode(be.getTo());
       edges[i++] = new WeightedEdge(cur, next, factor * start.secondsTo(end)
           / BusTime.SECONDS_PER_MINUTE);
       start = end;

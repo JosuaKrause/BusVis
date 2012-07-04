@@ -22,29 +22,19 @@ public final class EdgeMatrix {
    */
   public static final class UndirectedEdge {
 
-    /**
-     * The station with the lower id.
-     */
+    /** The station with the lower id. */
     private final BusStation lower;
 
-    /**
-     * The station with the higher id.
-     */
+    /** The station with the higher id. */
     private final BusStation higher;
 
-    /**
-     * The lines traveling between the stations.
-     */
+    /** The lines traveling between the stations. */
     private final BusLine[] lines;
 
-    /**
-     * The highlighted lines.
-     */
+    /** The highlighted lines. */
     private final BitSet highlighted;
 
-    /**
-     * The number of highlighted lines.
-     */
+    /** The number of highlighted lines. */
     private int count;
 
     /**
@@ -119,9 +109,7 @@ public final class EdgeMatrix {
       throw new IllegalStateException("line not highlighted");
     }
 
-    /**
-     * Clears the highlights.
-     */
+    /** Clears the highlights. */
     public synchronized void clearHighlighted() {
       highlighted.clear();
       count = 0;
@@ -203,9 +191,7 @@ public final class EdgeMatrix {
       return lines.length;
     }
 
-    /**
-     * <code>0</code> when walking is highlighted and <code>1</code> otherwise.
-     */
+    /** <code>0</code> when walking is highlighted and <code>1</code> otherwise. */
     private int walkLight;
 
     /**
@@ -218,26 +204,18 @@ public final class EdgeMatrix {
       return walkLight;
     }
 
-  }
+  } // UndirectedEdge
 
-  /**
-   * The map for the maximal number of lines per station.
-   */
+  /** The map for the maximal number of lines per station. */
   private final int[] maxLines;
 
-  /**
-   * The map for the degree of a station.
-   */
+  /** The map for the degree of a station. */
   private final int[] degree;
 
-  /**
-   * The highest bus station id.
-   */
+  /** The highest bus station id. */
   private final int maxId;
 
-  /**
-   * The matrix.
-   */
+  /** The matrix. */
   protected final UndirectedEdge[][] matrix;
 
   /**
@@ -392,6 +370,7 @@ public final class EdgeMatrix {
           private UndirectedEdge next;
 
           {
+            // initialize iterator -- fill in first element
             fetchNext();
           }
 

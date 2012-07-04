@@ -79,13 +79,15 @@ public final class Controller implements BusStationEnumerator {
   /**
    * Starts a timer that periodically refreshes the time when
    * {@link #isStartTimeNow()} returns <code>true</code>. The refresh happens
-   * exact at the beginning of a minute.
+   * exact at the beginning of a minute. It is also used for the fast-forward
+   * mode.
    */
   private void startTimer() {
     final Calendar calendar = Calendar.getInstance();
     calendar.set(Calendar.MILLISECOND, 0);
     calendar.set(Calendar.SECOND, 0);
     final TimerTask task = new TimerTask() {
+
       @Override
       public void run() {
         if(isStartTimeNow()) {
@@ -145,17 +147,13 @@ public final class Controller implements BusStationEnumerator {
     frame.setTitle(sb.toString());
   }
 
-  /**
-   * All positioning techniques.
-   */
+  /** All positioning techniques. */
   private static final Layouts[] EMBEDDERS = new Layouts[] {
     // Embedders.EDGE,
 
     Layouts.CIRCULAR,
 
     Layouts.STRESS,
-
-    // Embedders.SPRING,
   };
 
   /**
@@ -167,13 +165,9 @@ public final class Controller implements BusStationEnumerator {
     return EMBEDDERS;
   }
 
-  /**
-   * All routing algorithms.
-   */
+  /** All routing algorithms. */
   private static final RoutingAlgorithm[] ALGOS = new RoutingAlgorithm[] {
     new RouteFinder(),
-
-    // new FastRouteFinder(),
   };
 
   /**
@@ -185,9 +179,7 @@ public final class Controller implements BusStationEnumerator {
     return ALGOS;
   }
 
-  /**
-   * The currently selected routing algorithm.
-   */
+  /** The currently selected routing algorithm. */
   private RoutingAlgorithm algo = ALGOS[0];
 
   /**
@@ -308,9 +300,7 @@ public final class Controller implements BusStationEnumerator {
     return getTime() == null;
   }
 
-  /**
-   * Selects the start time as now.
-   */
+  /** Selects the start time as now. */
   public void setNow() {
     setTime(null);
   }
@@ -355,7 +345,7 @@ public final class Controller implements BusStationEnumerator {
     if(this.embed == embed) return;
     this.embed = embed;
     for(final BusVisualization v : vis) {
-      v.setEmbedder(embed);
+      v.setLayout(embed);
     }
   }
 
@@ -377,7 +367,7 @@ public final class Controller implements BusStationEnumerator {
     if(v == null) throw new NullPointerException("v");
     if(vis.contains(v)) throw new IllegalStateException("visualization already added");
     vis.add(v);
-    v.setEmbedder(embed);
+    v.setLayout(embed);
     v.setChangeTime(curChangeTime);
     v.setStartTime(curStartTime, ffwMode);
     v.selectBusStation(curSelection);
@@ -490,9 +480,7 @@ public final class Controller implements BusStationEnumerator {
     ffwChange();
   }
 
-  /**
-   * Signals a change to the fast forward mode.
-   */
+  /** Signals a change to the fast forward mode. */
   private void ffwChange() {
     final boolean ffwMode = this.ffwMode;
     final int ffwMinutes = this.ffwMinutes;

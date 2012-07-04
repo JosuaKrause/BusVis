@@ -24,7 +24,11 @@ public interface LegendRealizer {
    */
   void drawLegend(Graphics2D g, Rectangle2D view, BusLine[] lines);
 
-  /** The standard legend realizer. */
+  /**
+   * The standard legend realizer.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
   LegendRealizer STANDARD = new LegendRealizer() {
 
     /** The font / block height. */

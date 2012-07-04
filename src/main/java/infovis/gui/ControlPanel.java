@@ -893,7 +893,7 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   }
 
   @Override
-  public void setEmbedder(final Layouts embed) {
+  public void setLayout(final Layouts embed) {
     if(embedBox != null) {
       embedBox.setSelectedItem(embed);
     }

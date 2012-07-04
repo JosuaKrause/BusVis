@@ -19,24 +19,16 @@ public final class BusStation implements Comparable<BusStation> {
   /** The (non-negative) unique id of the bus station. */
   private final int id;
 
-  /**
-   * The default x coordinate for this bus station.
-   */
+  /** The default x coordinate for this bus station. */
   private final double x;
 
-  /**
-   * The default y coordinate for this bus station.
-   */
+  /** The default y coordinate for this bus station. */
   private final double y;
 
-  /**
-   * The x coordinate for this bus station on the abstract map.
-   */
+  /** The x coordinate for this bus station on the abstract map. */
   private final double abstractX;
 
-  /**
-   * The y coordinate for this bus station on the abstract map.
-   */
+  /** The y coordinate for this bus station on the abstract map. */
   private final double abstractY;
 
   /** A sorted list of all bus edges starting with the earliest edge (00:00). */
@@ -109,10 +101,13 @@ public final class BusStation implements Comparable<BusStation> {
     final int first = binarySearch(from);
     final List<BusEdge> edges = this.edges;
     return new Iterable<BusEdge>() {
-      int curr = first;
+
       @Override
       public Iterator<BusEdge> iterator() {
         return new Iterator<BusEdge>() {
+
+          /** The current index position. */
+          private int curr = first;
 
           @Override
           public boolean hasNext() {
@@ -134,8 +129,10 @@ public final class BusStation implements Comparable<BusStation> {
           public void remove() {
             throw new UnsupportedOperationException();
           }
+
         };
       }
+
     };
   }
 

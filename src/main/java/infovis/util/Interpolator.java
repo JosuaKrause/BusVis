@@ -18,18 +18,22 @@ public interface Interpolator {
 
   /** Smooth interpolation. */
   Interpolator SMOOTH = new Interpolator() {
+
     @Override
     public double interpolate(final double t) {
       return Math.sin((t - 0.5) * Math.PI) * 0.5 + 0.5;
     }
+
   };
 
   /** Linear interpolation. */
   Interpolator LINEAR = new Interpolator() {
+
     @Override
     public double interpolate(final double t) {
       return t;
     }
+
   };
 
 }

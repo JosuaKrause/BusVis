@@ -42,6 +42,8 @@ public interface BackgroundRealizer {
   /**
    * No background. However the bounding box is set to one hour in the circle
    * layout.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
    */
   BackgroundRealizer NO_BG = new BackgroundRealizer() {
 
@@ -61,6 +63,8 @@ public interface BackgroundRealizer {
 
   /**
    * Circle background.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
    */
   BackgroundRealizer CIRCLES = new BackgroundRealizer() {
 
@@ -99,27 +103,22 @@ public interface BackgroundRealizer {
 
   /**
    * Blurred circles using a cached image.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
    */
+  @Deprecated
   BackgroundRealizer CIRCLES_BLUR = new BackgroundRealizer() {
 
-    /**
-     * The scaling factor of the cache image.
-     */
+    /** The scaling factor of the cache image. */
     private final double imgFactor = 5;
 
-    /**
-     * The margin to compensate the blur.
-     */
+    /** The margin to compensate the blur. */
     private final double margin = 10;
 
-    /**
-     * The bounding box.
-     */
+    /** The bounding box. */
     private final Rectangle2D bbox;
 
-    /**
-     * The image.
-     */
+    /** The image. */
     private final BufferedImage img;
 
     {

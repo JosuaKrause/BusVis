@@ -17,7 +17,7 @@ import java.awt.geom.Line2D;
 public interface StationRealizer {
 
   /**
-   * The shape of the depiction of the bus station. This is also the are that
+   * The shape of the depiction of the bus station. This is also the area that
    * can be clicked on.
    * 
    * @param x The x translation.
@@ -71,7 +71,7 @@ public interface StationRealizer {
     public void drawStation(final Graphics2D g, final Shape node, final Stroke stroke,
         final boolean referenceNode, final boolean secondarySelected) {
       g.setColor(secondarySelected ? Color.BLUE :
-          (!referenceNode ? Color.WHITE : Color.RED));
+        (!referenceNode ? Color.WHITE : Color.RED));
       g.fill(node);
       g.setStroke(stroke);
       g.setColor(Color.BLACK);

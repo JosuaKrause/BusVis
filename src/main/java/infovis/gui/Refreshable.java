@@ -7,9 +7,7 @@ package infovis.gui;
  */
 public interface Refreshable {
 
-  /**
-   * Refreshes the current view.
-   */
+  /** Refreshes the current view. */
   void refresh();
 
 }

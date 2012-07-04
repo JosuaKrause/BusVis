@@ -1,8 +1,8 @@
 package infovis.layout;
 
 import static infovis.util.VecUtil.*;
+import infovis.busvis.LayoutNode;
 import infovis.busvis.NodeDrawer;
-import infovis.busvis.SpringNode;
 import infovis.busvis.Weighter;
 import infovis.busvis.Weighter.WeightedEdge;
 import infovis.draw.BackgroundRealizer;
@@ -27,6 +27,7 @@ public class EdgeLayouter extends DirectLayouter {
    * @param weighter The weighter.
    * @param drawer The drawer.
    */
+  @Deprecated
   public EdgeLayouter(final Weighter weighter, final NodeDrawer drawer) {
     super(weighter, drawer);
   }
@@ -34,14 +35,14 @@ public class EdgeLayouter extends DirectLayouter {
   /**
    * The positions of the nodes.
    */
-  private final Map<SpringNode, Point2D> positions = new HashMap<SpringNode, Point2D>();
+  private final Map<LayoutNode, Point2D> positions = new HashMap<LayoutNode, Point2D>();
 
   @Override
-  protected void changedWeights(final Collection<SpringNode> nodes, final SpringNode ref,
+  protected void changedWeights(final Collection<LayoutNode> nodes, final LayoutNode ref,
       final Point2D refP, final Point2D diff) {
     positions.clear();
     positions.put(ref, refP);
-    for(final SpringNode n : nodes) {
+    for(final LayoutNode n : nodes) {
       putPosition(n, refP, diff);
     }
   }
@@ -54,7 +55,7 @@ public class EdgeLayouter extends DirectLayouter {
    * @param diff The vector from the default position of the reference node to
    *          the current position of the reference node.
    */
-  private void putPosition(final SpringNode n, final Point2D refP, final Point2D diff) {
+  private void putPosition(final LayoutNode n, final Point2D refP, final Point2D diff) {
     final List<WeightedEdge> edges = weighter.edgesTo(n);
     if(edges.isEmpty()) {
       if(!positions.containsKey(n)) {
@@ -63,7 +64,7 @@ public class EdgeLayouter extends DirectLayouter {
       return;
     }
     final WeightedEdge lastEdge = edges.get(edges.size() - 1);
-    final SpringNode l = lastEdge.from;
+    final LayoutNode l = lastEdge.from;
     if(!positions.containsKey(l)) {
       putPosition(l, refP, diff);
     }
@@ -103,7 +104,7 @@ public class EdgeLayouter extends DirectLayouter {
   }
 
   @Override
-  protected Point2D getDestination(final SpringNode n, final Point2D pos, final SpringNode ref,
+  protected Point2D getDestination(final LayoutNode n, final Point2D pos, final LayoutNode ref,
       final Point2D refP, final Point2D diff) {
     return positions.get(n);
   }

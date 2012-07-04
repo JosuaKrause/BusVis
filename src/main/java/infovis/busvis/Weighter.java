@@ -5,7 +5,7 @@ import java.awt.geom.Point2D;
 import java.util.List;
 
 /**
- * Defines weights between {@link SpringNode}s in a spring embedder system.
+ * Defines weights between {@link LayoutNode}s in a layout.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
@@ -26,7 +26,7 @@ public interface Weighter {
    * @return The weight of the edge. Negative weights push nodes apart until the
    *         given distance is reached.
    */
-  double weight(SpringNode from, SpringNode to);
+  double weight(LayoutNode from, LayoutNode to);
 
   /**
    * Whether there is a directed edge between the given nodes.
@@ -35,14 +35,14 @@ public interface Weighter {
    * @param to The target of the edge.
    * @return Whether there is an edge.
    */
-  boolean hasWeight(SpringNode from, SpringNode to);
+  boolean hasWeight(LayoutNode from, LayoutNode to);
 
   /**
-   * A list of all nodes in the spring embedder system.
+   * A list of all nodes in the layout.
    * 
    * @return The list.
    */
-  List<SpringNode> nodes();
+  List<LayoutNode> nodes();
 
   /**
    * Getter.
@@ -57,14 +57,14 @@ public interface Weighter {
    * @param node The node.
    * @return The default position of the node.
    */
-  Point2D getDefaultPosition(SpringNode node);
+  Point2D getDefaultPosition(LayoutNode node);
 
   /**
    * Getter.
    * 
    * @return The reference node or <code>null</code> if it is not assigned.
    */
-  SpringNode getReferenceNode();
+  LayoutNode getReferenceNode();
 
   /**
    * This method returns how the weights have changed. The change status is
@@ -99,7 +99,7 @@ public interface Weighter {
     /** Signals that the current transition is only a preparation. */
     PREPARE_CHANGE,
 
-  }
+  } // ChangeType
 
   /**
    * Getter.
@@ -115,10 +115,10 @@ public interface Weighter {
    */
   final class WeightedEdge {
     /** The start node. */
-    public final SpringNode from;
+    public final LayoutNode from;
 
     /** The end node. */
-    public final SpringNode to;
+    public final LayoutNode to;
 
     /** The weight of the edge. */
     public final double weight;
@@ -130,12 +130,13 @@ public interface Weighter {
      * @param to The destination node.
      * @param weight The weight.
      */
-    public WeightedEdge(final SpringNode from, final SpringNode to, final double weight) {
+    public WeightedEdge(final LayoutNode from, final LayoutNode to, final double weight) {
       this.from = from;
       this.to = to;
       this.weight = weight;
     }
-  }
+
+  } // WeightedEdge
 
   /**
    * The edges leading from the reference node to the given node.
@@ -143,7 +144,7 @@ public interface Weighter {
    * @param to The destination.
    * @return The path from the reference node to the given node.
    */
-  List<WeightedEdge> edgesTo(SpringNode to);
+  List<WeightedEdge> edgesTo(LayoutNode to);
 
   /**
    * Sets the animator to be notified when the weights change.

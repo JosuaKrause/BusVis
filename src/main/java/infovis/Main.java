@@ -16,9 +16,7 @@ import javax.swing.WindowConstants;
  */
 public final class Main {
 
-  /**
-   * No constructor.
-   */
+  /** No constructor. */
   private Main() {
     // no constructor
   }

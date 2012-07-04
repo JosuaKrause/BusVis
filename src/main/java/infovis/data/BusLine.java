@@ -8,6 +8,7 @@ import java.awt.Color;
  * @author Leo Woerteler
  */
 public final class BusLine implements Comparable<BusLine> {
+
   /** Bus line used for walked sections of a route. */
   public static final BusLine WALK = new BusLine("Walk", Color.BLACK);
 

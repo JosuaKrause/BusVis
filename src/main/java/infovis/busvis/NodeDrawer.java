@@ -12,7 +12,7 @@ import java.util.BitSet;
 import java.util.Set;
 
 /**
- * Draws spring nodes and interacts with them.
+ * Draws layouted nodes and interacts with them.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
@@ -26,7 +26,7 @@ public interface NodeDrawer {
    * @param n The node.
    * @param secondarySelected If the node is secondary selected.
    */
-  void drawNode(Graphics2D g, Context ctx, SpringNode n, boolean secondarySelected);
+  void drawNode(Graphics2D g, Context ctx, LayoutNode n, boolean secondarySelected);
 
   /**
    * Draws the given node. The graphics device must be translated manually.
@@ -35,7 +35,7 @@ public interface NodeDrawer {
    * @param ctx The canvas context.
    * @param n The secondary selected node.
    */
-  void drawSecondarySelected(Graphics2D g, Context ctx, SpringNode n);
+  void drawSecondarySelected(Graphics2D g, Context ctx, LayoutNode n);
 
   /**
    * Draws the edges of the given node. The graphics device must be translated
@@ -48,7 +48,7 @@ public interface NodeDrawer {
    * @param secondarySelection If a secondary selection is made, this value is
    *          <code>true</code>.
    */
-  void drawEdges(Graphics2D g, Context ctx, SpringNode n,
+  void drawEdges(Graphics2D g, Context ctx, LayoutNode n,
       Set<BusLine> visibleLines, boolean secondarySelection);
 
   /**
@@ -62,7 +62,7 @@ public interface NodeDrawer {
    * @param addText Text to add to the label. If this value is not
    *          <code>null</code> the label will be drawn.
    */
-  void drawLabel(Graphics2D g, Context ctx, SpringNode n, boolean hovered, String addText);
+  void drawLabel(Graphics2D g, Context ctx, LayoutNode n, boolean hovered, String addText);
 
   /**
    * Draws the background.
@@ -81,7 +81,7 @@ public interface NodeDrawer {
    * @param n The destination.
    * @param visited The method sets all nodes that are visited.
    */
-  void drawRouteLabels(Graphics2D g, Context ctx, SpringNode n, BitSet visited);
+  void drawRouteLabels(Graphics2D g, Context ctx, LayoutNode n, BitSet visited);
 
   /**
    * Draws the legend.
@@ -94,14 +94,13 @@ public interface NodeDrawer {
 
   /**
    * A shape defining the area, where a click is associated with the given node.
-   * The position of the node must be added manually.
    * 
    * @param n The node.
    * @param real Whether the real position or the position after the complete
    *          animation should be returned.
    * @return The clickable shape of the node.
    */
-  Shape nodeClickArea(SpringNode n, boolean real);
+  Shape nodeClickArea(LayoutNode n, boolean real);
 
   /**
    * The radius of the node.
@@ -109,15 +108,7 @@ public interface NodeDrawer {
    * @param n The node.
    * @return The radius.
    */
-  double nodeRadius(SpringNode n);
-
-  /**
-   * Defines the tool-tip text for the given node.
-   * 
-   * @param n The node.
-   * @return The tool-tip text or <code>null</code> if none is needed.
-   */
-  String getTooltipText(SpringNode n);
+  double nodeRadius(LayoutNode n);
 
   /**
    * Drags a single node.
@@ -128,21 +119,21 @@ public interface NodeDrawer {
    * @param dx The x difference to the original starting point.
    * @param dy The y difference to the original starting point.
    */
-  void dragNode(SpringNode n, double startX, double startY, double dx, double dy);
+  void dragNode(LayoutNode n, double startX, double startY, double dx, double dy);
 
   /**
    * A click on the node occured.
    * 
    * @param n The node.
    */
-  void selectNode(SpringNode n);
+  void selectNode(LayoutNode n);
 
   /**
-   * An iteration over all nodes in the spring embedder system.
+   * An iteration over all nodes in the layout.
    * 
    * @return The iterable.
    */
-  Iterable<SpringNode> nodes();
+  Iterable<LayoutNode> nodes();
 
   /**
    * Getter.
@@ -150,7 +141,7 @@ public interface NodeDrawer {
    * @param i The id of the node.
    * @return The node.
    */
-  SpringNode getNode(int i);
+  LayoutNode getNode(int i);
 
   /**
    * Is called when the user moves the mouse.

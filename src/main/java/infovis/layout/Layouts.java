@@ -4,34 +4,29 @@ import infovis.busvis.NodeDrawer;
 import infovis.busvis.Weighter;
 
 /**
- * The embedder technique, ie all subclasses of {@link AbstractLayouter}.
+ * The layout technique, ie all subclasses of {@link AbstractLayouter}.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
 public enum Layouts {
 
   /** Radial positioning technique. */
-  CIRCULAR("Radial Positioning"),
+  CIRCULAR("Radial Layout"),
 
   /** Edge based technique. */
-  EDGE("Edge Based Positioning"),
+  @Deprecated
+  EDGE("Edge Based Layout"),
 
   /** Stress based technique. */
-  STRESS("Stress Based Positioning"),
+  STRESS("Stress Layout"),
 
-  /**
-   * Spring embedding technique.
-   * 
-   * @deprecated The use of this technique is now deprecated.
-   */
+  /** Spring embedding technique. */
   @Deprecated
   SPRING("Spring Embedder"),
 
   /* end of declaration */;
 
-  /**
-   * The human readable name.
-   */
+  /** The human readable name. */
   private String name;
 
   /**
@@ -49,12 +44,12 @@ public enum Layouts {
   }
 
   /**
-   * Creates an embedder for the given technique.
+   * Creates a layout for the given technique.
    * 
    * @param embed The technique.
    * @param drawer The drawer.
    * @param weighter The weighter.
-   * @return The embedder.
+   * @return The layout.
    */
   @SuppressWarnings("deprecation")
   public static AbstractLayouter createFor(final Layouts embed,

@@ -34,9 +34,7 @@ public interface BusVisualization {
    */
   void setChangeTime(int minutes);
 
-  /**
-   * Sets the focus on the current selected bus station.
-   */
+  /** Sets the focus on the current selected bus station. */
   void focusStation();
 
   /**
@@ -64,10 +62,10 @@ public interface BusVisualization {
   void overwriteDisplayedTime(BusTime time, boolean blink);
 
   /**
-   * Sets the currently used embedder technique.
+   * Sets the currently used layout.
    * 
-   * @param embed The embedder technique.
+   * @param layout The layout.
    */
-  void setEmbedder(Layouts embed);
+  void setLayout(Layouts layout);
 
 }

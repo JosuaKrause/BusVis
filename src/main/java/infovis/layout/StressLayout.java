@@ -1,8 +1,8 @@
 package infovis.layout;
 
 import static infovis.util.VecUtil.*;
+import infovis.busvis.LayoutNode;
 import infovis.busvis.NodeDrawer;
-import infovis.busvis.SpringNode;
 import infovis.busvis.Weighter;
 import infovis.busvis.Weighter.WeightedEdge;
 import infovis.draw.BackgroundRealizer;
@@ -23,6 +23,7 @@ import mdsj.StressMinimization;
  * @author Joschi <josua.krause@googlemail.com>
  */
 public class StressLayout extends DirectLayouter {
+
   /** Weight of the whole route's length. */
   private static final double ROUTE_WEIGHT = 0.01;
   /** Weight of each edges length. */
@@ -45,22 +46,22 @@ public class StressLayout extends DirectLayouter {
   public StressLayout(final Weighter weighter, final NodeDrawer drawer) {
     super(weighter, drawer);
 
-    final List<SpringNode> nodes = weighter.nodes();
+    final List<LayoutNode> nodes = weighter.nodes();
     final int n = nodes.size();
     positions = new Point2D[n];
     defaults = new Points(n);
-    for(final SpringNode node : nodes) {
+    for(final LayoutNode node : nodes) {
       defaults.setPoint(node.getId(), weighter.getDefaultPosition(node));
     }
   }
 
   @Override
-  protected void changedWeights(final Collection<SpringNode> nodes, final SpringNode ref,
+  protected void changedWeights(final Collection<LayoutNode> nodes, final LayoutNode ref,
       final Point2D refP, final Point2D diff) {
     Arrays.fill(positions, null);
 
     final Map<NodeDyad, NodeDyad> dyads = new HashMap<NodeDyad, NodeDyad>();
-    for(final SpringNode n : nodes) {
+    for(final LayoutNode n : nodes) {
       for(final WeightedEdge e : weighter.edgesTo(n)) {
         final NodeDyad dyad = new NodeDyad(e.from, e.to);
         final NodeDyad old = dyads.get(dyad), nw = old == null ? dyad : old;
@@ -81,7 +82,7 @@ public class StressLayout extends DirectLayouter {
     }
 
     final int refID = ref.getId();
-    for(final SpringNode a : nodes) {
+    for(final LayoutNode a : nodes) {
       if(weighter.hasWeight(a, ref)) {
         final double weight = weighter.weight(a, ref);
         if(weight > 0) {
@@ -93,7 +94,7 @@ public class StressLayout extends DirectLayouter {
     }
 
     final Points pos = new Points(defaults);
-    for(final SpringNode nd : nodes) {
+    for(final LayoutNode nd : nodes) {
       // initialize the majorization with the original positions
       final int id = nd.getId();
       final Point2D init = weighter.getDefaultPosition(nd);
@@ -105,15 +106,15 @@ public class StressLayout extends DirectLayouter {
     pos.majorize(refID, dists, weights, ITERATIONS);
 
     final Point2D offset = subVec(refP, pos.getPoint(refID));
-    for(final SpringNode node : nodes) {
+    for(final LayoutNode node : nodes) {
       final int id = node.getId();
       positions[id] = addVec(pos.getPoint(id), offset);
     }
   }
 
   @Override
-  protected Point2D getDestination(final SpringNode n, final Point2D pos,
-      final SpringNode ref, final Point2D refP, final Point2D diff) {
+  protected Point2D getDestination(final LayoutNode n, final Point2D pos,
+      final LayoutNode ref, final Point2D refP, final Point2D diff) {
     return positions[n.getId()];
   }
 
@@ -123,15 +124,16 @@ public class StressLayout extends DirectLayouter {
   }
 
   /**
-   * Unordered pair of {@link SpringNode}s.
+   * Unordered pair of {@link LayoutNode}s.
    * 
    * @author Leo Woerteler
    */
   private static class NodeDyad {
+
     /** First node. */
-    final SpringNode a;
+    final LayoutNode a;
     /** Second node. */
-    final SpringNode b;
+    final LayoutNode b;
     /** Number of accumulated distances. */
     int count;
     /** Sum of accumulated distances. */
@@ -143,7 +145,7 @@ public class StressLayout extends DirectLayouter {
      * @param a first ode
      * @param b second node
      */
-    NodeDyad(final SpringNode a, final SpringNode b) {
+    NodeDyad(final LayoutNode a, final LayoutNode b) {
       if(a.getId() < b.getId()) {
         this.a = a;
         this.b = b;
@@ -192,6 +194,7 @@ public class StressLayout extends DirectLayouter {
    * @author Leo Woerteler
    */
   private static class Points {
+
     /** Positions of the stored points. */
     private final double[][] positions;
 
