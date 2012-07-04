@@ -240,17 +240,19 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
   /** If a station has a degree of this or lower the label will always show. */
   private static final int LOW_DEGREE = 1;
 
-  /** If a station has a degree of this or higher the label will always show. */
-  private static final int HIGH_DEGREE = 6;
+  /** If a station has a radius of this or higher the label will always show. */
+  private static final double HIGH_RADIUS = 6;
 
   @Override
   public void drawLabel(final Graphics2D g, final Context ctx, final LayoutNode n,
       final boolean hovered, final String addText) {
+    final double zoom = ctx.toComponentLength(1);
     final BusStation station = dist.getStation(n);
 
     if(!hovered && addText == null) {
       final int degree = dist.getMatrix().getDegree(station);
-      if(degree > LOW_DEGREE && degree < HIGH_DEGREE) return;
+      final double radius = nodeRadius(n);
+      if(degree > LOW_DEGREE && radius < HIGH_RADIUS) return;
     }
 
     final Shape s = nodeClickArea(n, true);
@@ -273,8 +275,8 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
       distance = "";
     }
 
-    labelRealize.drawLabel(g, ctx.getVisibleComponent(),
-        ctx.toComponentLength(1), pos, station.getName() + distance);
+    labelRealize.drawLabel(g, ctx.getVisibleComponent(), zoom,
+        pos, station.getName() + distance);
   }
 
   @Override
