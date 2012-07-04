@@ -28,9 +28,6 @@ import javax.swing.SwingUtilities;
  */
 public class Canvas extends JComponent implements Refreshable {
 
-  /** SVUID. */
-  private static final long serialVersionUID = 5148536262867772166L;
-
   /** The x offset. */
   private double offX;
 

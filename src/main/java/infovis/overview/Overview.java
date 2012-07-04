@@ -40,9 +40,6 @@ import org.w3c.dom.svg.SVGDocument;
  */
 public final class Overview extends JSVGCanvas implements BusVisualization {
 
-  /** Serial ID. */
-  private static final long serialVersionUID = -792509063281208L;
-
   /** The mouse listener for this class. */
   protected final OverviewMouse mouse;
 
