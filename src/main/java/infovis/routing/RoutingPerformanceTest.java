@@ -27,9 +27,7 @@ import java.util.List;
  */
 public final class RoutingPerformanceTest {
 
-  /**
-   * No constructor.
-   */
+  /** No constructor. */
   private RoutingPerformanceTest() {
     // no constructor
   }

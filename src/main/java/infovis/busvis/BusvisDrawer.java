@@ -1,4 +1,4 @@
-package infovis.embed;
+package infovis.busvis;
 
 import static infovis.util.VecUtil.*;
 import infovis.ctrl.Controller;
@@ -35,10 +35,10 @@ import java.util.Set;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class StationDrawer implements NodeDrawer, Fader {
+public final class BusvisDrawer implements NodeDrawer, Fader {
 
   /** The corresponding station distance. */
-  private final StationDistance dist;
+  private final BusvisWeighter dist;
 
   /** The realizer to actually draw the stations. */
   private final StationRealizer stationRealize;
@@ -76,7 +76,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
    * @param labelRealize The realizer to draw labels.
    * @param legendRealize The realizer to draw legends.
    */
-  public StationDrawer(final StationDistance dist, final StationRealizer stationRealize,
+  public BusvisDrawer(final BusvisWeighter dist, final StationRealizer stationRealize,
       final LineRealizer lineRealize, final LabelRealizer labelRealize,
       final LegendRealizer legendRealize) {
     this.dist = dist;
@@ -111,13 +111,13 @@ public final class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public Iterable<SpringNode> nodes() {
+  public Iterable<LayoutNode> nodes() {
     return dist.nodes();
   }
 
   @Override
   public void drawEdges(final Graphics2D g, final Context ctx,
-      final SpringNode n, final Set<BusLine> visibleLines, final boolean secSel) {
+      final LayoutNode n, final Set<BusLine> visibleLines, final boolean secSel) {
     final Rectangle2D visible = ctx.getVisibleCanvas();
     final Area vis = new Area(visible);
 
@@ -135,7 +135,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
 
       final BusStation neighbor = e.getLower();
 
-      final SpringNode node = dist.getNode(neighbor);
+      final LayoutNode node = dist.getNode(neighbor);
       final RoutingResult otherRoute = dist.getRoute(neighbor);
       if(otherRoute != null && !otherRoute.isReachable()) {
         continue;
@@ -145,6 +145,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
       final double y2 = node.getY();
       final Line2D line = new Line2D.Double(x1, y1, x2, y2);
       final Shape lineShape = lineRealize.createLineShape(line, -1, e.getLineDegree());
+
       final Rectangle2D bbox = lineShape.getBounds2D();
       if(!visible.intersects(bbox)) {
         continue;
@@ -184,14 +185,13 @@ public final class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public void drawNode(final Graphics2D g, final Context ctx, final SpringNode n,
+  public void drawNode(final Graphics2D g, final Context ctx, final LayoutNode n,
       final boolean secondarySelected) {
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
     if(route != null && !route.isReachable()) return;
 
     final Shape shape = nodeClickArea(n, true);
-    if(shape == null) return;
     final BasicStroke stroke = new BasicStroke(.5f);
     final Rectangle2D bbox = stroke.createStrokedShape(shape).getBounds2D();
     if(!ctx.getVisibleCanvas().intersects(bbox)) return;
@@ -202,7 +202,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
 
   @Override
   public void drawSecondarySelected(final Graphics2D g, final Context ctx,
-      final SpringNode n) {
+      final LayoutNode n) {
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
     if(route != null && !route.isReachable()) return;
@@ -216,13 +216,13 @@ public final class StationDrawer implements NodeDrawer, Fader {
     final BusLine[] busLines = new BusLine[size];
     final int[] numbers = new int[size];
     final int[] maxNumbers = new int[size];
-    final SpringNode start = dist.getReferenceNode();
+    final LayoutNode start = dist.getReferenceNode();
     shapes[0] = nodeClickArea(start, true);
     Point2D pos = start.getPos();
     final EdgeMatrix matrix = dist.getMatrix();
     int i = 0;
     for(final BusEdge e : edges) {
-      final SpringNode cur = dist.getNode(e.getTo());
+      final LayoutNode cur = dist.getNode(e.getTo());
       final Point2D curPos = cur.getPos();
       final BusLine line = e.getLine();
       lines[i] = new Line2D.Double(pos, curPos);
@@ -237,18 +237,14 @@ public final class StationDrawer implements NodeDrawer, Fader {
     stationRealize.drawRoute(g, lineRealize, shapes, lines, busLines, numbers, maxNumbers);
   }
 
-  /**
-   * If a station has a degree of this or lower the label will always be drawn.
-   */
+  /** If a station has a degree of this or lower the label will always show. */
   private static final int LOW_DEGREE = 1;
 
-  /**
-   * If a station has a degree of this or higher the label will always be drawn.
-   */
+  /** If a station has a degree of this or higher the label will always show. */
   private static final int HIGH_DEGREE = 6;
 
   @Override
-  public void drawLabel(final Graphics2D g, final Context ctx, final SpringNode n,
+  public void drawLabel(final Graphics2D g, final Context ctx, final LayoutNode n,
       final boolean hovered, final String addText) {
     final BusStation station = dist.getStation(n);
 
@@ -258,7 +254,6 @@ public final class StationDrawer implements NodeDrawer, Fader {
     }
 
     final Shape s = nodeClickArea(n, true);
-    if(s == null) return;
     final Rectangle2D node = s.getBounds2D();
     final Point2D pos = ctx.toComponentCoordinates(
         new Point2D.Double(node.getMaxX(), node.getMinY()));
@@ -290,7 +285,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public void drawRouteLabels(final Graphics2D g, final Context ctx, final SpringNode n,
+  public void drawRouteLabels(final Graphics2D g, final Context ctx, final LayoutNode n,
       final BitSet visited) {
     final BusStation s = dist.getStation(n);
     final RoutingResult route = dist.getRoute(s);
@@ -299,14 +294,14 @@ public final class StationDrawer implements NodeDrawer, Fader {
     final Collection<BusEdge> edges = route.getEdges();
     if(edges == null) return;
 
-    final SpringNode start = dist.getReferenceNode();
+    final LayoutNode start = dist.getReferenceNode();
     final Graphics2D gfx = (Graphics2D) g.create();
     drawLabel(gfx, ctx, start, false, route.getStartTime().pretty());
     gfx.dispose();
     visited.set(start.getId());
 
     for(final BusEdge e : edges) {
-      final SpringNode to = dist.getNode(e.getTo());
+      final LayoutNode to = dist.getNode(e.getTo());
       final Graphics2D g2 = (Graphics2D) g.create();
       final BusLine line = e.getLine();
       drawLabel(g2, ctx, to, false, e.getEnd().pretty() + " - " + line.getFullName());
@@ -316,12 +311,12 @@ public final class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public SpringNode getNode(final int i) {
+  public LayoutNode getNode(final int i) {
     return dist.getNode(i);
   }
 
   @Override
-  public void dragNode(final SpringNode n, final double startX, final double startY,
+  public void dragNode(final LayoutNode n, final double startX, final double startY,
       final double dx, final double dy) {
     final BusStation station = dist.getStation(n);
     if(!station.equals(dist.getFrom())) {
@@ -331,7 +326,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public void selectNode(final SpringNode n) {
+  public void selectNode(final LayoutNode n) {
     final BusStation station = dist.getStation(n);
     if(!station.equals(dist.getFrom())) {
       dist.getController().selectStation(station);
@@ -339,7 +334,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
   }
 
   @Override
-  public Shape nodeClickArea(final SpringNode n, final boolean real) {
+  public Shape nodeClickArea(final LayoutNode n, final boolean real) {
     final double x = real ? n.getX() : n.getPredictX();
     final double y = real ? n.getY() : n.getPredictY();
     return nodeClickArea(n, new Point2D.Double(x, y));
@@ -353,12 +348,12 @@ public final class StationDrawer implements NodeDrawer, Fader {
    * @param pos The position.
    * @return The clickable shape of the node.
    */
-  public Shape nodeClickArea(final SpringNode n, final Point2D pos) {
+  public Shape nodeClickArea(final LayoutNode n, final Point2D pos) {
     return stationRealize.createStationShape(pos.getX(), pos.getY(), nodeRadius(n));
   }
 
   @Override
-  public double nodeRadius(final SpringNode n) {
+  public double nodeRadius(final LayoutNode n) {
     final BusStation station = dist.getStation(n);
     return Math.max(2, dist.getMatrix().getMaxLines(station) / 2);
   }
@@ -381,7 +376,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
   @Override
   public void drawBackground(final Graphics2D g, final Context ctx,
       final BackgroundRealizer background) {
-    final SpringNode ref = dist.getReferenceNode();
+    final LayoutNode ref = dist.getReferenceNode();
     if(ref == null && !fade) return;
     Point2D center;
     double alpha;
@@ -389,7 +384,7 @@ public final class StationDrawer implements NodeDrawer, Fader {
       final long time = System.currentTimeMillis();
       final double t = ((double) time - fadingStart) / ((double) fadingEnd - fadingStart);
       final double f = Interpolator.SMOOTH.interpolate(t);
-      final SpringNode n = f > 0.5 ? ref : dist.getNode(fadeOut);
+      final LayoutNode n = f > 0.5 ? ref : dist.getNode(fadeOut);
       center = n != null ? n.getPos() : null;
       if(t >= 1.0) {
         alpha = 1;
@@ -416,11 +411,8 @@ public final class StationDrawer implements NodeDrawer, Fader {
       final Point2D pos = dist.getNode(s).getPos();
       bbox = background.boundingBox(pos, dist.getFactor());
     } else {
-      for(final SpringNode n : nodes()) {
+      for(final LayoutNode n : nodes()) {
         final Shape shape = nodeClickArea(n, false);
-        if(shape == null) {
-          continue;
-        }
         final Rectangle2D b = shape.getBounds2D();
         if(bbox == null) {
           bbox = b;
@@ -430,11 +422,6 @@ public final class StationDrawer implements NodeDrawer, Fader {
       }
     }
     return bbox;
-  }
-
-  @Override
-  public String getTooltipText(final SpringNode node) {
-    return null;
   }
 
   @Override

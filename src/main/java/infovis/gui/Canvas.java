@@ -28,39 +28,25 @@ import javax.swing.SwingUtilities;
  */
 public class Canvas extends JComponent implements Refreshable {
 
-  /**
-   * SVUID.
-   */
+  /** SVUID. */
   private static final long serialVersionUID = 5148536262867772166L;
 
-  /**
-   * The x offset.
-   */
+  /** The x offset. */
   private double offX;
 
-  /**
-   * The y offset.
-   */
+  /** The y offset. */
   private double offY;
 
-  /**
-   * The zoom level.
-   */
+  /** The zoom level. */
   private double zoom = 1;
 
-  /**
-   * The minimal zoom value.
-   */
+  /** The minimal zoom value. */
   private double minZoom = -1;
 
-  /**
-   * The maximal zoom value.
-   */
+  /** The maximal zoom value. */
   private double maxZoom = -1;
 
-  /**
-   * The painter.
-   */
+  /** The painter. */
   protected Painter painter;
 
   /**
@@ -220,9 +206,7 @@ public class Canvas extends JComponent implements Refreshable {
    */
   private final class CanvasContext implements Context {
 
-    /**
-     * Whether this context is in canvas space.
-     */
+    /** Whether this context is in canvas space. */
     private final boolean inCanvasSpace;
 
     /**
@@ -260,9 +244,7 @@ public class Canvas extends JComponent implements Refreshable {
       return inCanvasSpace;
     }
 
-    /**
-     * The cache for the visible rectangle in component coordinates.
-     */
+    /** The cache for the visible rectangle in component coordinates. */
     private Rectangle2D visComp;
 
     @Override
@@ -273,9 +255,7 @@ public class Canvas extends JComponent implements Refreshable {
       return visComp;
     }
 
-    /**
-     * The cache for the visible rectangle in canvas coordinates.
-     */
+    /** The cache for the visible rectangle in canvas coordinates. */
     private Rectangle2D visCanvas;
 
     @Override
@@ -291,7 +271,7 @@ public class Canvas extends JComponent implements Refreshable {
       return visCanvas;
     }
 
-  }
+  } // CanvasContext
 
   @Override
   public void paintComponent(final Graphics g) {
@@ -420,9 +400,7 @@ public class Canvas extends JComponent implements Refreshable {
     }
   }
 
-  /**
-   * The margin for the viewport reset. The default is <code>10.0</code>.
-   */
+  /** The margin for the viewport reset. The default is <code>10.0</code>. */
   private double margin = 10.0;
 
   /**
@@ -468,9 +446,7 @@ public class Canvas extends JComponent implements Refreshable {
     }
   }
 
-  /**
-   * Whether the canvas is moveable, ie it can be panned and zoomed.
-   */
+  /** Whether the canvas is moveable, ie it can be panned and zoomed. */
   private boolean isMoveable = true;
 
   /**

@@ -1,30 +1,31 @@
-package infovis.embed;
+package infovis.layout;
 
 import static infovis.util.VecUtil.*;
+import infovis.busvis.LayoutNode;
+import infovis.busvis.NodeDrawer;
+import infovis.busvis.Weighter;
 import infovis.draw.BackgroundRealizer;
 
 import java.awt.geom.Point2D;
 import java.util.Collection;
 
 /**
- * A simple circular embedder.
+ * A simple circular layouter.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class CircularEmbedder extends DirectEmbedder {
+public final class CircularLayouter extends DirectLayouter {
 
-  /**
-   * The positions of the nodes.
-   */
+  /** The positions of the nodes. */
   private final Point2D[] posMap;
 
   /**
-   * Creates a circular embedder.
+   * Creates a circular layouter.
    * 
    * @param weighter The weighter.
    * @param drawer The drawer.
    */
-  public CircularEmbedder(final Weighter weighter, final NodeDrawer drawer) {
+  public CircularLayouter(final Weighter weighter, final NodeDrawer drawer) {
     super(weighter, drawer);
     posMap = new Point2D[weighter.nodes().size()];
   }
@@ -35,7 +36,7 @@ public final class CircularEmbedder extends DirectEmbedder {
    * @param n The node.
    * @param pos The position.
    */
-  private void setPos(final SpringNode n, final Point2D pos) {
+  private void setPos(final LayoutNode n, final Point2D pos) {
     posMap[n.getId()] = pos;
   }
 
@@ -45,15 +46,15 @@ public final class CircularEmbedder extends DirectEmbedder {
    * @param n The node.
    * @return The position.
    */
-  private Point2D getPos(final SpringNode n) {
+  private Point2D getPos(final LayoutNode n) {
     return posMap[n.getId()];
   }
 
   @Override
-  protected void changedWeights(final Collection<SpringNode> nodes, final SpringNode ref,
+  protected void changedWeights(final Collection<LayoutNode> nodes, final LayoutNode ref,
       final Point2D refP, final Point2D diff) {
     // initial position
-    for(final SpringNode n : nodes) {
+    for(final LayoutNode n : nodes) {
       final Point2D pos = weighter.getDefaultPosition(n);
       final double w = weighter.weight(n, ref);
       final Point2D p = addVec(setLength(subVec(addVec(pos, diff), refP), w), refP);
@@ -64,8 +65,8 @@ public final class CircularEmbedder extends DirectEmbedder {
     boolean hasChanged = true;
     while(hasChanged) {
       hasChanged = false;
-      for(final SpringNode a : nodes) {
-        for(final SpringNode b : nodes) {
+      for(final LayoutNode a : nodes) {
+        for(final LayoutNode b : nodes) {
           hasChanged |= resolveIfNeeded(a, b, refP);
         }
       }
@@ -84,7 +85,7 @@ public final class CircularEmbedder extends DirectEmbedder {
    * @param center The center point.
    * @return Whether the position has changed.
    */
-  private boolean resolveIfNeeded(final SpringNode a, final SpringNode b,
+  private boolean resolveIfNeeded(final LayoutNode a, final LayoutNode b,
       final Point2D center) {
     if(a.equals(b)) return false;
     final double ra = drawer.nodeRadius(a);
@@ -114,8 +115,8 @@ public final class CircularEmbedder extends DirectEmbedder {
   }
 
   @Override
-  protected Point2D getDestination(final SpringNode n, final Point2D pos,
-      final SpringNode ref, final Point2D refP, final Point2D diff) {
+  protected Point2D getDestination(final LayoutNode n, final Point2D pos,
+      final LayoutNode ref, final Point2D refP, final Point2D diff) {
     return getPos(n);
   }
 

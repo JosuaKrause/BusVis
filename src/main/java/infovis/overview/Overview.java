@@ -4,7 +4,7 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
-import infovis.embed.Embedders;
+import infovis.layout.Layouts;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -34,40 +34,28 @@ import org.apache.batik.util.XMLResourceDescriptor;
 import org.w3c.dom.svg.SVGDocument;
 
 /**
- * Abstract overview over the bus system in Konstanz.
+ * Abstract overview over a bus system.
  * 
  * @author Marc Spicker
  */
 public final class Overview extends JSVGCanvas implements BusVisualization {
 
-  /**
-   * Serial ID.
-   */
+  /** Serial ID. */
   private static final long serialVersionUID = -792509063281208L;
 
-  /**
-   * The mouse listener for this class.
-   */
+  /** The mouse listener for this class. */
   protected final OverviewMouse mouse;
 
-  /**
-   * The bounding box of the abstract map of Konstanz.
-   */
+  /** The bounding box of the abstract map. */
   private Rectangle2D boundingBox;
 
-  /**
-   * Weather the overview is drawn the first time.
-   */
+  /** Weather the overview is drawn the first time. */
   private boolean firstDraw;
 
-  /**
-   * The half-size of the window that is shown when a station is selected.
-   */
+  /** The half-size of the window that is shown when a station is selected. */
   private final int focusSize = 150;
 
-  /**
-   * The sign that shows a selected station on the abstract map.
-   */
+  /** The sign that shows a selected station on the abstract map. */
   private final Path2D focusSign;
 
   /**
@@ -159,9 +147,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     }
   }
 
-  /**
-   * Resets the viewport to the given rectangle.
-   */
+  /** Resets the viewport to the given rectangle. */
   public void reset() {
     mouse.reset(boundingBox);
   }
@@ -198,9 +184,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     gfx.draw(s);
   }
 
-  /**
-   * The current selected station.
-   */
+  /** The current selected station. */
   private BusStation selectedStation;
 
   @Override
@@ -219,7 +203,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   }
 
   @Override
-  public void setEmbedder(final Embedders embed) {
+  public void setLayout(final Layouts embed) {
     // no-op
   }
 

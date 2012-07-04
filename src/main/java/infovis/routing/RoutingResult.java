@@ -202,4 +202,5 @@ public final class RoutingResult {
     return sb.append("\n  ],\n  time=").append(BusTime.minutesToString(seconds / 60)).append(
         "\n]").toString();
   }
+
 }

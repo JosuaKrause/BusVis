@@ -46,3 +46,7 @@ path must have the following files:
     first arrival time is ignored. The end of a cycle is signaled by a '-1' after
     an arrival time. Every following column is ignored. Times are encoded as
     hours and minutes separated by a colon ':'. Hours are in 24 hour format.
+
+-   *walking-dists*
+
+    TODO

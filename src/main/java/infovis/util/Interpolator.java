@@ -18,27 +18,22 @@ public interface Interpolator {
 
   /** Smooth interpolation. */
   Interpolator SMOOTH = new Interpolator() {
+
     @Override
     public double interpolate(final double t) {
       return Math.sin((t - 0.5) * Math.PI) * 0.5 + 0.5;
     }
+
   };
 
   /** Linear interpolation. */
   Interpolator LINEAR = new Interpolator() {
+
     @Override
     public double interpolate(final double t) {
       return t;
     }
+
   };
-
-  /** The long animation duration. */
-  int LONG = 2000;
-
-  /** The standard animation duration. */
-  int NORMAL = 1000;
-
-  /** Fast animation duration. */
-  int FAST = 100;
 
 }

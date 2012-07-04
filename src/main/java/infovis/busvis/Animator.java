@@ -1,4 +1,4 @@
-package infovis.embed;
+package infovis.busvis;
 
 import infovis.gui.Refreshable;
 
@@ -9,9 +9,7 @@ import infovis.gui.Refreshable;
  */
 public interface Animator {
 
-  /**
-   * Forces the next frame to be calculated.
-   */
+  /** Forces the next frame to be calculated. */
   void forceNextFrame();
 
 }

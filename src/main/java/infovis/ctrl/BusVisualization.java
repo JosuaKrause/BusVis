@@ -2,7 +2,7 @@ package infovis.ctrl;
 
 import infovis.data.BusStation;
 import infovis.data.BusTime;
-import infovis.embed.Embedders;
+import infovis.layout.Layouts;
 
 /**
  * A bus visualization.
@@ -34,9 +34,7 @@ public interface BusVisualization {
    */
   void setChangeTime(int minutes);
 
-  /**
-   * Sets the focus on the current selected bus station.
-   */
+  /** Sets the focus on the current selected bus station. */
   void focusStation();
 
   /**
@@ -64,10 +62,10 @@ public interface BusVisualization {
   void overwriteDisplayedTime(BusTime time, boolean blink);
 
   /**
-   * Sets the currently used embedder technique.
+   * Sets the currently used layout.
    * 
-   * @param embed The embedder technique.
+   * @param layout The layout.
    */
-  void setEmbedder(Embedders embed);
+  void setLayout(Layouts layout);
 
 }

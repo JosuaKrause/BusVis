@@ -61,9 +61,7 @@ public class StringDrawer {
     return bbox;
   }
 
-  /**
-   * Draws the string.
-   */
+  /** Draws the string. */
   public void draw() {
     draw(0, 0);
   }

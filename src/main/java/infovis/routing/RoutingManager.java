@@ -103,11 +103,13 @@ public final class RoutingManager {
    * @param <T> result type
    */
   public interface CallBack<T> {
+
     /**
      * Method that's called when the routes are calculated.
      * 
      * @param result result
      */
     void callBack(final T result);
-  }
+
+  } // CallBack
 }

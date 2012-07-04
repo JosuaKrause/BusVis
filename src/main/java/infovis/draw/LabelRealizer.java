@@ -25,7 +25,11 @@ public interface LabelRealizer {
    */
   void drawLabel(Graphics2D g, Rectangle2D view, double scale, Point2D pos, String text);
 
-  /** The standard way to draw labels. */
+  /**
+   * The standard way to draw labels.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
   LabelRealizer STANDARD = new LabelRealizer() {
 
     @Override

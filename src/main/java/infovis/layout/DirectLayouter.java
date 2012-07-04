@@ -1,10 +1,13 @@
-package infovis.embed;
+package infovis.layout;
 
-import static infovis.embed.Weighter.ChangeType.*;
+import static infovis.busvis.Weighter.ChangeType.*;
 import static infovis.util.VecUtil.*;
+import infovis.busvis.LayoutNode;
+import infovis.busvis.NodeDrawer;
+import infovis.busvis.Weighter;
+import infovis.busvis.Weighter.ChangeType;
 import infovis.ctrl.Controller;
 import infovis.data.BusTime;
-import infovis.embed.Weighter.ChangeType;
 import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
@@ -12,25 +15,23 @@ import java.util.Calendar;
 import java.util.Collection;
 
 /**
- * A direct embedder. Positions the nodes each time the weight changes. The
+ * A direct layouter. Positions the nodes each time the weight changes. The
  * nodes move with animation.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public abstract class DirectEmbedder extends AbstractEmbedder {
+public abstract class DirectLayouter extends AbstractLayouter {
 
-  /**
-   * The weighter.
-   */
+  /** The weighter. */
   protected final Weighter weighter;
 
   /**
-   * Creates a edge embedder.
+   * Creates a layouter.
    * 
    * @param weighter The weighter.
    * @param drawer The drawer.
    */
-  public DirectEmbedder(final Weighter weighter, final NodeDrawer drawer) {
+  public DirectLayouter(final Weighter weighter, final NodeDrawer drawer) {
     super(drawer);
     this.weighter = weighter;
   }
@@ -45,7 +46,7 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
     } else {
       duration = 0;
     }
-    final SpringNode ref = weighter.getReferenceNode();
+    final LayoutNode ref = weighter.getReferenceNode();
     if(change != NO_CHANGE) {
       final Point2D diff;
       final Point2D refP;
@@ -57,11 +58,11 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
         refP = null;
         diff = null;
       }
-      final Collection<SpringNode> nodes = weighter.nodes();
+      final Collection<LayoutNode> nodes = weighter.nodes();
       if(refP != null) {
         changedWeights(nodes, ref, refP, diff);
       }
-      for(final SpringNode n : nodes) {
+      for(final LayoutNode n : nodes) {
         final Point2D pos = weighter.getDefaultPosition(n);
         if(n == ref) {
           continue;
@@ -74,7 +75,7 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
         }
         switch(change) {
           case FAST_ANIMATION_CHANGE:
-            n.startAnimationTo(dest, Interpolator.LINEAR, Interpolator.FAST);
+            n.startAnimationTo(dest, Interpolator.LINEAR, LayoutNode.FAST);
             break;
           case FAST_FORWARD_CHANGE:
             n.startAnimationTo(dest, Interpolator.LINEAR, duration);
@@ -84,15 +85,15 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
                 * BusTime.MILLISECONDS_PER_SECOND);
             break;
           case PREPARE_CHANGE:
-            n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.LONG);
+            n.startAnimationTo(dest, Interpolator.SMOOTH, LayoutNode.LONG);
             break;
           default:
-            n.startAnimationTo(dest, Interpolator.SMOOTH, Interpolator.NORMAL);
+            n.startAnimationTo(dest, Interpolator.SMOOTH, LayoutNode.NORMAL);
         }
       }
     }
     boolean needsRedraw = weighter.inAnimation();
-    for(final SpringNode n : weighter.nodes()) {
+    for(final LayoutNode n : weighter.nodes()) {
       n.animate();
       needsRedraw = needsRedraw || n.inAnimation();
     }
@@ -109,7 +110,7 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
    * @param nodes The nodes.
    */
   @SuppressWarnings("unused")
-  protected void changedWeights(final Collection<SpringNode> nodes, final SpringNode ref,
+  protected void changedWeights(final Collection<LayoutNode> nodes, final LayoutNode ref,
       final Point2D refP, final Point2D diff) {
     // nothing to do
   }
@@ -125,7 +126,7 @@ public abstract class DirectEmbedder extends AbstractEmbedder {
    *          current position.
    * @return The desired position of the given node.
    */
-  protected abstract Point2D getDestination(SpringNode n, Point2D pos, SpringNode ref,
+  protected abstract Point2D getDestination(LayoutNode n, Point2D pos, LayoutNode ref,
       Point2D refP, Point2D diff);
 
   @Override
