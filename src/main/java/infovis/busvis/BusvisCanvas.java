@@ -27,9 +27,6 @@ import javax.swing.SwingUtilities;
  */
 public final class BusvisCanvas extends Canvas implements BusVisualization {
 
-  /** SVUID. */
-  private static final long serialVersionUID = 5517376336494016259L;
-
   /** The distance measure. */
   protected final BusvisWeighter dist;
 
@@ -86,8 +83,6 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
     this.layouter = layouter;
     addAction(KeyEvent.VK_R, new AbstractAction() {
 
-      private static final long serialVersionUID = 1648614278684353766L;
-
       @Override
       public void actionPerformed(final ActionEvent e) {
         ctrl.selectStation(null);
@@ -97,8 +92,6 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
     });
     addAction(KeyEvent.VK_V, new AbstractAction() {
 
-      private static final long serialVersionUID = 1929819234561056245L;
-
       @Override
       public void actionPerformed(final ActionEvent e) {
         reset();
@@ -106,8 +99,6 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
 
     });
     addAction(KeyEvent.VK_Q, new AbstractAction() {
-
-      private static final long serialVersionUID = -3089254363439068506L;
 
       @Override
       public void actionPerformed(final ActionEvent e) {

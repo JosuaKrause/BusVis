@@ -43,9 +43,6 @@ import javax.swing.event.ChangeListener;
  */
 public final class ControlPanel extends JPanel implements BusVisualization {
 
-  /** SVUID. */
-  private static final long serialVersionUID = 1644268841480928696L;
-
   /** The fast forward mode icon. */
   private static final Icon FFW_MODE =
       new ImageIcon("src/main/resources/pics/ffw.gif");
@@ -315,9 +312,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * @author Marc Spicker
    */
   private static final class CyclicNumberModel extends SpinnerNumberModel {
-
-    /** SVUID. */
-    private static final long serialVersionUID = 3367440803757802068L;
 
     /**
      * Constructor.

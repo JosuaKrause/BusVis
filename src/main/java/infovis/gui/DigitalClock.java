@@ -15,9 +15,6 @@ import javax.swing.SwingConstants;
  */
 public class DigitalClock extends JPanel {
 
-  /** Serial version UID. */
-  private static final long serialVersionUID = 4677859273361530924L;
-
   /** The hour text field. */
   private final JTextField hours;
 
