@@ -143,8 +143,21 @@ public interface LineRealizer {
       final double length = VecUtil.getLength(normal);
       normal.setLocation((normal.getX() / length) * 0.95, (normal.getY() / length) * 0.95);
 
-      final double transX = (-maxNumber / 2.0 + number + 1) * normal.getX();
-      final double transY = (-maxNumber / 2.0 + number + 1) * normal.getY();
+      // final double transX = (-maxNumber / 2.0 + number + 1) * normal.getX();
+      // final double transY = (-maxNumber / 2.0 + number + 1) * normal.getY();
+
+      int factor;
+      if(number == 0) {
+        factor = 0;
+      } else if(number % 2 == 0) {
+        factor = (number + 1) / 2;
+      } else {
+        factor = -((number + 1) / 2);
+      }
+
+      final double transX = factor * normal.getX();
+      final double transY = factor * normal.getY();
+
 
       // create new line
       final Line2D newLine = new Line2D.Double(line.getP1().getX() - transX,
