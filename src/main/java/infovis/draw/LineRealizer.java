@@ -10,6 +10,8 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * Realizes the actual painting of bus lines.
@@ -82,6 +84,18 @@ public interface LineRealizer {
   };
 
   /**
+   * Comparator for bus lines.
+   */
+  final Comparator<BusLine> busLineComparator = new Comparator<BusLine>() {
+
+    @Override
+    public int compare(final BusLine o1, final BusLine o2) {
+      return o1.compareTo(o2);
+    }
+
+  };
+
+  /**
    * An slightly advanced line drawing technique that displays the lines only
    * once.
    * 
@@ -89,16 +103,35 @@ public interface LineRealizer {
    */
   LineRealizer ADVANCED = new LineRealizer() {
 
+
     @Override
     public void drawLines(final Graphics2D g, final Line2D line, final BusLine[] unused,
         final BusLine[] used) {
+      // sorting
+      final BusLine[] unusedSorted = Arrays.copyOf(unused, unused.length);
+      Arrays.sort(unusedSorted, busLineComparator);
+      BusLine[] usedSorted = null;
+      if(used != null) {
+        usedSorted = Arrays.copyOf(used, used.length);
+        Arrays.sort(usedSorted, busLineComparator);
+      }
+
       final int degree = (used != null ? used.length : 0) + unused.length;
+      int counter = 0;
+
+      if(used != null) {
+        for(final BusLine l : usedSorted) {
+          g.setColor(l.getColor());
+          g.fill(createLineShape(line, counter, degree));
+          ++counter;
+        }
+      }
+
       final Graphics2D g2 = (Graphics2D) g.create();
       if(used != null) {
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
       }
-      int counter = 0;
-      for(final BusLine l : unused) {
+      for(final BusLine l : unusedSorted) {
         if(BusLine.WALK.equals(l)) {
           continue;
         }
@@ -107,12 +140,6 @@ public interface LineRealizer {
         ++counter;
       }
       g2.dispose();
-      if(used == null) return;
-      for(final BusLine l : used) {
-        g.setColor(l.getColor());
-        g.fill(createLineShape(line, counter, degree));
-        ++counter;
-      }
     }
 
     /** The normal stroke. */
@@ -143,8 +170,27 @@ public interface LineRealizer {
       final double length = VecUtil.getLength(normal);
       normal.setLocation((normal.getX() / length) * 0.95, (normal.getY() / length) * 0.95);
 
-      final double transX = (-maxNumber / 2.0 + number + 1) * normal.getX();
-      final double transY = (-maxNumber / 2.0 + number + 1) * normal.getY();
+      int factor = 0;
+      if((line.getX1() > line.getX2() && line.getY1() > line.getY2())
+          || (line.getX1() < line.getX2() && line.getY1() < line.getY2())) {
+        if(number == 0) {
+          factor = 0;
+        } else if(number % 2 == 0) {
+          factor = (number + 1) / 2;
+        } else {
+          factor = -((number + 1) / 2);
+        }
+      } else {
+        if(number == 0) {
+          factor = 0;
+        } else if(number % 2 == 0) {
+          factor = -((number + 1) / 2);
+        } else {
+          factor = (number + 1) / 2;
+        }
+      }
+      final double transX = factor * normal.getX();
+      final double transY = factor * normal.getY();
 
       // create new line
       final Line2D newLine = new Line2D.Double(line.getP1().getX() - transX,
