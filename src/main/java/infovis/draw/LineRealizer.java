@@ -117,11 +117,20 @@ public interface LineRealizer {
       }
 
       final int degree = (used != null ? used.length : 0) + unused.length;
+      int counter = 0;
+
+      if(used != null) {
+        for(final BusLine l : usedSorted) {
+          g.setColor(l.getColor());
+          g.fill(createLineShape(line, counter, degree));
+          ++counter;
+        }
+      }
+
       final Graphics2D g2 = (Graphics2D) g.create();
       if(used != null) {
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
       }
-      int counter = 0;
       for(final BusLine l : unusedSorted) {
         if(BusLine.WALK.equals(l)) {
           continue;
@@ -131,12 +140,6 @@ public interface LineRealizer {
         ++counter;
       }
       g2.dispose();
-      if(used == null) return;
-      for(final BusLine l : usedSorted) {
-        g.setColor(l.getColor());
-        g.fill(createLineShape(line, counter, degree));
-        ++counter;
-      }
     }
 
     /** The normal stroke. */
@@ -167,16 +170,27 @@ public interface LineRealizer {
       final double length = VecUtil.getLength(normal);
       normal.setLocation((normal.getX() / length) * 0.95, (normal.getY() / length) * 0.95);
 
-      double transX = 0;
-      double transY = 0;
+      int factor = 0;
       if((line.getX1() > line.getX2() && line.getY1() > line.getY2())
           || (line.getX1() < line.getX2() && line.getY1() < line.getY2())) {
-        transX = (-maxNumber / 2.0 + number + 1) * normal.getX();
-        transY = (-maxNumber / 2.0 + number + 1) * normal.getY();
+        if(number == 0) {
+          factor = 0;
+        } else if(number % 2 == 0) {
+          factor = (number + 1) / 2;
+        } else {
+          factor = -((number + 1) / 2);
+        }
       } else {
-        transX = (maxNumber / 2.0 - number - 1) * normal.getX();
-        transY = (maxNumber / 2.0 - number - 1) * normal.getY();
+        if(number == 0) {
+          factor = 0;
+        } else if(number % 2 == 0) {
+          factor = -((number + 1) / 2);
+        } else {
+          factor = (number + 1) / 2;
+        }
       }
+      final double transX = factor * normal.getX();
+      final double transY = factor * normal.getY();
 
       // create new line
       final Line2D newLine = new Line2D.Double(line.getP1().getX() - transX,
