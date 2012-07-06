@@ -10,6 +10,7 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.util.Arrays;
 
 /**
  * Realizes the actual painting of bus lines.
@@ -92,12 +93,27 @@ public interface LineRealizer {
     @Override
     public void drawLines(final Graphics2D g, final Line2D line, final BusLine[] unused,
         final BusLine[] used) {
+      // sorting
+      Arrays.sort(unused);
+      if(used != null) {
+        Arrays.sort(used);
+      }
+
       final int degree = (used != null ? used.length : 0) + unused.length;
+      int counter = 0;
+
+      if(used != null) {
+        for(final BusLine l : used) {
+          g.setColor(l.getColor());
+          g.fill(createLineShape(line, counter, degree));
+          ++counter;
+        }
+      }
+
       final Graphics2D g2 = (Graphics2D) g.create();
       if(used != null) {
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
       }
-      int counter = 0;
       for(final BusLine l : unused) {
         if(BusLine.WALK.equals(l)) {
           continue;
@@ -107,12 +123,6 @@ public interface LineRealizer {
         ++counter;
       }
       g2.dispose();
-      if(used == null) return;
-      for(final BusLine l : used) {
-        g.setColor(l.getColor());
-        g.fill(createLineShape(line, counter, degree));
-        ++counter;
-      }
     }
 
     /** The normal stroke. */
@@ -139,12 +149,17 @@ public interface LineRealizer {
       }
 
       final Point2D normal = new Point2D.Double(-dy, dx);
-      // unit length
-      final double length = VecUtil.getLength(normal);
-      normal.setLocation((normal.getX() / length) * 0.95, (normal.getY() / length) * 0.95);
+      final Point2D n2 = VecUtil.setLength(normal, 0.95);
 
-      final double transX = (-maxNumber / 2.0 + number + 1) * normal.getX();
-      final double transY = (-maxNumber / 2.0 + number + 1) * normal.getY();
+      final int factor;
+      if((line.getX1() > line.getX2() && line.getY1() > line.getY2())
+          || (line.getX1() < line.getX2() && line.getY1() < line.getY2())) {
+        factor = calcFactor(number);
+      } else {
+        factor = -calcFactor(number);
+      }
+      final double transX = factor * n2.getX();
+      final double transY = factor * n2.getY();
 
       // create new line
       final Line2D newLine = new Line2D.Double(line.getP1().getX() - transX,
@@ -152,6 +167,18 @@ public interface LineRealizer {
           - transY);
 
       return normalStroke.createStrokedShape(newLine);
+    }
+
+    /**
+     * Calculates the factor of a number.
+     * 
+     * @param number The number.
+     * @return The factor.
+     */
+    private int calcFactor(final int number) {
+      if(number == 0) return 0;
+      final int res = (number + 1) / 2;
+      return (number & 1) == 0 ? res : -res;
     }
 
   };
