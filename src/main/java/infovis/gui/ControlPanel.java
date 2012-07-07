@@ -71,12 +71,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   /** Bus change time slider. */
   protected final JSlider changeMinutesSlider;
 
-  /** The time window spinner. */
-  protected final JSpinner timeWindow;
-
-  /** The time windows slider. */
-  protected final JSlider timeWindowSlider;
-
   /** Walk time in hours. */
   protected final JSpinner timeWalkHours;
 
@@ -607,49 +601,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
         changeMinutesSlider, space);
     add(new JSeparator(SwingConstants.HORIZONTAL));
 
-    // time window
-    final SpinnerNumberModel tWindow = new SpinnerNumberModel(0, 0, 24, 1);
-    timeWindow = new JSpinner(tWindow);
-    timeWindow.setMaximumSize(new Dimension(60, 40));
-    timeWindow.setPreferredSize(new Dimension(60, 40));
-    timeWindow.addMouseWheelListener(new SimpleMouseWheelListenerSpinner(timeWindow, 0, 24));
-
-    timeWindow.addChangeListener(new ChangeListener() {
-
-      @Override
-      public void stateChanged(final ChangeEvent e) {
-        final int time = (Integer) timeWindow.getValue();
-        if(ctrl.getMaxTimeHours() != time) {
-          timeWindowSlider.setValue(time);
-          ctrl.setMaxTimeHours(time);
-        }
-      }
-
-    });
-
-    timeWindowSlider = new JSlider(0, 24, 0);
-    timeWindowSlider.setMajorTickSpacing(3);
-    timeWindowSlider.setMinorTickSpacing(1);
-    timeWindowSlider.setPaintTicks(true);
-    timeWindowSlider.setPaintLabels(true);
-    timeWindowSlider.addMouseWheelListener(new SimpleMouseWheelListenerSlider(
-        timeWindowSlider, 0, 24));
-    timeWindowSlider.addChangeListener(new ChangeListener() {
-
-      @Override
-      public void stateChanged(final ChangeEvent e) {
-        final int time = timeWindowSlider.getValue();
-        if(time != ctrl.getMaxTimeHours()) {
-          timeWindow.setValue(time);
-          ctrl.setMaxTimeHours(time);
-        }
-      }
-
-    });
-
-    addHor(new JLabel("Max Wait:"), timeWindow, new JLabel("h"), timeWindowSlider, space);
-    add(new JSeparator(SwingConstants.HORIZONTAL));
-
     // walk time window
     final SpinnerNumberModel walkHours = new SpinnerNumberModel(0, 0, 1, 1);
     timeWalkHours = new JSpinner(walkHours);
@@ -895,10 +846,6 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   @Override
   public void undefinedChange(final Controller ctrl) {
-    final int mth = ctrl.getMaxTimeHours();
-    timeWindow.setValue(mth);
-    timeWindowSlider.setValue(mth);
-
     final int walkTime = ctrl.getWalkTime();
     timeWalkHours.setValue(walkTime / 60);
     timeWalkMinutes.setValue(walkTime % 60);
