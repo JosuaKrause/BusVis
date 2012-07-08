@@ -69,7 +69,11 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
                 continue;
               }
             }
-            if(step()) {
+            boolean needsRedraw;
+            synchronized(this) {
+              needsRedraw = step();
+            }
+            if(needsRedraw) {
               refreshAll();
             }
           }
@@ -83,6 +87,15 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
     animator.start();
     this.receivers = receivers;
     drawer.setAnimator(this);
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The animation lock.
+   */
+  public Object getAnimationLock() {
+    return animator;
   }
 
   /**
