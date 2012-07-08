@@ -129,9 +129,4 @@ public abstract class DirectLayouter extends AbstractLayouter {
   protected abstract Point2D getDestination(LayoutNode n, Point2D pos, LayoutNode ref,
       Point2D refP, Point2D diff);
 
-  @Override
-  protected boolean doesDrag() {
-    return false;
-  }
-
 }

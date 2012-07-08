@@ -281,13 +281,51 @@ public class Canvas extends JComponent implements Refreshable {
       g2.setColor(c);
       g2.fill(getVisibleRect());
     }
-    final Graphics2D gfx = (Graphics2D) g2.create();
+    if(paintLock == null) {
+      doPaint(g2);
+    } else {
+      synchronized(paintLock) {
+        doPaint(g2);
+      }
+    }
+    g2.dispose();
+  }
+
+  /**
+   * Does the actual painting.
+   * 
+   * @param g The graphics context.
+   */
+  private void doPaint(final Graphics2D g) {
+    final Graphics2D gfx = (Graphics2D) g.create();
     gfx.translate(offX, offY);
     gfx.scale(zoom, zoom);
     painter.draw(gfx, new CanvasContext(true));
     gfx.dispose();
-    painter.drawHUD(g2, new CanvasContext(false));
-    g2.dispose();
+    painter.drawHUD(g, new CanvasContext(false));
+  }
+
+  /** The paint lock. */
+  private Object paintLock;
+
+  /**
+   * Setter.
+   * 
+   * @param paintLock The paint lock or <code>null</code> if nothing should be
+   *          locked during painting.
+   */
+  public void setPaintLock(final Object paintLock) {
+    this.paintLock = paintLock;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The paint lock or <code>null</code> if nothing is locked during
+   *         painting.
+   */
+  public Object getPaintLock() {
+    return paintLock;
   }
 
   /**

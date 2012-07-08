@@ -437,4 +437,49 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
     }
   }
 
+  @Override
+  public boolean hasSecondarySelection() {
+    final Controller ctrl = dist.getController();
+    return ctrl.hasSecondarySelection();
+  }
+
+  @Override
+  public boolean isSecondarySelected(final LayoutNode node) {
+    final Controller ctrl = dist.getController();
+    return ctrl.isSecondarySelected(dist.getStation(node));
+  }
+
+  /** The cached secondary selected nodes. */
+  private Collection<LayoutNode> secSelCache;
+
+  /** The old secondary selected nodes id list. */
+  private int[] lastSecSelIds;
+
+  @Override
+  public Collection<LayoutNode> secondarySelected() {
+    final Controller ctrl = dist.getController();
+    final int[] ids = ctrl.secondarySelectedIds();
+    if(ids != lastSecSelIds || secSelCache == null) {
+      final LayoutNode[] res = new LayoutNode[ids.length];
+      for(int i = 0; i < res.length; ++i) {
+        res[i] = dist.getNode(dist.getStation(ids[i]));
+      }
+      secSelCache = Arrays.asList(res);
+      lastSecSelIds = ids;
+    }
+    return secSelCache;
+  }
+
+  @Override
+  public void secondarySelection(final Collection<LayoutNode> nodes) {
+    final Controller ctrl = dist.getController();
+    if(nodes.isEmpty()) {
+      ctrl.clearSecondarySelection();
+      return;
+    }
+    for(final LayoutNode node : nodes) {
+      ctrl.toggleSecondarySelected(dist.getStation(node));
+    }
+  }
+
 }
