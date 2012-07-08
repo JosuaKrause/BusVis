@@ -248,11 +248,14 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
       final boolean hovered, final String addText) {
     final double zoom = ctx.toComponentLength(1);
     final BusStation station = dist.getStation(n);
+    boolean isImportantNode = true;
 
     if(!hovered && addText == null) {
       final int degree = dist.getMatrix().getDegree(station);
       final double radius = nodeRadius(n);
-      if(degree > LOW_DEGREE && radius < HIGH_RADIUS) return;
+      if(degree > LOW_DEGREE && radius < HIGH_RADIUS) {
+        isImportantNode = false;
+      }
     }
 
     final Shape s = nodeClickArea(n, true);
@@ -276,7 +279,7 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
     }
 
     labelRealize.drawLabel(g, ctx.getVisibleComponent(), zoom,
-        pos, station.getName() + distance);
+        pos, station.getName() + distance, isImportantNode);
   }
 
   @Override
