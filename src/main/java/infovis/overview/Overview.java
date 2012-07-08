@@ -144,6 +144,11 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     }
   }
 
+  @Override
+  public void refresh() {
+    repaint();
+  }
+
   /** Resets the viewport to the given rectangle. */
   public void reset() {
     mouse.reset(boundingBox);

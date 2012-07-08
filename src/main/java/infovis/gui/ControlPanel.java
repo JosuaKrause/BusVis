@@ -205,8 +205,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
    * 
    * @author Marc Spicker
    */
-  private static final class SimpleMouseWheelListenerSpinner implements
-  MouseWheelListener {
+  private static final class SimpleMouseWheelListenerSpinner
+  implements MouseWheelListener {
 
     /** Parent spinner. */
     private final JSpinner parent;
@@ -602,11 +602,12 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     add(new JSeparator(SwingConstants.HORIZONTAL));
 
     // walk time window
-    final SpinnerNumberModel walkHours = new SpinnerNumberModel(0, 0, 1, 1);
+    final SpinnerNumberModel walkHours = new SpinnerNumberModel(0, -1, 2, 1);
     timeWalkHours = new JSpinner(walkHours);
     timeWalkHours.setMaximumSize(new Dimension(60, 40));
     timeWalkHours.setPreferredSize(new Dimension(60, 40));
-    timeWalkHours.addMouseWheelListener(new SimpleMouseWheelListenerSpinner(timeWalkHours, 0, 1));
+    timeWalkHours.addMouseWheelListener(new SimpleMouseWheelListenerSpinner(
+        timeWalkHours, -1, 2));
 
     final CyclicNumberModel walkMinutes = new CyclicNumberModel(0, 0, 59);
     timeWalkMinutes = new JSpinner(walkMinutes);
@@ -753,6 +754,16 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   protected int getWalkTime() {
     final int hour = ((Integer) timeWalkHours.getValue()).intValue();
     final int minute = ((Integer) timeWalkMinutes.getValue()).intValue();
+    if(hour < 0) {
+      timeWalkHours.setValue(0);
+      timeWalkMinutes.setValue(0);
+      return 0;
+    }
+    if(hour > 1) {
+      timeWalkHours.setValue(1);
+      timeWalkMinutes.setValue(59);
+      return 2 * 60 - 1;
+    }
     return hour * 60 + minute;
   }
 
@@ -872,6 +883,11 @@ public final class ControlPanel extends JPanel implements BusVisualization {
   @Override
   public void focusStation() {
     // already covered by select bus station
+  }
+
+  @Override
+  public void refresh() {
+    // nothing to do
   }
 
 }

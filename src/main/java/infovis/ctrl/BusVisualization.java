@@ -37,6 +37,9 @@ public interface BusVisualization {
   /** Sets the focus on the current selected bus station. */
   void focusStation();
 
+  /** Refreshes the display. */
+  void refresh();
+
   /**
    * Signals an undefined change.
    * 

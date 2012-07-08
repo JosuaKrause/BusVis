@@ -9,6 +9,7 @@ import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
@@ -485,6 +486,64 @@ public final class Controller implements BusStationEnumerator {
     for(final BusVisualization v : vis) {
       v.fastForwardChange(ffwMode, ffwMinutes);
     }
+  }
+
+  /** All secondary selected stations. */
+  private final BitSet secSel = new BitSet();
+
+  /**
+   * Getter.
+   * 
+   * @return Whether any node is secondary selected.
+   */
+  public boolean hasSecondarySelection() {
+    return !secSel.isEmpty();
+  }
+
+  /** The cache for secondary selected ids. */
+  private int[] idCache;
+
+  /**
+   * Getter.
+   * 
+   * @return A list of the ids of all secondary selected stations.
+   */
+  public int[] secondarySelectedIds() {
+    if(idCache == null) {
+      final int[] res = new int[secSel.cardinality()];
+      int pos = 0;
+      for(int i = secSel.nextSetBit(0); i >= 0; i = secSel.nextSetBit(i + 1)) {
+        res[pos++] = i;
+      }
+      idCache = res;
+    }
+    return idCache;
+  }
+
+  /**
+   * Toggler.
+   * 
+   * @param station The station whose secondary selection will be toggled.
+   */
+  public void toggleSecondarySelected(final BusStation station) {
+    idCache = null;
+    secSel.flip(station.getId());
+  }
+
+  /**
+   * Getter.
+   * 
+   * @param station The station.
+   * @return If the station is secondary selected.
+   */
+  public boolean isSecondarySelected(final BusStation station) {
+    return secSel.get(station.getId());
+  }
+
+  /** Clears all secondary selection. */
+  public void clearSecondarySelection() {
+    idCache = null;
+    secSel.clear();
   }
 
 }
