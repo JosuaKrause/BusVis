@@ -185,11 +185,21 @@ public final class BusvisWeighter implements Weighter {
   /**
    * Getter.
    * 
+   * @param id The id.
+   * @return The corresponding station.
+   */
+  public BusStation getStation(final int id) {
+    return map[id];
+  }
+
+  /**
+   * Getter.
+   * 
    * @param n The spring node.
    * @return The corresponding station.
    */
   public BusStation getStation(final LayoutNode n) {
-    return map[n.getId()];
+    return getStation(n.getId());
   }
 
   /**

@@ -92,9 +92,7 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
    */
   protected abstract boolean step();
 
-  /**
-   * Refreshes all refreshables.
-   */
+  /** Refreshes all refreshables. */
   protected void refreshAll() {
     for(final Refreshable r : receivers) {
       r.refresh();
@@ -122,26 +120,26 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
     g2.dispose();
     for(final LayoutNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawEdges(g, ctx, n, visibleLines, !secSel.isEmpty());
+      drawer.drawEdges(g, ctx, n, visibleLines, drawer.hasSecondarySelection());
       g.dispose();
     }
-    for(final LayoutNode sel : secSel) {
+    for(final LayoutNode sel : drawer.secondarySelected()) {
       final Graphics2D g = (Graphics2D) gfx.create();
       drawer.drawSecondarySelected(g, ctx, sel);
       g.dispose();
     }
     for(final LayoutNode n : drawer.nodes()) {
       final Graphics2D g = (Graphics2D) gfx.create();
-      drawer.drawNode(g, ctx, n, secSel.contains(n));
+      drawer.drawNode(g, ctx, n, drawer.isSecondarySelected(n));
       g.dispose();
     }
   }
 
   @Override
   public void drawHUD(final Graphics2D gfx, final Context ctx) {
-    if(!secSel.isEmpty()) {
+    if(drawer.hasSecondarySelection()) {
       final BitSet tmp = new BitSet();
-      for(final LayoutNode n : secSel) {
+      for(final LayoutNode n : drawer.secondarySelected()) {
         final Graphics2D g = (Graphics2D) gfx.create();
         drawer.drawRouteLabels(g, ctx, n, tmp);
         g.dispose();
@@ -180,102 +178,29 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
     }
   }
 
-  /**
-   * A selected node.
-   * 
-   * @author Joschi <josua.krause@googlemail.com>
-   */
-  private static final class SelectedNode {
-
-    /** The actual node. */
-    public final LayoutNode node;
-
-    /** The x position at the time of selection. */
-    public final double x;
-
-    /** The y position at the time of selection. */
-    public final double y;
-
-    /**
-     * Creates a selected node.
-     * 
-     * @param node The selected node.
-     */
-    public SelectedNode(final LayoutNode node) {
-      this.node = node;
-      x = node.getX();
-      y = node.getY();
-    }
-
-  } // SelectedNode
-
-  /** A list of all currently selected nodes. */
-  private final List<SelectedNode> selected = new LinkedList<SelectedNode>();
-
-  @Override
-  public boolean acceptDrag(final Point2D p) {
-    if(!doesDrag()) return false;
-    selected.clear();
-    for(final LayoutNode n : drawer.nodes()) {
-      final Shape s = drawer.nodeClickArea(n, true);
-      if(s.contains(p)) {
-        selected.add(new SelectedNode(n));
-      }
-    }
-    return !selected.isEmpty();
-  }
-
-  /** A list of all secondary selected nodes. */
-  private final Set<LayoutNode> secSel = new HashSet<LayoutNode>();
-
   @Override
   public boolean click(final Point2D p, final MouseEvent e) {
     if(SwingUtilities.isRightMouseButton(e)) {
-      secSel.clear();
+      final Set<LayoutNode> secSel = new HashSet<LayoutNode>();
       for(final LayoutNode n : drawer.nodes()) {
         final Shape s = drawer.nodeClickArea(n, true);
         if(s.contains(p)) {
           secSel.add(n);
         }
       }
-      if(!secSel.isEmpty()) {
-        refreshAll();
-      }
+      drawer.secondarySelection(secSel);
       return true;
     }
-    if(doesDrag()) return false;
-    for(final LayoutNode n : drawer.nodes()) {
-      final Shape s = drawer.nodeClickArea(n, true);
-      if(s.contains(p)) {
-        drawer.selectNode(n);
-        return true;
+    if(SwingUtilities.isLeftMouseButton(e)) {
+      for(final LayoutNode n : drawer.nodes()) {
+        final Shape s = drawer.nodeClickArea(n, true);
+        if(s.contains(p)) {
+          drawer.selectNode(n);
+          return true;
+        }
       }
     }
     return false;
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return Whether the embedder allows node dragging.
-   */
-  protected boolean doesDrag() {
-    return true;
-  }
-
-  @Override
-  public void drag(final Point2D start, final Point2D cur, final double dx,
-      final double dy) {
-    for(final SelectedNode n : selected) {
-      drawer.dragNode(n.node, n.x, n.y, dx, dy);
-    }
-  }
-
-  @Override
-  public void endDrag(final Point2D start, final Point2D cur, final double dx,
-      final double dy) {
-    super.endDrag(start, cur, dx, dy);
-    selected.clear();
   }
 
   /**

@@ -874,4 +874,9 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     // already covered by select bus station
   }
 
+  @Override
+  public void refresh() {
+    // nothing to do
+  }
+
 }
