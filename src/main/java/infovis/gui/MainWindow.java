@@ -105,6 +105,14 @@ public final class MainWindow extends JFrame {
       }
 
     });
+    addAction(KeyEvent.VK_L, new AbstractAction() {
+
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        ctrl.toggleLegend();
+      }
+
+    });
     addWindowStateListener(new WindowStateListener() {
 
       @Override

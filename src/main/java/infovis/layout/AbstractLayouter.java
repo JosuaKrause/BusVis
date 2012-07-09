@@ -171,9 +171,11 @@ public abstract class AbstractLayouter extends PainterAdapter implements Animato
         g.dispose();
       }
     }
-    final Graphics2D g2 = (Graphics2D) gfx.create();
-    drawer.drawLegend(g2, ctx, visibleLines);
-    g2.dispose();
+    if(drawer.showLegend()) {
+      final Graphics2D g2 = (Graphics2D) gfx.create();
+      drawer.drawLegend(g2, ctx, visibleLines);
+      g2.dispose();
+    }
   }
 
   /** The lookup for hovered nodes. */

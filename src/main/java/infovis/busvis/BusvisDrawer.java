@@ -488,4 +488,9 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
     }
   }
 
+  @Override
+  public boolean showLegend() {
+    return dist.getController().showLegend();
+  }
+
 }

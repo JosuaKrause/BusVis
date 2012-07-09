@@ -555,4 +555,22 @@ public final class Controller implements BusStationEnumerator {
     refreshAll();
   }
 
+  /** Whether to show the legend. */
+  private boolean showLegend = true;
+
+  /** Toggles the legend. */
+  public void toggleLegend() {
+    showLegend = !showLegend;
+    refreshAll();
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Whether to show the legend.
+   */
+  public boolean showLegend() {
+    return showLegend;
+  }
+
 }

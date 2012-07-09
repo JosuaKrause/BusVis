@@ -196,4 +196,11 @@ public interface NodeDrawer {
    */
   void setAnimator(Animator animator);
 
+  /**
+   * Getter.
+   * 
+   * @return Whether to show the legend.
+   */
+  boolean showLegend();
+
 }
