@@ -95,7 +95,7 @@ public abstract class DirectLayouter extends AbstractLayouter {
     boolean needsRedraw = weighter.inAnimation();
     for(final LayoutNode n : weighter.nodes()) {
       n.animate();
-      needsRedraw = needsRedraw || n.inAnimation();
+      needsRedraw = needsRedraw || n.lazyInAnimation();
     }
     return needsRedraw;
   }

@@ -175,6 +175,24 @@ public final class LayoutNode {
     return pol != null;
   }
 
+  /** Lazy in animation memory. */
+  private boolean lazyIa;
+
+  /**
+   * Getter.
+   * 
+   * @return Whether this node is in animation. This method returns
+   *         <code>true</code> one time after {@link #inAnimation()} returns
+   *         <code>false</code>.
+   */
+  public boolean lazyInAnimation() {
+    final boolean ia = inAnimation();
+    lazyIa |= ia;
+    final boolean res = lazyIa;
+    lazyIa &= ia;
+    return res;
+  }
+
   /** Aborts the current animation and keeps the current position. */
   public void clearAnimation() {
     animate();
