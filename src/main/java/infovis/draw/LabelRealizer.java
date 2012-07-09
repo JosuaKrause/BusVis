@@ -22,8 +22,10 @@ public interface LabelRealizer {
    * @param scale The current scale.
    * @param pos The position where the label should be drawn.
    * @param text The text of the label.
+   * @param isImportantNode Whether this node is important.
    */
-  void drawLabel(Graphics2D g, Rectangle2D view, double scale, Point2D pos, String text);
+  void drawLabel(Graphics2D g, Rectangle2D view, double scale,
+      Point2D pos, String text, boolean isImportantNode);
 
   /**
    * The standard way to draw labels.
@@ -32,9 +34,13 @@ public interface LabelRealizer {
    */
   LabelRealizer STANDARD = new LabelRealizer() {
 
+    private final float minZoomLevel = 10;
+
+    private final float maxZoomLevel = 120;
+
     @Override
     public void drawLabel(final Graphics2D g, final Rectangle2D view, final double scale,
-        final Point2D pos, final String label) {
+        final Point2D pos, final String label, final boolean isImportantNode) {
       final StringDrawer sd = new StringDrawer(g, label, pos);
       final Rectangle2D bbox = sd.getBounds();
 
@@ -42,18 +48,30 @@ public interface LabelRealizer {
 
       final float d = (float) (scale * scale);
 
-      final Graphics2D g2 = (Graphics2D) g.create();
-      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f *
-          (d < 1 ? d : 1)));
-      g2.setColor(Color.WHITE);
-      final double arc = bbox.getHeight() / 3;
-      final double space = bbox.getHeight() / 6;
-      g2.fill(new RoundRectangle2D.Double(bbox.getMinX() - space, bbox.getMinY() - space,
-          bbox.getWidth() + 2 * space, bbox.getHeight() + 2 * space, arc, arc));
-      g2.dispose();
+      if(isImportantNode) {
+        final Graphics2D g2 = (Graphics2D) g.create();
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+            0.3f * Math.min(1f, d)));
+        g2.setColor(Color.WHITE);
+        final double arc = bbox.getHeight() / 3;
+        final double space = bbox.getHeight() / 6;
+        g2.fill(new RoundRectangle2D.Double(bbox.getMinX() - space,
+            bbox.getMinY() - space,
+            bbox.getWidth() + 2 * space, bbox.getHeight() + 2 * space, arc, arc));
+        g2.dispose();
+      }
 
-      if(d < 1) {
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, d));
+      if(isImportantNode) {
+        if(d < 1) {
+          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, d));
+        }
+      } else {
+        float alpha = 0.0f;
+        if(d >= minZoomLevel) {
+          alpha = (d - minZoomLevel) / (maxZoomLevel - minZoomLevel);
+        }
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+            Math.min(1.0f, alpha)));
       }
       g.setColor(Color.BLACK);
       sd.draw();
