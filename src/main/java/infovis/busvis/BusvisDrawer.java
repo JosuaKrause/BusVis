@@ -266,7 +266,7 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
     final BusStation from = dist.getFrom();
     String distance;
     if(addText != null) {
-      distance = " (" + addText + ")";
+      distance = " [" + addText + "]";
     } else if(from != null && from != station) {
       final RoutingResult route = dist.getRoute(station);
       if(route.isReachable()) {
@@ -299,17 +299,20 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
     final Collection<BusEdge> edges = route.getEdges();
     if(edges == null) return;
 
-    final LayoutNode start = dist.getReferenceNode();
+    final LayoutNode startNode = dist.getReferenceNode();
     final Graphics2D gfx = (Graphics2D) g.create();
-    drawLabel(gfx, ctx, start, false, route.getStartTime().pretty());
+    drawLabel(gfx, ctx, startNode, false, route.getStartTime().pretty());
     gfx.dispose();
-    visited.set(start.getId());
+    visited.set(startNode.getId());
 
+    final BusTime start = route.getStartTime();
     for(final BusEdge e : edges) {
       final LayoutNode to = dist.getNode(e.getTo());
       final Graphics2D g2 = (Graphics2D) g.create();
       final BusLine line = e.getLine();
-      drawLabel(g2, ctx, to, false, e.getEnd().pretty() + " - " + line.getFullName());
+      drawLabel(g2, ctx, to, false, e.getEnd().pretty() + " (" +
+          BusTime.minutesToString(start.minutesTo(e.getEnd())) +
+          ") - " + line.getFullName());
       g2.dispose();
       visited.set(to.getId());
     }
