@@ -528,6 +528,9 @@ public final class Controller implements BusStationEnumerator {
   public void toggleSecondarySelected(final BusStation station) {
     idCache = null;
     secSel.flip(station.getId());
+    for(final BusVisualization v : vis) {
+      v.refresh();
+    }
   }
 
   /**
@@ -544,6 +547,9 @@ public final class Controller implements BusStationEnumerator {
   public void clearSecondarySelection() {
     idCache = null;
     secSel.clear();
+    for(final BusVisualization v : vis) {
+      v.refresh();
+    }
   }
 
 }
