@@ -20,6 +20,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
 import org.apache.batik.bridge.BridgeContext;
@@ -99,6 +100,24 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     });
 
     ctrl.addBusVisualization(this);
+  }
+
+  /**
+   * Setter.
+   * 
+   * @param focus The component to focus when clicked.
+   */
+  public void setFocusComponent(final JComponent focus) {
+    mouse.setFocusComponent(focus);
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The component to focus when clicked.
+   */
+  public JComponent getFocusComponent() {
+    return mouse.getFocusComponent();
   }
 
   /**

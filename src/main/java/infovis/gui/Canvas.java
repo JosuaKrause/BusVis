@@ -46,16 +46,17 @@ public class Canvas extends JComponent implements Refreshable {
   /** The painter. */
   protected Painter painter;
 
+  /** The focused component. */
+  private JComponent focus;
+
   /**
    * Creates a canvas for the given painter.
    * 
    * @param p The painter.
    * @param width The initial width of the component.
    * @param height The initial height of the component.
-   * @param focusable Whether this component will be focusable.
    */
-  public Canvas(final Painter p, final int width, final int height,
-      final boolean focusable) {
+  public Canvas(final Painter p, final int width, final int height) {
     if(p == null) throw new NullPointerException("p");
     setPreferredSize(new Dimension(width, height));
     painter = p;
@@ -75,9 +76,7 @@ public class Canvas extends JComponent implements Refreshable {
 
       @Override
       public void mousePressed(final MouseEvent e) {
-        if(focusable) {
-          grabFocus();
-        }
+        getFocusComponent().grabFocus();
         final Point2D p = e.getPoint();
         if(painter.clickHUD(p)) {
           Canvas.this.repaint();
@@ -159,10 +158,30 @@ public class Canvas extends JComponent implements Refreshable {
     addMouseMotionListener(mouse);
     addMouseWheelListener(mouse);
     setToolTipText("");
-    if(focusable) {
-      setFocusable(true);
-      grabFocus();
+    setFocusable(true);
+    grabFocus();
+    focus = this;
+  }
+
+  /**
+   * Setter.
+   * 
+   * @param focus The component to focus when clicked.
+   */
+  public void setFocusComponent(final JComponent focus) {
+    if(focus == null) {
+      new NullPointerException("focus");
     }
+    this.focus = focus;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The component to focus when clicked.
+   */
+  public JComponent getFocusComponent() {
+    return focus;
   }
 
   @Override

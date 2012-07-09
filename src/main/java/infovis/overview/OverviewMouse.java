@@ -12,6 +12,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
 /**
@@ -45,6 +46,7 @@ public final class OverviewMouse extends MouseAdapter {
   public OverviewMouse(final Overview over, final Controller ctrl) {
     this.over = over;
     this.ctrl = ctrl;
+    focus = over;
   }
 
   /** The x offset. */
@@ -71,9 +73,12 @@ public final class OverviewMouse extends MouseAdapter {
   /** The original y coordinate. */
   private double origY;
 
+  /** The focused component. */
+  private JComponent focus;
+
   @Override
   public void mousePressed(final MouseEvent e) {
-    over.grabFocus();
+    focus.grabFocus();
     final Point2D p = e.getPoint();
     final Point2D c = getForScreen(p);
     final boolean leftButton = SwingUtilities.isLeftMouseButton(e);
@@ -86,6 +91,27 @@ public final class OverviewMouse extends MouseAdapter {
       origY = getOffsetY();
       drag = true;
     }
+  }
+
+  /**
+   * Setter.
+   * 
+   * @param focus The component to focus when clicked.
+   */
+  public void setFocusComponent(final JComponent focus) {
+    if(focus == null) {
+      new NullPointerException("focus");
+    }
+    this.focus = focus;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The component to focus when clicked.
+   */
+  public JComponent getFocusComponent() {
+    return focus;
   }
 
   /** The radius in which, if clicked, the station is selected. */

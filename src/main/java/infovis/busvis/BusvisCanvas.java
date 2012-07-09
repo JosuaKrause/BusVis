@@ -72,7 +72,7 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
   private BusvisCanvas(final Layouts layouter, final AbstractLayouter layout,
       final BusvisWeighter dist, final BusvisDrawer draw,
       final int width, final int height) {
-    super(layout, width, height, false);
+    super(layout, width, height);
     this.layout = layout;
     this.dist = dist;
     this.draw = draw;

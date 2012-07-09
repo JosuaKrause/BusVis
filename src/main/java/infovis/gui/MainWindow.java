@@ -133,6 +133,8 @@ public final class MainWindow extends JFrame {
     final JRootPane root = getRootPane();
     root.setFocusable(true);
     root.grabFocus();
+    mainCanvas.setFocusComponent(root);
+    over.setFocusComponent(root);
   }
 
   /**
