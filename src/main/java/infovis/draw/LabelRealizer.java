@@ -47,32 +47,25 @@ public interface LabelRealizer {
       if(!view.intersects(bbox)) return;
 
       final float d = (float) (scale * scale);
+      final float alpha = isImportantNode ? d :
+          (d - minZoomLevel) / (maxZoomLevel - minZoomLevel);
 
-      if(isImportantNode) {
-        final Graphics2D g2 = (Graphics2D) g.create();
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-            0.3f * Math.min(1f, d)));
-        g2.setColor(Color.WHITE);
-        final double arc = bbox.getHeight() / 3;
-        final double space = bbox.getHeight() / 6;
-        g2.fill(new RoundRectangle2D.Double(bbox.getMinX() - space,
-            bbox.getMinY() - space,
-            bbox.getWidth() + 2 * space, bbox.getHeight() + 2 * space, arc, arc));
-        g2.dispose();
+      if(alpha <= 0f) return;
+
+      final Graphics2D g2 = (Graphics2D) g.create();
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+          0.3f * Math.min(1f, alpha)));
+      g2.setColor(Color.WHITE);
+      final double arc = bbox.getHeight() / 3;
+      final double space = bbox.getHeight() / 6;
+      g2.fill(new RoundRectangle2D.Double(bbox.getMinX() - space, bbox.getMinY() - space,
+          bbox.getWidth() + 2 * space, bbox.getHeight() + 2 * space, arc, arc));
+      g2.dispose();
+
+      if(alpha < 1f) {
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
       }
 
-      if(isImportantNode) {
-        if(d < 1) {
-          g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, d));
-        }
-      } else {
-        float alpha = 0.0f;
-        if(d >= minZoomLevel) {
-          alpha = (d - minZoomLevel) / (maxZoomLevel - minZoomLevel);
-        }
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-            Math.min(1.0f, alpha)));
-      }
       g.setColor(Color.BLACK);
       sd.draw();
     }
