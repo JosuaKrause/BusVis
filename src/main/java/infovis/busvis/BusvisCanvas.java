@@ -14,10 +14,7 @@ import infovis.layout.AbstractLayouter;
 import infovis.layout.Layouts;
 
 import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 
-import javax.swing.AbstractAction;
 import javax.swing.SwingUtilities;
 
 /**
@@ -56,7 +53,7 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
     dist.setFactor(10);
     final Layouts l = Layouts.CIRCULAR;
     final AbstractLayouter embed = Layouts.createFor(l, draw, dist);
-    final BusvisCanvas res = new BusvisCanvas(ctrl, l, embed, dist, draw, width, height);
+    final BusvisCanvas res = new BusvisCanvas(l, embed, dist, draw, width, height);
     ctrl.addBusVisualization(res);
     res.setBackground(Color.WHITE);
     return res;
@@ -65,7 +62,6 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
   /**
    * Private constructor.
    * 
-   * @param ctrl The controller.
    * @param layouter The layouter enum.
    * @param layout The corresponding layout.
    * @param dist The distance measure.
@@ -73,40 +69,15 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
    * @param width The width.
    * @param height The height.
    */
-  private BusvisCanvas(final Controller ctrl, final Layouts layouter,
-      final AbstractLayouter layout, final BusvisWeighter dist,
-      final BusvisDrawer draw, final int width, final int height) {
-    super(layout, width, height);
+  private BusvisCanvas(final Layouts layouter, final AbstractLayouter layout,
+      final BusvisWeighter dist, final BusvisDrawer draw,
+      final int width, final int height) {
+    super(layout, width, height, false);
     this.layout = layout;
     this.dist = dist;
     this.draw = draw;
     this.layouter = layouter;
     setPaintLock(layout.getAnimationLock());
-    addAction(KeyEvent.VK_R, new AbstractAction() {
-
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        ctrl.selectStation(null);
-        ctrl.focusStation();
-      }
-
-    });
-    addAction(KeyEvent.VK_V, new AbstractAction() {
-
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        reset();
-      }
-
-    });
-    addAction(KeyEvent.VK_Q, new AbstractAction() {
-
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        ctrl.quit(false);
-      }
-
-    });
     layout.addRefreshable(this);
   }
 

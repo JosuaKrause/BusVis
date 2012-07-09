@@ -52,8 +52,10 @@ public class Canvas extends JComponent implements Refreshable {
    * @param p The painter.
    * @param width The initial width of the component.
    * @param height The initial height of the component.
+   * @param focusable Whether this component will be focusable.
    */
-  public Canvas(final Painter p, final int width, final int height) {
+  public Canvas(final Painter p, final int width, final int height,
+      final boolean focusable) {
     if(p == null) throw new NullPointerException("p");
     setPreferredSize(new Dimension(width, height));
     painter = p;
@@ -73,7 +75,9 @@ public class Canvas extends JComponent implements Refreshable {
 
       @Override
       public void mousePressed(final MouseEvent e) {
-        grabFocus();
+        if(focusable) {
+          grabFocus();
+        }
         final Point2D p = e.getPoint();
         if(painter.clickHUD(p)) {
           Canvas.this.repaint();
@@ -155,8 +159,10 @@ public class Canvas extends JComponent implements Refreshable {
     addMouseMotionListener(mouse);
     addMouseWheelListener(mouse);
     setToolTipText("");
-    setFocusable(true);
-    grabFocus();
+    if(focusable) {
+      setFocusable(true);
+      grabFocus();
+    }
   }
 
   @Override
@@ -271,15 +277,16 @@ public class Canvas extends JComponent implements Refreshable {
   } // CanvasContext
 
   @Override
-  public void paintComponent(final Graphics g) {
+  protected void paintComponent(final Graphics g) {
     final Graphics2D g2 = (Graphics2D) g.create();
-    g2.clip(getVisibleRect());
+    final Rectangle2D rect = getVisibleRect();
+    g2.clip(rect);
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
         RenderingHints.VALUE_ANTIALIAS_ON);
     final Color c = back;
     if(c != null) {
       g2.setColor(c);
-      g2.fill(getVisibleRect());
+      g2.fill(rect);
     }
     if(paintLock == null) {
       doPaint(g2);
