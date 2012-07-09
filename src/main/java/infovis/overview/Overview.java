@@ -55,6 +55,9 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   /** The sign that shows a selected station on the abstract map. */
   private final Path2D focusSign;
 
+  /** The controller. */
+  private final Controller ctrl;
+
   /**
    * Constructor.
    * 
@@ -63,6 +66,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
    * @param height The height.
    */
   public Overview(final Controller ctrl, final int width, final int height) {
+    this.ctrl = ctrl;
     firstDraw = true;
 
     focusSign = new Path2D.Double();
@@ -175,15 +179,28 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
         RenderingHints.VALUE_ANTIALIAS_ON);
 
-    final AffineTransform at = new AffineTransform();
-    at.translate(mouse.getXFromCanvas(selectedStation.getAbstractX()),
+    // sign for the selected station
+    final AffineTransform st = new AffineTransform();
+    st.translate(mouse.getXFromCanvas(selectedStation.getAbstractX()),
         mouse.getYFromCanvas(selectedStation.getAbstractY()));
-
-    final Shape s = focusSign.createTransformedShape(at);
+    final Shape selS = focusSign.createTransformedShape(st);
     gfx.setColor(Color.RED);
-    gfx.fill(s);
+    gfx.fill(selS);
     gfx.setColor(Color.BLACK);
-    gfx.draw(s);
+    gfx.draw(selS);
+
+    // sign for the secondary station
+    for(final int id : ctrl.secondarySelectedIds()) {
+      final BusStation station = ctrl.getForId(id);
+      final AffineTransform at = new AffineTransform();
+      at.translate(mouse.getXFromCanvas(station.getAbstractX()),
+          mouse.getYFromCanvas(station.getAbstractY()));
+      final Shape s = focusSign.createTransformedShape(at);
+      gfx.setColor(Color.BLUE);
+      gfx.fill(s);
+      gfx.setColor(Color.BLACK);
+      gfx.draw(s);
+    }
   }
 
   /** The current selected station. */
