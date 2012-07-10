@@ -271,9 +271,8 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
       final RoutingResult route = dist.getRoute(station);
       if(route.isReachable()) {
         distance = " (" + BusTime.minutesToString(route.minutes()) + ")";
-      } else {
-        distance = " (not reachable)";
-      }
+      } else
+        return;
     } else {
       distance = "";
     }
