@@ -1,5 +1,6 @@
 package infovis.gui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 
 import javax.swing.BoxLayout;
@@ -30,6 +31,8 @@ public class DigitalClock extends JPanel {
 
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     hours = new JTextField("00");
+    hours.setBackground(Color.BLACK);
+    hours.setForeground(Color.WHITE);
     hours.setEditable(false);
     hours.setFocusable(false);
     hours.setPreferredSize(dim);
@@ -44,6 +47,8 @@ public class DigitalClock extends JPanel {
     add(space);
 
     minutes = new JTextField("00");
+    minutes.setBackground(Color.BLACK);
+    minutes.setForeground(Color.WHITE);
     minutes.setEditable(false);
     minutes.setFocusable(false);
     minutes.setPreferredSize(dim);

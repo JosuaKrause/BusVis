@@ -76,8 +76,8 @@ public final class OverviewMouse extends MouseAdapter {
     over.grabFocus();
     final Point2D p = e.getPoint();
     final Point2D c = getForScreen(p);
-    if(click(c)) return;
     final boolean leftButton = SwingUtilities.isLeftMouseButton(e);
+    if(click(c, leftButton)) return;
 
     if(leftButton) {
       startx = e.getX();
@@ -92,12 +92,13 @@ public final class OverviewMouse extends MouseAdapter {
   public static final int STATION_RADIUS = 10;
 
   /**
-   * Returns weather or not the user has clicked on a bus station.
+   * Returns whether or not the user has clicked on a bus station.
    * 
    * @param c Click Point.
-   * @return Weather a station has been clicked on.
+   * @param leftButton Whether the click is a left button click.
+   * @return Whether a station has been clicked on.
    */
-  private boolean click(final Point2D c) {
+  private boolean click(final Point2D c, final boolean leftButton) {
     double minDist = Double.POSITIVE_INFINITY;
     BusStation closestStation = null;
     for(final BusStation station : ctrl.getStations()) {
@@ -107,8 +108,18 @@ public final class OverviewMouse extends MouseAdapter {
         closestStation = station;
       }
     }
-    if(minDist >= STATION_RADIUS * STATION_RADIUS) return false;
-    ctrl.selectStation(closestStation);
+    if(minDist >= STATION_RADIUS * STATION_RADIUS) {
+      if(!leftButton) {
+        ctrl.clearSecondarySelection();
+        return true;
+      }
+      return false;
+    }
+    if(leftButton) {
+      ctrl.selectStation(closestStation);
+    } else {
+      ctrl.toggleSecondarySelected(closestStation);
+    }
     return true;
   }
 

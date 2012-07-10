@@ -248,11 +248,14 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
       final boolean hovered, final String addText) {
     final double zoom = ctx.toComponentLength(1);
     final BusStation station = dist.getStation(n);
+    boolean isImportantNode = true;
 
     if(!hovered && addText == null) {
       final int degree = dist.getMatrix().getDegree(station);
       final double radius = nodeRadius(n);
-      if(degree > LOW_DEGREE && radius < HIGH_RADIUS) return;
+      if(degree > LOW_DEGREE && radius < HIGH_RADIUS) {
+        isImportantNode = false;
+      }
     }
 
     final Shape s = nodeClickArea(n, true);
@@ -276,7 +279,7 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
     }
 
     labelRealize.drawLabel(g, ctx.getVisibleComponent(), zoom,
-        pos, station.getName() + distance);
+        pos, station.getName() + distance, isImportantNode);
   }
 
   @Override
@@ -434,6 +437,51 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
           dist.getReferenceNode().getPos())) / dist.getFactor())));
     } else {
       ctrl.setTitle(null);
+    }
+  }
+
+  @Override
+  public boolean hasSecondarySelection() {
+    final Controller ctrl = dist.getController();
+    return ctrl.hasSecondarySelection();
+  }
+
+  @Override
+  public boolean isSecondarySelected(final LayoutNode node) {
+    final Controller ctrl = dist.getController();
+    return ctrl.isSecondarySelected(dist.getStation(node));
+  }
+
+  /** The cached secondary selected nodes. */
+  private Collection<LayoutNode> secSelCache;
+
+  /** The old secondary selected nodes id list. */
+  private int[] lastSecSelIds;
+
+  @Override
+  public Collection<LayoutNode> secondarySelected() {
+    final Controller ctrl = dist.getController();
+    final int[] ids = ctrl.secondarySelectedIds();
+    if(ids != lastSecSelIds || secSelCache == null) {
+      final LayoutNode[] res = new LayoutNode[ids.length];
+      for(int i = 0; i < res.length; ++i) {
+        res[i] = dist.getNode(dist.getStation(ids[i]));
+      }
+      secSelCache = Arrays.asList(res);
+      lastSecSelIds = ids;
+    }
+    return secSelCache;
+  }
+
+  @Override
+  public void secondarySelection(final Collection<LayoutNode> nodes) {
+    final Controller ctrl = dist.getController();
+    if(nodes.isEmpty()) {
+      ctrl.clearSecondarySelection();
+      return;
+    }
+    for(final LayoutNode node : nodes) {
+      ctrl.toggleSecondarySelected(dist.getStation(node));
     }
   }
 

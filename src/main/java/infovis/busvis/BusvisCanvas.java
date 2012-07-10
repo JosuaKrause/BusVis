@@ -81,6 +81,7 @@ public final class BusvisCanvas extends Canvas implements BusVisualization {
     this.dist = dist;
     this.draw = draw;
     this.layouter = layouter;
+    setPaintLock(layout.getAnimationLock());
     addAction(KeyEvent.VK_R, new AbstractAction() {
 
       @Override

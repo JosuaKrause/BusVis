@@ -22,8 +22,10 @@ public interface LabelRealizer {
    * @param scale The current scale.
    * @param pos The position where the label should be drawn.
    * @param text The text of the label.
+   * @param isImportantNode Whether this node is important.
    */
-  void drawLabel(Graphics2D g, Rectangle2D view, double scale, Point2D pos, String text);
+  void drawLabel(Graphics2D g, Rectangle2D view, double scale,
+      Point2D pos, String text, boolean isImportantNode);
 
   /**
    * The standard way to draw labels.
@@ -32,19 +34,27 @@ public interface LabelRealizer {
    */
   LabelRealizer STANDARD = new LabelRealizer() {
 
+    private final float minZoomLevel = 10;
+
+    private final float maxZoomLevel = 120;
+
     @Override
     public void drawLabel(final Graphics2D g, final Rectangle2D view, final double scale,
-        final Point2D pos, final String label) {
+        final Point2D pos, final String label, final boolean isImportantNode) {
       final StringDrawer sd = new StringDrawer(g, label, pos);
       final Rectangle2D bbox = sd.getBounds();
 
       if(!view.intersects(bbox)) return;
 
       final float d = (float) (scale * scale);
+      final float alpha = isImportantNode ? d :
+          (d - minZoomLevel) / (maxZoomLevel - minZoomLevel);
+
+      if(alpha <= 0f) return;
 
       final Graphics2D g2 = (Graphics2D) g.create();
-      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f *
-          (d < 1 ? d : 1)));
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+          0.3f * Math.min(1f, alpha)));
       g2.setColor(Color.WHITE);
       final double arc = bbox.getHeight() / 3;
       final double space = bbox.getHeight() / 6;
@@ -52,9 +62,10 @@ public interface LabelRealizer {
           bbox.getWidth() + 2 * space, bbox.getHeight() + 2 * space, arc, arc));
       g2.dispose();
 
-      if(d < 1) {
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, d));
+      if(alpha < 1f) {
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
       }
+
       g.setColor(Color.BLACK);
       sd.draw();
     }

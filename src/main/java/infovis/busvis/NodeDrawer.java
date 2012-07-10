@@ -9,6 +9,7 @@ import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -127,6 +128,35 @@ public interface NodeDrawer {
    * @param n The node.
    */
   void selectNode(LayoutNode n);
+
+  /**
+   * A secondary selection occured.
+   * 
+   * @param nodes The node that are clicked on.
+   */
+  void secondarySelection(Collection<LayoutNode> nodes);
+
+  /**
+   * Getter.
+   * 
+   * @return Whether any node is secondary selected.
+   */
+  boolean hasSecondarySelection();
+
+  /**
+   * Getter.
+   * 
+   * @return A list of all secondary selected nodes.
+   */
+  Collection<LayoutNode> secondarySelected();
+
+  /**
+   * Getter.
+   * 
+   * @param node The node.
+   * @return If the node is secondary selected.
+   */
+  boolean isSecondarySelected(LayoutNode node);
 
   /**
    * An iteration over all nodes in the layout.
