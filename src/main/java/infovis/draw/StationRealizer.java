@@ -54,6 +54,15 @@ public interface StationRealizer {
   void drawRoute(Graphics2D g, LineRealizer liner, Shape[] stations, Line2D[] lines,
       BusLine[] busLines, int[] numbers, int[] maxNumbers);
 
+  /** The color for no selection. */
+  Color NO_SEL = new Color(247, 247, 247);
+
+  /** The color for primary selection. */
+  Color PRIM_SEL = new Color(202, 0, 32);
+
+  /** The color for secondary selection. */
+  Color SEC_SEL = new Color(5, 113, 176);
+
   /**
    * The standard way to show bus stations.
    * 
@@ -72,8 +81,8 @@ public interface StationRealizer {
     @Override
     public void drawStation(final Graphics2D g, final Shape node, final Stroke stroke,
         final boolean referenceNode, final boolean secondarySelected) {
-      g.setColor(secondarySelected ? Color.BLUE :
-        (!referenceNode ? Color.WHITE : Color.RED));
+      g.setColor(secondarySelected ? SEC_SEL :
+        (!referenceNode ? NO_SEL : PRIM_SEL));
       g.fill(node);
       g.setStroke(stroke);
       g.setColor(Color.BLACK);

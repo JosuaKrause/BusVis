@@ -4,6 +4,7 @@ import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.draw.StationRealizer;
 import infovis.layout.Layouts;
 
 import java.awt.Color;
@@ -203,7 +204,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     st.translate(mouse.getXFromCanvas(selectedStation.getAbstractX()),
         mouse.getYFromCanvas(selectedStation.getAbstractY()));
     final Shape selS = focusSign.createTransformedShape(st);
-    gfx.setColor(Color.RED);
+    gfx.setColor(StationRealizer.PRIM_SEL);
     gfx.fill(selS);
     gfx.setColor(Color.BLACK);
     gfx.draw(selS);
@@ -215,7 +216,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
       at.translate(mouse.getXFromCanvas(station.getAbstractX()),
           mouse.getYFromCanvas(station.getAbstractY()));
       final Shape s = focusSign.createTransformedShape(at);
-      gfx.setColor(Color.BLUE);
+      gfx.setColor(StationRealizer.SEC_SEL);
       gfx.fill(s);
       gfx.setColor(Color.BLACK);
       gfx.draw(s);
