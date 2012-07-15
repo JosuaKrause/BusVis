@@ -1,11 +1,13 @@
 package infovis.overview;
 
+import infovis.Main;
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.draw.StationRealizer;
 import infovis.layout.Layouts;
+import infovis.util.IOUtil;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -18,8 +20,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -131,9 +133,10 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     final String parser = XMLResourceDescriptor.getXMLParserClassName();
     final SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
     SVGDocument doc = null;
+    URL url = null;
     try {
-      doc = (SVGDocument) f.createDocument(new File(ctrl.getResourcePath()
-          + "abstract.svg").toURI().toString());
+      url = IOUtil.getURL(Main.RESOURCES, ctrl.getResourcePath() + '/' + "abstract.svg");
+      doc = (SVGDocument) f.createDocument(url.toString());
     } catch(final IOException e) {
       e.printStackTrace();
     }
@@ -153,7 +156,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
 
     });
 
-    setURI(new File(ctrl.getResourcePath() + "abstract.svg").toURI().toString());
+    setURI(url.toString());
   }
 
   @Override

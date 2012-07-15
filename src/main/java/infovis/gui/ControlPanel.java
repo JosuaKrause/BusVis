@@ -1,11 +1,13 @@
 package infovis.gui;
 
+import infovis.Main;
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.layout.Layouts;
 import infovis.routing.RoutingAlgorithm;
+import infovis.util.IOUtil;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -13,6 +15,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.io.IOError;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -44,11 +48,19 @@ import javax.swing.event.ChangeListener;
 public final class ControlPanel extends JPanel implements BusVisualization {
 
   /** The fast forward mode icon. */
-  private static final Icon FFW_MODE =
-      new ImageIcon("src/main/resources/pics/ffw.gif");
+  private static final Icon FFW_MODE;
 
   /** The fast forward stop icon. */
-  private static final Icon FFW_STOP = new ImageIcon("src/main/resources/pics/stop.gif");
+  private static final Icon FFW_STOP;
+
+  static {
+    try {
+      FFW_MODE = new ImageIcon(IOUtil.getURL(Main.RESOURCES, "pics/ffw.gif"));
+      FFW_STOP = new ImageIcon(IOUtil.getURL(Main.RESOURCES, "pics/stop.gif"));
+    } catch(final IOException e) {
+      throw new IOError(e);
+    }
+  }
 
   /** The station box. */
   protected final JComboBox box;
