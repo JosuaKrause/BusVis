@@ -27,7 +27,7 @@ import org.junit.Test;
  * 
  * @author Leo Woerteler
  */
-public class RouteFinderTests {
+public class RouteFinderTest {
 
   /**
    * Checks if the line is changed when advantageous.

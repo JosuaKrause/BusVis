@@ -15,7 +15,7 @@ import org.junit.Test;
  * 
  * @author Leo Woerteler
  */
-public class BusTimeTests {
+public class BusTimeTest {
 
   /**
    * Trivial tests.

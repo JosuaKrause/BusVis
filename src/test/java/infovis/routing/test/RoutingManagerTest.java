@@ -22,7 +22,7 @@ import org.junit.Test;
  * 
  * @author Leo Woerteler
  */
-public class RoutingManagerTests {
+public class RoutingManagerTest {
 
   /**
    * Tests if a new task cancels the old one.
