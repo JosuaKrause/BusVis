@@ -15,6 +15,8 @@ import javax.swing.WindowConstants;
  * @author Joschi <josua.krause@googlemail.com>
  */
 public final class Main {
+  /** Resource path. */
+  public static final String RESOURCES = "src/main/resources";
 
   /** No constructor. */
   private Main() {
@@ -30,7 +32,7 @@ public final class Main {
   public static void main(final String[] args) {
     final BusStationManager m;
     try {
-      m = BusDataBuilder.load(args.length > 0 ? args[0] : "src/main/resources/konstanz/");
+      m = BusDataBuilder.load(args.length > 0 ? args[0] : "konstanz");
     } catch(final IOException e) {
       e.printStackTrace();
       return;

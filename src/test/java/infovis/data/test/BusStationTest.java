@@ -18,7 +18,7 @@ import org.junit.Test;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class BusStationTests {
+public class BusStationTest {
 
   /** The example bus stations. */
   private static final BusStationManager MANAGER;

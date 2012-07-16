@@ -2,13 +2,11 @@ package infovis.data;
 
 import static java.lang.Double.*;
 import static java.lang.Integer.*;
+import infovis.Main;
+import infovis.util.IOUtil;
 
 import java.awt.Color;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,13 +51,11 @@ public final class BusDataBuilder {
    */
   public static BusStationManager load(final String path) throws IOException {
     final BusDataBuilder builder = new BusDataBuilder(path);
-    final File root = new File(path).getCanonicalFile();
-    if(!root.exists()) throw new IllegalArgumentException(root + " does not exist.");
 
-    final CSVReader stops = readerFor(new File(root, "stops.csv"));
+    final CSVReader stops = readerFor(path, "stops.csv");
     for(String[] stop; (stop = stops.readNext()) != null;) {
       double abstractX, abstractY;
-      if(stop[4].equals("UNKNOWN")) {
+      if("UNKNOWN".equals(stop[4])) {
         abstractX = abstractY = Double.NaN;
       } else {
         abstractX = parseDouble(stop[4]);
@@ -69,49 +65,24 @@ public final class BusDataBuilder {
           -parseDouble(stop[2]) * 10000, abstractX, abstractY);
     }
 
-    final CSVReader walk = readerFor(new File(root, "walking-dists.csv"));
-    for(String[] line; (line = walk.readNext()) != null;) {
-      builder.setWalkingDistance(parseInt(line[0]), parseInt(line[1]), parseInt(line[2]));
-    }
-
-    final Map<String, Color> colors = new HashMap<String, Color>();
-    final CSVReader colorReader = readerFor(new File(root, "linecolor.csv"));
-    for(String[] line; (line = colorReader.readNext()) != null;) {
-      colors.put(line[0].replace('_', '/'),
-          new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3])));
+    final CSVReader walk = readerFor(path, "walking-dists.csv");
+    for(String[] dist; (dist = walk.readNext()) != null;) {
+      builder.setWalkingDistance(parseInt(dist[0]), parseInt(dist[1]), parseInt(dist[2]));
     }
 
     final Map<String, BusLine> lines = new HashMap<String, BusLine>();
-    for(final File line : new File(root, "lines").listFiles()) {
-      final String name = line.getName().replace('_', '/').replace(".csv", "");
+    final CSVReader lineReader = readerFor(path, "lines.csv");
+    for(String[] line; (line = lineReader.readNext()) != null;) {
+      final Color c = new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]));
+      lines.put(line[0], createLine(line[0].replace('_', '/'), c));
+    }
 
-      if(!lines.containsKey(name)) {
-        final Color color = colors.get(name);
-        lines.put(name, createLine(name, color != null ? color
-            : colors.get(name.replaceAll("\\D.*", ""))));
-      }
-      final BusLine busLine = lines.get(name);
-
-      final CSVReader lineReader = readerFor(line);
-      int tourNr = 0;
-      for(String[] tour; (tour = lineReader.readNext()) != null; tourNr++) {
-        int beforeID = -1;
-        BusTime depart = null;
-        for(int i = 0; i < tour.length; i++) {
-          final int currentID = parseInt(tour[i++]);
-          final BusTime arrive = parseTime(tour[i++]);
-
-          if(beforeID >= 0) {
-            builder.addEdge(beforeID, busLine, tourNr, currentID, depart, arrive);
-          }
-
-          if("-1".equals(tour[i])) {
-            break;
-          }
-          beforeID = currentID;
-          depart = parseTime(tour[i]);
-        }
-      }
+    final CSVReader edgeReader = readerFor(path, "edges.csv");
+    for(String[] edge; (edge = edgeReader.readNext()) != null;) {
+      final BusLine line = lines.get(edge[0]);
+      final int tourNr = parseInt(edge[1]), from = parseInt(edge[2]), to = parseInt(edge[5]);
+      final BusTime start = parseTime(edge[3]), end = parseTime(edge[4]);
+      builder.addEdge(from, line, tourNr, to, start, end);
     }
     return builder.finish();
   }
@@ -123,20 +94,21 @@ public final class BusDataBuilder {
    * @return resulting {@link BusTime}
    */
   private static BusTime parseTime(final String time) {
-    final String[] parts = time.split(":");
-    return new BusTime(parseInt(parts[0]), parseInt(parts[1]), 0);
+    return BusTime.MIDNIGHT.later(0, parseInt(time));
   }
 
   /**
    * Creates a {@link CSVReader} suitable for Microsoft Excel CSV files.
    * 
+   * @param path sub-directory inside the resource directory
    * @param file CSV file
    * @return reader
    * @throws IOException I/O exception
    */
-  private static CSVReader readerFor(final File file) throws IOException {
-    return new CSVReader(new InputStreamReader(new BufferedInputStream(
-        new FileInputStream(file)), "CP1252"), ';');
+  private static CSVReader readerFor(final String path, final String file)
+      throws IOException {
+    return new CSVReader(IOUtil.charsetReader(IOUtil.getResource(Main.RESOURCES,
+        path + '/' + file), "CP1252"), ';');
   }
 
   /**

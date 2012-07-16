@@ -27,7 +27,7 @@ import org.junit.Test;
  * 
  * @author Leo Woerteler
  */
-public class RouteFinderTests {
+public class RouteFinderTest {
 
   /**
    * Checks if the line is changed when advantageous.
@@ -213,7 +213,7 @@ public class RouteFinderTests {
    */
   @Test
   public void at12Am() throws Exception {
-    final BusStationManager man = BusDataBuilder.load("src/main/resources/konstanz/");
+    final BusStationManager man = BusDataBuilder.load("konstanz");
     final AtomicBoolean fail = new AtomicBoolean(false);
     final BitSet set = new BitSet();
     int num = 0;
@@ -260,7 +260,7 @@ public class RouteFinderTests {
    */
   @Test
   public void walkingTest() throws Exception {
-    final BusStationManager man = BusDataBuilder.load("src/main/resources/konstanz/");
+    final BusStationManager man = BusDataBuilder.load("konstanz");
     final int mth = man.getMaxTimeHours() * MINUTES_PER_HOUR;
     final RoutingAlgorithm router = new RouteFinder();
     for(final BusStation s : man.getStations()) {
@@ -285,7 +285,7 @@ public class RouteFinderTests {
    */
   @Test
   public void walking() throws Exception {
-    final BusStationManager man = BusDataBuilder.load("src/main/resources/konstanz/");
+    final BusStationManager man = BusDataBuilder.load("konstanz");
     final RouteFinder rf = new RouteFinder();
     final BitSet bs = new BitSet();
     bs.set(107);
