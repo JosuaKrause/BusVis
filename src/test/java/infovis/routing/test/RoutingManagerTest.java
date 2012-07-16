@@ -22,7 +22,7 @@ import org.junit.Test;
  * 
  * @author Leo Woerteler
  */
-public class RoutingManagerTests {
+public class RoutingManagerTest {
 
   /**
    * Tests if a new task cancels the old one.
@@ -81,7 +81,7 @@ public class RoutingManagerTests {
    */
   @Test
   public void findRoutes() throws Exception {
-    final BusStationManager man = BusDataBuilder.load("src/main/resources/konstanz/");
+    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
     final RoutingManager rm = RoutingManager.newInstance();
     final Semaphore sem = new Semaphore(0);
     final AtomicReference<RoutingResult[]> ref = new AtomicReference<RoutingResult[]>();
@@ -106,7 +106,7 @@ public class RoutingManagerTests {
    */
   @Test
   public void terminateRouting() throws Exception {
-    final BusStationManager man = BusDataBuilder.load("src/main/resources/konstanz/");
+    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
     final CountDownLatch cd = new CountDownLatch(2);
     final AtomicBoolean ref = new AtomicBoolean(false);
     final RoutingManager rm = RoutingManager.newInstance();

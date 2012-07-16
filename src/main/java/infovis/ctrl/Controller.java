@@ -8,6 +8,7 @@ import infovis.layout.Layouts;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Calendar;
@@ -116,8 +117,8 @@ public final class Controller implements BusStationEnumerator {
    * 
    * @return The resource path.
    */
-  public String getResourcePath() {
-    return manager.getPath();
+  public URL getOverviewURL() {
+    return manager.getOverviewURL();
   }
 
   /**

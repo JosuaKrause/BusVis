@@ -2,13 +2,13 @@ package infovis.data;
 
 import static java.lang.Double.*;
 import static java.lang.Integer.*;
+import infovis.Main;
+import infovis.util.IOUtil;
 
 import java.awt.Color;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,34 +32,64 @@ public final class BusDataBuilder {
   private final List<List<BusEdge>> edges = new ArrayList<List<BusEdge>>();
   /** Walking distances. */
   private final List<List<Integer>> walkingDists = new ArrayList<List<Integer>>();
-  /** The path to the resources. */
-  private final String path;
+  /** The overview resource URL. */
+  private final URL overview;
 
   /**
    * Constructor taking the path of the CSV files.
    * 
-   * @param path path of the CSV files, possibly <code>null</code>
+   * @param overview The overview resource URL, possibly <code>null</code>
    */
-  public BusDataBuilder(final String path) {
-    this.path = path;
+  public BusDataBuilder(final URL overview) {
+    this.overview = overview;
+  }
+
+  /** The default charset - CP-1252 for Excel compatibility. */
+  private static final Charset DEFAULT_CS = Charset.forName("CP1252");
+
+  /**
+   * Loads a bus station manager from the given path.
+   * 
+   * @param path The path.
+   * @param cs The charset or <code>null</code>.
+   * @return The bus station manager.
+   * @throws IOException I/O Exception.
+   */
+  public static BusStationManager loadPath(final String path, final String cs)
+      throws IOException {
+    return load(null, path, cs != null ? Charset.forName(cs) : DEFAULT_CS);
+  }
+
+  /**
+   * Loads a bus station manager from the default resource path.
+   * 
+   * @param path The city.
+   * @return The bus station manager.
+   * @throws IOException I/O Exception.
+   */
+  public static BusStationManager loadDefault(final String path) throws IOException {
+    return load(Main.RESOURCES, path, DEFAULT_CS);
   }
 
   /**
    * Loads the bus system data from CSV files.
    * 
+   * @param local The local resource path or <code>null</code> if a direct path
+   *          is specified.
    * @param path data file path
+   * @param cs The charset
    * @return The bus manager holding the informations.
    * @throws IOException I/O exception
    */
-  public static BusStationManager load(final String path) throws IOException {
-    final BusDataBuilder builder = new BusDataBuilder(path);
-    final File root = new File(path).getCanonicalFile();
-    if(!root.exists()) throw new IllegalArgumentException(root + " does not exist.");
+  public static BusStationManager load(final String local, final String path,
+      final Charset cs) throws IOException {
+    final URL overview = IOUtil.getURL(local, path + "/abstract.svg");
+    final BusDataBuilder builder = new BusDataBuilder(overview);
 
-    final CSVReader stops = readerFor(new File(root, "stops.csv"));
+    final CSVReader stops = readerFor(local, path, "stops.csv", cs);
     for(String[] stop; (stop = stops.readNext()) != null;) {
       double abstractX, abstractY;
-      if(stop[4].equals("UNKNOWN")) {
+      if("UNKNOWN".equals(stop[4])) {
         abstractX = abstractY = Double.NaN;
       } else {
         abstractX = parseDouble(stop[4]);
@@ -69,49 +99,24 @@ public final class BusDataBuilder {
           -parseDouble(stop[2]) * 10000, abstractX, abstractY);
     }
 
-    final CSVReader walk = readerFor(new File(root, "walking-dists.csv"));
-    for(String[] line; (line = walk.readNext()) != null;) {
-      builder.setWalkingDistance(parseInt(line[0]), parseInt(line[1]), parseInt(line[2]));
-    }
-
-    final Map<String, Color> colors = new HashMap<String, Color>();
-    final CSVReader colorReader = readerFor(new File(root, "linecolor.csv"));
-    for(String[] line; (line = colorReader.readNext()) != null;) {
-      colors.put(line[0].replace('_', '/'),
-          new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3])));
+    final CSVReader walk = readerFor(local, path, "walking-dists.csv", cs);
+    for(String[] dist; (dist = walk.readNext()) != null;) {
+      builder.setWalkingDistance(parseInt(dist[0]), parseInt(dist[1]), parseInt(dist[2]));
     }
 
     final Map<String, BusLine> lines = new HashMap<String, BusLine>();
-    for(final File line : new File(root, "lines").listFiles()) {
-      final String name = line.getName().replace('_', '/').replace(".csv", "");
+    final CSVReader lineReader = readerFor(local, path, "lines.csv", cs);
+    for(String[] line; (line = lineReader.readNext()) != null;) {
+      final Color c = new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]));
+      lines.put(line[0], createLine(line[0].replace('_', '/'), c));
+    }
 
-      if(!lines.containsKey(name)) {
-        final Color color = colors.get(name);
-        lines.put(name, createLine(name, color != null ? color
-            : colors.get(name.replaceAll("\\D.*", ""))));
-      }
-      final BusLine busLine = lines.get(name);
-
-      final CSVReader lineReader = readerFor(line);
-      int tourNr = 0;
-      for(String[] tour; (tour = lineReader.readNext()) != null; tourNr++) {
-        int beforeID = -1;
-        BusTime depart = null;
-        for(int i = 0; i < tour.length; i++) {
-          final int currentID = parseInt(tour[i++]);
-          final BusTime arrive = parseTime(tour[i++]);
-
-          if(beforeID >= 0) {
-            builder.addEdge(beforeID, busLine, tourNr, currentID, depart, arrive);
-          }
-
-          if("-1".equals(tour[i])) {
-            break;
-          }
-          beforeID = currentID;
-          depart = parseTime(tour[i]);
-        }
-      }
+    final CSVReader edgeReader = readerFor(local, path, "edges.csv", cs);
+    for(String[] edge; (edge = edgeReader.readNext()) != null;) {
+      final BusLine line = lines.get(edge[0]);
+      final int tourNr = parseInt(edge[1]), from = parseInt(edge[2]), to = parseInt(edge[5]);
+      final BusTime start = parseTime(edge[3]), end = parseTime(edge[4]);
+      builder.addEdge(from, line, tourNr, to, start, end);
     }
     return builder.finish();
   }
@@ -123,20 +128,24 @@ public final class BusDataBuilder {
    * @return resulting {@link BusTime}
    */
   private static BusTime parseTime(final String time) {
-    final String[] parts = time.split(":");
-    return new BusTime(parseInt(parts[0]), parseInt(parts[1]), 0);
+    return BusTime.MIDNIGHT.later(0, parseInt(time));
   }
 
   /**
    * Creates a {@link CSVReader} suitable for Microsoft Excel CSV files.
    * 
+   * @param local The local resource path or <code>null</code> if a direct path
+   *          is specified.
+   * @param path sub-directory inside the resource directory
    * @param file CSV file
+   * @param cs The charset.
    * @return reader
    * @throws IOException I/O exception
    */
-  private static CSVReader readerFor(final File file) throws IOException {
-    return new CSVReader(new InputStreamReader(new BufferedInputStream(
-        new FileInputStream(file)), "CP1252"), ';');
+  private static CSVReader readerFor(final String local, final String path,
+      final String file, final Charset cs) throws IOException {
+    return new CSVReader(IOUtil.charsetReader(
+        IOUtil.getResource(local, path + '/' + file), cs), ';');
   }
 
   /**
@@ -281,7 +290,7 @@ public final class BusDataBuilder {
     for(final List<BusEdge> e : edges) {
       Collections.sort(e);
     }
-    return new BusStationManager(stations, path);
+    return new BusStationManager(stations, overview);
   }
 
 }

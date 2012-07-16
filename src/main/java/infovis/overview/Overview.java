@@ -18,8 +18,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -131,9 +131,10 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     final String parser = XMLResourceDescriptor.getXMLParserClassName();
     final SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
     SVGDocument doc = null;
+    URL url = null;
     try {
-      doc = (SVGDocument) f.createDocument(new File(ctrl.getResourcePath()
-          + "abstract.svg").toURI().toString());
+      url = ctrl.getOverviewURL();
+      doc = (SVGDocument) f.createDocument(url.toString());
     } catch(final IOException e) {
       e.printStackTrace();
     }
@@ -153,7 +154,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
 
     });
 
-    setURI(new File(ctrl.getResourcePath() + "abstract.svg").toURI().toString());
+    setURI(url.toString());
   }
 
   @Override
