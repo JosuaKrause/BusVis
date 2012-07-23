@@ -10,21 +10,21 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
 /**
- * Starts the main application.
+ * Starts the desktop application.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class Main {
+public final class DesktopApp {
   /** Resource path. */
   public static final String RESOURCES = "src/main/resources";
 
   /** No constructor. */
-  private Main() {
+  private DesktopApp() {
     // no constructor
   }
 
   /**
-   * Starts the main application.
+   * Starts the desktop application.
    * 
    * @param args If an argument is provided this path is used as resource path.
    *          Otherwise the default resources are used.
@@ -40,6 +40,8 @@ public final class Main {
     setLookAndFeel();
     // initialize window
     final MainWindow frame = new MainWindow(m, false);
+    frame.setTitle("BusVis - Desktop - Loading...");
+    frame.setName("BusVis");
     frame.setLocationRelativeTo(null);
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setVisible(true);

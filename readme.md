@@ -2,7 +2,7 @@ BusVis
 ======
 
 Visualization of the bus system of Konstanz.
-As argument to the main application (located in infovis.Main or it can be built with maven)
+As argument to one of the main applications (located in the package infovis or it can be built with maven)
 an alternative resource path can be used. Additionally the encoding can be
 passed as second argument. The alternative path must contain the following files:
 

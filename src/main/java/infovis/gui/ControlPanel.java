@@ -1,6 +1,6 @@
 package infovis.gui;
 
-import infovis.Main;
+import infovis.DesktopApp;
 import infovis.ctrl.BusVisualization;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
@@ -55,8 +55,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   static {
     try {
-      FFW_MODE = new ImageIcon(IOUtil.getURL(Main.RESOURCES, "pics/ffw.gif"));
-      FFW_STOP = new ImageIcon(IOUtil.getURL(Main.RESOURCES, "pics/stop.gif"));
+      FFW_MODE = new ImageIcon(IOUtil.getURL(DesktopApp.RESOURCES, "pics/ffw.gif"));
+      FFW_STOP = new ImageIcon(IOUtil.getURL(DesktopApp.RESOURCES, "pics/stop.gif"));
     } catch(final IOException e) {
       throw new IOError(e);
     }

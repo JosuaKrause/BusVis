@@ -3,28 +3,24 @@ package infovis;
 import infovis.data.BusStationManager;
 import infovis.gui.MainWindow;
 
-import java.awt.Frame;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 
 import javax.swing.WindowConstants;
 
 /**
- * Starts the presentation application.
+ * Starts the application for the big screen.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public final class Presentation {
+public final class BigScreenApp {
 
   /** No constructor. */
-  private Presentation() {
+  private BigScreenApp() {
     // no constructor
   }
 
   /**
-   * Starts the presentation application.
+   * Starts the big screen application.
    * 
    * @param args If an argument is provided this path is used as resource path.
    *          Otherwise the default resources are used.
@@ -32,24 +28,19 @@ public final class Presentation {
   public static void main(final String[] args) {
     final BusStationManager m;
     try {
-      m = Main.loadData(args);
+      m = DesktopApp.loadData(args);
     } catch(final IOException e) {
       e.printStackTrace();
       return;
     }
-    Main.setLookAndFeel();
+    DesktopApp.setLookAndFeel();
     // initialize window
-    final MainWindow frame = new MainWindow(m, true);
+    final MainWindow frame = new MainWindow(m, false);
+    frame.setTitle("BusVis - Big-Screen - Loading...");
+    frame.setName("BusVis");
     frame.setLocationRelativeTo(null);
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setVisible(true);
-    // exclusive full screen
-    final GraphicsConfiguration gc = frame.getGraphicsConfiguration();
-    final GraphicsDevice gd = gc != null ? gc.getDevice()
-        : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-    gd.setFullScreenWindow(frame);
-    frame.setResizable(false);
-    frame.setExtendedState(Frame.MAXIMIZED_BOTH);
   }
 
 }
