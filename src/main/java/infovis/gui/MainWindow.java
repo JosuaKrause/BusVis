@@ -38,8 +38,9 @@ public final class MainWindow extends JFrame {
    * Creates the main window.
    * 
    * @param m The bus station manager.
+   * @param presentation Whether the application is in presentation mode.
    */
-  public MainWindow(final BusStationManager m) {
+  public MainWindow(final BusStationManager m, final boolean presentation) {
     ctrl = new Controller(m, this);
     final Overview over = new Overview(ctrl, 400, 400);
     final ControlPanel cp = new ControlPanel(ctrl);
@@ -51,15 +52,17 @@ public final class MainWindow extends JFrame {
     add(pane);
     pack();
     mainCanvas.reset();
-    addAction(KeyEvent.VK_F, new AbstractAction() {
+    if(!presentation) {
+      addAction(KeyEvent.VK_F, new AbstractAction() {
 
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        final boolean isMax = getExtendedState() == Frame.MAXIMIZED_BOTH;
-        setExtendedState(isMax ? Frame.NORMAL : Frame.MAXIMIZED_BOTH);
-      }
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+          final boolean isMax = getExtendedState() == Frame.MAXIMIZED_BOTH;
+          setExtendedState(isMax ? Frame.NORMAL : Frame.MAXIMIZED_BOTH);
+        }
 
-    });
+      });
+    }
     addAction(KeyEvent.VK_P, new AbstractAction() {
 
       @Override
