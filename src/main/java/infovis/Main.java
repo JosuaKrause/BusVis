@@ -4,6 +4,10 @@ import infovis.data.BusDataBuilder;
 import infovis.data.BusStationManager;
 import infovis.gui.MainWindow;
 
+import java.awt.Frame;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 
 import javax.swing.UIManager;
@@ -45,6 +49,13 @@ public final class Main {
     frame.setLocationRelativeTo(null);
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setVisible(true);
+    // exclusive full screen
+    final GraphicsConfiguration gc = frame.getGraphicsConfiguration();
+    final GraphicsDevice gd = gc != null ? gc.getDevice()
+        : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    gd.setFullScreenWindow(frame);
+    frame.setResizable(false);
+    frame.setExtendedState(Frame.MAXIMIZED_BOTH);
   }
 
 }
