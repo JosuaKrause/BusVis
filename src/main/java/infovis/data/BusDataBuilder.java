@@ -2,7 +2,7 @@ package infovis.data;
 
 import static java.lang.Double.*;
 import static java.lang.Integer.*;
-import infovis.Main;
+import infovis.DesktopApp;
 import infovis.util.IOUtil;
 
 import java.awt.Color;
@@ -68,7 +68,7 @@ public final class BusDataBuilder {
    * @throws IOException I/O Exception.
    */
   public static BusStationManager loadDefault(final String path) throws IOException {
-    return load(Main.RESOURCES, path, DEFAULT_CS);
+    return load(DesktopApp.RESOURCES, path, DEFAULT_CS);
   }
 
   /**

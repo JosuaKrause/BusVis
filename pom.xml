@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>joschi-mvn</groupId>
 	<artifactId>BusVis</artifactId>
-	<version>0.4.0</version>
+	<version>0.4.2</version>
 	<name>BusVis</name>
 	<description>Visualization of the Constance Bus System</description>
 	<properties>
@@ -16,6 +16,12 @@
 		<system>GitHub Tracker</system>
 		<url>https://github.com/JosuaKrause/BusVis/issues</url>
 	</issueManagement>
+	<licenses>
+		<license>
+			<name>License</name>
+			<url>LICENSE</url>
+		</license>
+	</licenses>
 	<build>
 		<plugins>
 			<plugin>
@@ -36,27 +42,75 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>create-executable-jar</id>
+						<id>desktop</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
 						</goals>
+						<configuration>
+							<finalName>${project.artifactId}-${project.version}-desktop</finalName>
+							<classifier>desktop</classifier>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<archive>
+								<manifest>
+									<mainClass>infovis.DesktopApp</mainClass>
+									<packageName>main</packageName>
+								</manifest>
+								<manifestEntries>
+									<SplashScreen-Image>pics/splash.png</SplashScreen-Image>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>bigscreen</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>${project.artifactId}-${project.version}-bigscreen</finalName>
+							<classifier>bigscreen</classifier>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<archive>
+								<manifest>
+									<mainClass>infovis.BigScreenApp</mainClass>
+									<packageName>main</packageName>
+								</manifest>
+								<manifestEntries>
+									<SplashScreen-Image>pics/splash.png</SplashScreen-Image>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>presentation</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>${project.artifactId}-${project.version}-presentation</finalName>
+							<classifier>presentation</classifier>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<archive>
+								<manifest>
+									<mainClass>infovis.PresentationApp</mainClass>
+									<packageName>main</packageName>
+								</manifest>
+								<manifestEntries>
+									<SplashScreen-Image>pics/splash.png</SplashScreen-Image>
+								</manifestEntries>
+							</archive>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					<archive>
-						<manifest>
-							<mainClass>infovis.Main</mainClass>
-							<packageName>main</packageName>
-						</manifest>
-						<manifestEntries>
-							<SplashScreen-Image>pics/splash.png</SplashScreen-Image>
-						</manifestEntries>
-					</archive>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>

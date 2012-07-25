@@ -127,7 +127,7 @@ public final class Controller implements BusStationEnumerator {
    * @param title The title or <code>null</code>.
    */
   public void setTitle(final String title) {
-    final StringBuilder sb = new StringBuilder("BusVis");
+    final StringBuilder sb = new StringBuilder(frame.getName());
     if(curSelection != null) {
       sb.append(" - ");
       sb.append(curSelection.getName());
