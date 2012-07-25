@@ -39,7 +39,7 @@ public final class DesktopApp {
     }
     setLookAndFeel();
     // initialize window
-    final MainWindow frame = new MainWindow(m, false);
+    final MainWindow frame = new MainWindow(m, false, false);
     frame.setTitle("BusVis - Desktop - Loading...");
     frame.setName("BusVis");
     frame.setLocationRelativeTo(null);

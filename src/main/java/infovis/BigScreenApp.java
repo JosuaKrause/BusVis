@@ -35,7 +35,7 @@ public final class BigScreenApp {
     }
     DesktopApp.setLookAndFeel();
     // initialize window
-    final MainWindow frame = new MainWindow(m, false);
+    final MainWindow frame = new MainWindow(m, false, true);
     frame.setTitle("BusVis - Big-Screen - Loading...");
     frame.setName("BusVis");
     frame.setLocationRelativeTo(null);
