@@ -29,6 +29,9 @@ import org.w3c.dom.Document;
  */
 public final class Screenshot {
 
+  /** The scaling factor for raster screenshots. */
+  private static final int SCALE = 3;
+
   /** No constructor. */
   private Screenshot() {
     // no constructor
@@ -134,9 +137,10 @@ public final class Screenshot {
   public static void savePNG(final OutputStream out, final JComponent comp)
       throws IOException {
     final Rectangle rect = comp.getVisibleRect();
-    final BufferedImage img = new BufferedImage(rect.width, rect.height,
-        BufferedImage.TYPE_INT_ARGB);
+    final BufferedImage img = new BufferedImage(
+        rect.width * SCALE, rect.height * SCALE, BufferedImage.TYPE_INT_ARGB);
     final Graphics2D g = img.createGraphics();
+    g.scale(SCALE, SCALE);
     comp.paintAll(g);
     g.dispose();
     ImageIO.write(img, "png", out);

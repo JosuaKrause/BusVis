@@ -80,6 +80,7 @@ public final class MainWindow extends JFrame {
           e.printStackTrace();
         }
         try {
+          Screenshot.savePNG(dir, "vis", mainCanvas);
           Screenshot.savePNG(dir, "all", getRootPane());
         } catch(final IOException e) {
           e.printStackTrace();
