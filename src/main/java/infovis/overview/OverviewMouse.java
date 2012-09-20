@@ -187,7 +187,9 @@ public final class OverviewMouse extends MouseAdapter {
 
   @Override
   public void mouseWheelMoved(final MouseWheelEvent e) {
-    zoomTo(e.getX(), e.getY(), e.getWheelRotation());
+    if(!drag) {
+      zoomTo(e.getX(), e.getY(), e.getWheelRotation());
+    }
   }
 
   /**

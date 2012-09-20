@@ -143,7 +143,7 @@ public class Canvas extends JComponent implements Refreshable {
 
       @Override
       public void mouseWheelMoved(final MouseWheelEvent e) {
-        if(isMoveable()) {
+        if(!drag && isMoveable()) {
           zoomTo(e.getX(), e.getY(), e.getWheelRotation());
         }
       }
