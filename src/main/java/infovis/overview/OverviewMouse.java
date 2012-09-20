@@ -3,6 +3,8 @@ package infovis.overview;
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.gui.MouseInteraction;
+import infovis.gui.Refreshable;
+import infovis.gui.ZoomableUI;
 
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -20,7 +22,7 @@ import javax.swing.SwingUtilities;
  * 
  * @author Marc Spicker
  */
-public final class OverviewMouse extends MouseInteraction {
+public final class OverviewMouse extends MouseInteraction implements Refreshable {
 
   /** The overview visualization. */
   private final Overview over;
@@ -28,14 +30,8 @@ public final class OverviewMouse extends MouseInteraction {
   /** Controller. */
   private final Controller ctrl;
 
-  /**
-   * The minimal zoom factor. Gets determined dynamically when the abstract view
-   * completely shown.
-   */
-  private double minZoom = -1;
-
-  /** The maximal zoom factor. */
-  private final double maxZoom = 2.5;
+  /** The zoomable user interface. */
+  private final ZoomableUI zui;
 
   /**
    * Constructor.
@@ -46,17 +42,10 @@ public final class OverviewMouse extends MouseInteraction {
   public OverviewMouse(final Overview over, final Controller ctrl) {
     this.over = over;
     this.ctrl = ctrl;
+    zui = new ZoomableUI(this);
+    zui.setMaxZoom(2.5);
     focus = over;
   }
-
-  /** The x offset. */
-  private double offX;
-
-  /** The y offset. */
-  private double offY;
-
-  /** The zoom level. */
-  private double zoom = 1;
 
   /** The focused component. */
   private JComponent focus;
@@ -65,12 +54,12 @@ public final class OverviewMouse extends MouseInteraction {
   public void mousePressed(final MouseEvent e) {
     focus.grabFocus();
     final Point2D p = e.getPoint();
-    final Point2D c = getForScreen(p);
+    final Point2D c = zui.getForScreen(p);
     final boolean leftButton = SwingUtilities.isLeftMouseButton(e);
     if(click(c, leftButton)) return;
 
     if(leftButton) {
-      startDragging(e, getOffsetX(), getOffsetY());
+      startDragging(e, zui.getOffsetX(), zui.getOffsetY());
     }
   }
 
@@ -169,7 +158,7 @@ public final class OverviewMouse extends MouseInteraction {
   @Override
   public void mouseWheelMoved(final MouseWheelEvent e) {
     if(!isDragging()) {
-      zoomTo(e.getX(), e.getY(), e.getWheelRotation());
+      zui.zoomTo(e.getX(), e.getY(), e.getWheelRotation());
     }
   }
 
@@ -180,11 +169,14 @@ public final class OverviewMouse extends MouseInteraction {
    * @param y the y offset.
    */
   public void setOffset(final double x, final double y) {
+
+    // FIXME remove this method
+
     final Rectangle2D svgBB = over.getSVGBoundingRect();
     if(svgBB == null) return;
 
-    offX = x;
-    offY = y;
+    double offX = x;
+    double offY = y;
     final Rectangle2D visBB = getVisibleCanvas();
 
     // snap back
@@ -207,10 +199,11 @@ public final class OverviewMouse extends MouseInteraction {
         transY += svgBB.getMinY() - visBB.getMinY();
       }
 
-      offX -= fromReal(transX);
-      offY -= fromReal(transY);
+      offX -= zui.fromReal(transX);
+      offY -= zui.fromReal(transY);
     }
-    updateTransformation();
+
+    zui.setOffset(offX, offY);
   }
 
   /**
@@ -220,68 +213,32 @@ public final class OverviewMouse extends MouseInteraction {
    */
   public Rectangle2D getVisibleCanvas() {
     final Rectangle2D rect = over.getVisibleRect();
-    final Point2D topLeft = getForScreen(new Point2D.Double(rect.getMinX(),
+    final Point2D topLeft = zui.getForScreen(new Point2D.Double(rect.getMinX(),
         rect.getMinY()));
     return new Rectangle2D.Double(topLeft.getX(), topLeft.getY(),
-        inReal(rect.getWidth()), inReal(rect.getHeight()));
+        zui.inReal(rect.getWidth()), zui.inReal(rect.getHeight()));
+  }
+
+  @Override
+  public void refresh() {
+    updateTransformation();
   }
 
   /** Updates the SVG rendering transformation. */
   private void updateTransformation() {
     final AffineTransform at = new AffineTransform();
-    at.translate(offX, offY);
-    at.scale(zoom, zoom);
+    zui.transform(at);
     over.setRenderingTransform(at, true);
   }
 
   /**
-   * Transforms a input graphics context with the current translation and
+   * Transforms an input graphics context with the current translation and
    * scaling.
    * 
    * @param g The input graphics context.
    */
   public void transformGraphics(final Graphics2D g) {
-    g.translate(offX, offY);
-    g.scale(zoom, zoom);
-  }
-
-  /**
-   * Zooms to the on screen (in components coordinates) position.
-   * 
-   * @param x The x coordinate.
-   * @param y The y coordinate.
-   * @param zooming The amount of zooming.
-   */
-  public void zoomTo(final double x, final double y, final int zooming) {
-    final double factor = Math.pow(1.1, -zooming);
-    zoomTo(x, y, factor);
-  }
-
-  /**
-   * Zooms to the on screen (in components coordinates) position.
-   * 
-   * @param x The x coordinate.
-   * @param y The y coordinate.
-   * @param factor The factor to alter the zoom level.
-   */
-  public void zoomTo(final double x, final double y, final double factor) {
-    double f = factor;
-    double newZoom = zoom * factor;
-    if(newZoom < minZoom) {
-      newZoom = minZoom;
-      f = newZoom / zoom;
-    } else if(newZoom > maxZoom) {
-      newZoom = maxZoom;
-      f = newZoom / zoom;
-    }
-
-    // P = (off - mouse) / zoom
-    // P = (newOff - mouse) / newZoom
-    // newOff = (off - mouse) / zoom * newZoom + mouse
-    // newOff = (off - mouse) * factor + mouse
-    zoom = newZoom;
-    // does repaint
-    setOffset((offX - x) * f + x, (offY - y) * f + y);
+    zui.transform(g);
   }
 
   /**
@@ -291,25 +248,7 @@ public final class OverviewMouse extends MouseInteraction {
    */
   public void zoom(final double factor) {
     final Rectangle box = over.getVisibleRect();
-    zoomTo(box.width / 2.0, box.height / 2.0, factor);
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return the x offset
-   */
-  public double getOffsetX() {
-    return offX;
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return the y offset
-   */
-  public double getOffsetY() {
-    return offY;
+    zui.zoom(factor, box);
   }
 
   /**
@@ -318,8 +257,7 @@ public final class OverviewMouse extends MouseInteraction {
    */
   public void reset() {
     final Rectangle2D rect = over.getVisibleRect();
-    zoom = 1;
-    setOffset(rect.getCenterX(), rect.getCenterY());
+    zui.setTransformation(rect.getCenterX(), rect.getCenterY(), 1);
   }
 
   /**
@@ -334,15 +272,13 @@ public final class OverviewMouse extends MouseInteraction {
       final Rectangle2D rect = over.getVisibleRect();
       final int nw = (int) (rect.getWidth());
       final int nh = (int) (rect.getHeight());
-      zoom = 1.0;
-      // does repaint
-      setOffset((nw - bbox.getWidth()) / 2 - bbox.getMinX(),
-          (nh - bbox.getHeight()) / 2 - bbox.getMinY());
+      zui.setTransformation((nw - bbox.getWidth()) / 2 - bbox.getMinX(),
+          (nh - bbox.getHeight()) / 2 - bbox.getMinY(), 1);
       final double rw = nw / bbox.getWidth();
       final double rh = nh / bbox.getHeight();
       final double factor = rw > rh ? rw : rh;
-      if(minZoom == -1) {
-        minZoom = factor;
+      if(!zui.hasMinZoom()) {
+        zui.setMinZoom(factor);
       }
       zoom(factor);
     }
@@ -354,50 +290,8 @@ public final class OverviewMouse extends MouseInteraction {
    * @param newBB The new visible rect.
    */
   public void visibleRectChanged(final Rectangle2D newBB) {
-    minZoom = -1;
+    zui.setMinZoom(-1);
     reset(newBB);
-  }
-
-  /**
-   * Calculates the real coordinate of the given input in screen coordinates.
-   * 
-   * @param s The coordinate in screen coordinates. Due to uniform zooming both
-   *          horizontal and vertical coordinates can be converted.
-   * @return In real coordinates.
-   */
-  protected double inReal(final double s) {
-    return s / zoom;
-  }
-
-  /**
-   * Calculates the screen coordinate of the given input in real coordinates.
-   * 
-   * @param s The coordinate in real coordinates. Due to uniform zooming both
-   *          horizontal and vertical coordinates can be converted.
-   * @return In screen coordinates.
-   */
-  protected double fromReal(final double s) {
-    return s * zoom;
-  }
-
-  /**
-   * Calculates the real coordinate from the components coordinate.
-   * 
-   * @param x The components x coordinate.
-   * @return The real coordinate.
-   */
-  protected double getXForScreen(final double x) {
-    return inReal(x - offX);
-  }
-
-  /**
-   * Calculates the real coordinate from the components coordinate.
-   * 
-   * @param y The components y coordinate.
-   * @return The real coordinate.
-   */
-  protected double getYForScreen(final double y) {
-    return inReal(y - offY);
   }
 
   /**
@@ -406,8 +300,8 @@ public final class OverviewMouse extends MouseInteraction {
    * @param x The real x coordinate.
    * @return The component coordinate.
    */
-  protected double getXFromCanvas(final double x) {
-    return fromReal(x) + offX;
+  public double getXFromCanvas(final double x) {
+    return zui.getXFromCanvas(x);
   }
 
   /**
@@ -416,18 +310,8 @@ public final class OverviewMouse extends MouseInteraction {
    * @param y The real y coordinate.
    * @return The component coordinate.
    */
-  protected double getYFromCanvas(final double y) {
-    return fromReal(y) + offY;
-  }
-
-  /**
-   * Converts a point in component coordinates in canvas coordinates.
-   * 
-   * @param p The point.
-   * @return The point in the canvas coordinates.
-   */
-  protected Point2D getForScreen(final Point2D p) {
-    return new Point2D.Double(getXForScreen(p.getX()), getYForScreen(p.getY()));
+  public double getYFromCanvas(final double y) {
+    return zui.getYFromCanvas(y);
   }
 
 }
