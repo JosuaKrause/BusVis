@@ -60,57 +60,40 @@ public class Canvas extends JComponent implements Refreshable {
     if(p == null) throw new NullPointerException("p");
     setPreferredSize(new Dimension(width, height));
     painter = p;
-    final MouseAdapter mouse = new MouseAdapter() {
-
-      private boolean drag;
-
-      private int startx;
-
-      private int starty;
-
-      private double origX;
-
-      private double origY;
-
-      private Point2D start;
+    final MouseAdapter mouse = new MouseInteraction() {
 
       @Override
       public void mousePressed(final MouseEvent e) {
         getFocusComponent().grabFocus();
         final Point2D p = e.getPoint();
         if(painter.clickHUD(p)) {
-          Canvas.this.repaint();
+          refresh();
           return;
         }
         final Point2D c = getForScreen(p);
         if(painter.click(c, e)) {
-          Canvas.this.repaint();
+          refresh();
           return;
         }
         final boolean leftButton = SwingUtilities.isLeftMouseButton(e);
         if(leftButton && painter.acceptDrag(c)) {
-          Canvas.this.repaint();
-          drag = true;
-          start = c;
+          startDragging(c);
+          refresh();
           return;
         }
         if(leftButton && isMoveable()) {
-          startx = e.getX();
-          starty = e.getY();
-          origX = getOffsetX();
-          origY = getOffsetY();
-          start = null;
-          drag = true;
+          startDragging(e, getOffsetX(), getOffsetY());
         }
       }
 
       @Override
       public void mouseDragged(final MouseEvent e) {
-        if(drag) {
-          if(start == null) {
+        if(isDragging()) {
+          if(!isPointDrag()) {
             move(e.getX(), e.getY());
           } else {
             final Point2D cur = getForScreen(e.getPoint());
+            final Point2D start = getPoint();
             painter.drag(start, cur, cur.getX() - start.getX(), cur.getY() - start.getY());
           }
         }
@@ -118,32 +101,32 @@ public class Canvas extends JComponent implements Refreshable {
 
       @Override
       public void mouseReleased(final MouseEvent e) {
-        if(drag) {
-          if(start == null) {
+        if(isDragging()) {
+          if(!isPointDrag()) {
             move(e.getX(), e.getY());
+            stopDragging();
           } else {
             final Point2D cur = getForScreen(e.getPoint());
+            final Point2D start = stopPointDrag();
             painter.endDrag(start, cur, cur.getX() - start.getX(),
                 cur.getY() - start.getY());
-            start = null;
           }
-          drag = false;
         }
       }
 
       /**
-       * sets the offset according to the mouse position
+       * Sets the offset according to the mouse position.
        * 
-       * @param x the mouse x position
-       * @param y the mouse y position
+       * @param x The mouse x position.
+       * @param y The mouse y position.
        */
-      private void move(final int x, final int y) {
-        setOffset(origX + (x - startx), origY + (y - starty));
+      protected void move(final int x, final int y) {
+        setOffset(getMoveX(x), getMoveY(y));
       }
 
       @Override
       public void mouseWheelMoved(final MouseWheelEvent e) {
-        if(!drag && isMoveable()) {
+        if(!isDragging() && isMoveable()) {
           zoomTo(e.getX(), e.getY(), e.getWheelRotation());
         }
       }

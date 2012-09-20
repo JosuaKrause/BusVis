@@ -2,10 +2,10 @@ package infovis.overview;
 
 import infovis.ctrl.Controller;
 import infovis.data.BusStation;
+import infovis.gui.MouseInteraction;
 
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
@@ -20,7 +20,7 @@ import javax.swing.SwingUtilities;
  * 
  * @author Marc Spicker
  */
-public final class OverviewMouse extends MouseAdapter {
+public final class OverviewMouse extends MouseInteraction {
 
   /** The overview visualization. */
   private final Overview over;
@@ -58,21 +58,6 @@ public final class OverviewMouse extends MouseAdapter {
   /** The zoom level. */
   private double zoom = 1;
 
-  /** If dragging is in process. */
-  private boolean drag;
-
-  /** The starting x coordinate. */
-  private int startx;
-
-  /** The starting y coordinate. */
-  private int starty;
-
-  /** The original x coordinate. */
-  private double origX;
-
-  /** The original y coordinate. */
-  private double origY;
-
   /** The focused component. */
   private JComponent focus;
 
@@ -85,11 +70,7 @@ public final class OverviewMouse extends MouseAdapter {
     if(click(c, leftButton)) return;
 
     if(leftButton) {
-      startx = e.getX();
-      starty = e.getY();
-      origX = getOffsetX();
-      origY = getOffsetY();
-      drag = true;
+      startDragging(e, getOffsetX(), getOffsetY());
     }
   }
 
@@ -164,7 +145,7 @@ public final class OverviewMouse extends MouseAdapter {
 
   @Override
   public void mouseDragged(final MouseEvent e) {
-    if(drag) {
+    if(isDragging()) {
       move(e.getX(), e.getY());
     }
   }
@@ -172,7 +153,7 @@ public final class OverviewMouse extends MouseAdapter {
   @Override
   public void mouseReleased(final MouseEvent e) {
     mouseDragged(e);
-    drag = false;
+    stopDragging();
   }
 
   /**
@@ -182,12 +163,12 @@ public final class OverviewMouse extends MouseAdapter {
    * @param y the mouse y position
    */
   private void move(final int x, final int y) {
-    setOffset(origX + (x - startx), origY + (y - starty));
+    setOffset(getMoveX(x), getMoveY(y));
   }
 
   @Override
   public void mouseWheelMoved(final MouseWheelEvent e) {
-    if(!drag) {
+    if(!isDragging()) {
       zoomTo(e.getX(), e.getY(), e.getWheelRotation());
     }
   }
