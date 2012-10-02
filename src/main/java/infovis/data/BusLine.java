@@ -69,6 +69,16 @@ public final class BusLine implements Comparable<BusLine> {
     return String.format("%s[%s, %08X]", getClass().getSimpleName(), name, color.getRGB());
   }
 
+  /**
+   * Checks for equality with other bus lines.
+   * 
+   * @param line The other line.
+   * @return If both are equal and non-null.
+   */
+  public boolean equals(final BusLine line) {
+    return line != null && (this == line || name.equals(line.name));
+  }
+
   @Override
   public boolean equals(final Object obj) {
     return obj instanceof BusLine && name.equals(((BusLine) obj).name);
