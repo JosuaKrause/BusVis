@@ -1,10 +1,11 @@
 package infovis.gui;
 
+import infovis.util.Objects;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -28,20 +29,8 @@ import javax.swing.SwingUtilities;
  */
 public class Canvas extends JComponent implements Refreshable {
 
-  /** The x offset. */
-  private double offX;
-
-  /** The y offset. */
-  private double offY;
-
-  /** The zoom level. */
-  private double zoom = 1;
-
-  /** The minimal zoom value. */
-  private double minZoom = -1;
-
-  /** The maximal zoom value. */
-  private double maxZoom = -1;
+  /** The underlying zoomable user interface. */
+  protected final ZoomableUI zui;
 
   /** The painter. */
   protected Painter painter;
@@ -57,60 +46,43 @@ public class Canvas extends JComponent implements Refreshable {
    * @param height The initial height of the component.
    */
   public Canvas(final Painter p, final int width, final int height) {
-    if(p == null) throw new NullPointerException("p");
     setPreferredSize(new Dimension(width, height));
-    painter = p;
-    final MouseAdapter mouse = new MouseAdapter() {
-
-      private boolean drag;
-
-      private int startx;
-
-      private int starty;
-
-      private double origX;
-
-      private double origY;
-
-      private Point2D start;
+    painter = Objects.requireNonNull(p);
+    zui = new ZoomableUI(this, null);
+    final MouseAdapter mouse = new MouseInteraction() {
 
       @Override
       public void mousePressed(final MouseEvent e) {
         getFocusComponent().grabFocus();
         final Point2D p = e.getPoint();
         if(painter.clickHUD(p)) {
-          Canvas.this.repaint();
+          refresh();
           return;
         }
-        final Point2D c = getForScreen(p);
+        final Point2D c = zui.getForScreen(p);
         if(painter.click(c, e)) {
-          Canvas.this.repaint();
+          refresh();
           return;
         }
         final boolean leftButton = SwingUtilities.isLeftMouseButton(e);
         if(leftButton && painter.acceptDrag(c)) {
-          Canvas.this.repaint();
-          drag = true;
-          start = c;
+          startDragging(c);
+          refresh();
           return;
         }
         if(leftButton && isMoveable()) {
-          startx = e.getX();
-          starty = e.getY();
-          origX = getOffsetX();
-          origY = getOffsetY();
-          start = null;
-          drag = true;
+          startDragging(e, zui.getOffsetX(), zui.getOffsetY());
         }
       }
 
       @Override
       public void mouseDragged(final MouseEvent e) {
-        if(drag) {
-          if(start == null) {
+        if(isDragging()) {
+          if(!isPointDrag()) {
             move(e.getX(), e.getY());
           } else {
-            final Point2D cur = getForScreen(e.getPoint());
+            final Point2D cur = zui.getForScreen(e.getPoint());
+            final Point2D start = getPoint();
             painter.drag(start, cur, cur.getX() - start.getX(), cur.getY() - start.getY());
           }
         }
@@ -118,39 +90,39 @@ public class Canvas extends JComponent implements Refreshable {
 
       @Override
       public void mouseReleased(final MouseEvent e) {
-        if(drag) {
-          if(start == null) {
+        if(isDragging()) {
+          if(!isPointDrag()) {
             move(e.getX(), e.getY());
+            stopDragging();
           } else {
-            final Point2D cur = getForScreen(e.getPoint());
+            final Point2D cur = zui.getForScreen(e.getPoint());
+            final Point2D start = stopPointDrag();
             painter.endDrag(start, cur, cur.getX() - start.getX(),
                 cur.getY() - start.getY());
-            start = null;
           }
-          drag = false;
         }
       }
 
       /**
-       * sets the offset according to the mouse position
+       * Sets the offset according to the mouse position.
        * 
-       * @param x the mouse x position
-       * @param y the mouse y position
+       * @param x The mouse x position.
+       * @param y The mouse y position.
        */
-      private void move(final int x, final int y) {
-        setOffset(origX + (x - startx), origY + (y - starty));
+      protected void move(final int x, final int y) {
+        zui.setOffset(getMoveX(x), getMoveY(y));
       }
 
       @Override
       public void mouseWheelMoved(final MouseWheelEvent e) {
-        if(!drag && isMoveable()) {
-          zoomTo(e.getX(), e.getY(), e.getWheelRotation());
+        if(!isDragging() && isMoveable()) {
+          zui.zoomTo(e.getX(), e.getY(), e.getWheelRotation());
         }
       }
 
       @Override
       public void mouseMoved(final MouseEvent e) {
-        painter.moveMouse(getForScreen(e.getPoint()));
+        painter.moveMouse(zui.getForScreen(e.getPoint()));
       }
 
     };
@@ -169,10 +141,7 @@ public class Canvas extends JComponent implements Refreshable {
    * @param focus The component to focus when clicked.
    */
   public void setFocusComponent(final JComponent focus) {
-    if(focus == null) {
-      new NullPointerException("focus");
-    }
-    this.focus = focus;
+    this.focus = Objects.requireNonNull(focus);
   }
 
   /**
@@ -189,7 +158,7 @@ public class Canvas extends JComponent implements Refreshable {
     final Point2D p = e.getPoint();
     String strHUD;
     if((strHUD = painter.getTooltipHUD(p)) != null) return strHUD;
-    final Point2D c = getForScreen(p);
+    final Point2D c = zui.getForScreen(p);
     String str;
     return ((str = painter.getTooltip(c)) != null) ? str : null;
   }
@@ -243,22 +212,22 @@ public class Canvas extends JComponent implements Refreshable {
 
     @Override
     public Point2D toCanvasCoordinates(final Point2D p) {
-      return getForScreen(p);
+      return zui.getForScreen(p);
     }
 
     @Override
     public double toCanvasLength(final double length) {
-      return inReal(length);
+      return zui.inReal(length);
     }
 
     @Override
     public Point2D toComponentCoordinates(final Point2D p) {
-      return new Point2D.Double(getXFromCanvas(p.getX()), getYFromCanvas(p.getY()));
+      return new Point2D.Double(zui.getXFromCanvas(p.getX()), zui.getYFromCanvas(p.getY()));
     }
 
     @Override
     public double toComponentLength(final double length) {
-      return fromReal(length);
+      return zui.fromReal(length);
     }
 
     @Override
@@ -283,12 +252,7 @@ public class Canvas extends JComponent implements Refreshable {
     @Override
     public Rectangle2D getVisibleCanvas() {
       if(visCanvas == null) {
-        final Rectangle2D comp = getVisibleComponent();
-        final Point2D topLeft = toCanvasCoordinates(
-            new Point2D.Double(comp.getMinX(), comp.getMinY()));
-        final double width = toCanvasLength(comp.getWidth());
-        final double height = toCanvasLength(comp.getHeight());
-        visCanvas = new Rectangle2D.Double(topLeft.getX(), topLeft.getY(), width, height);
+        visCanvas = zui.toCanvas(getVisibleComponent());
       }
       return visCanvas;
     }
@@ -324,8 +288,7 @@ public class Canvas extends JComponent implements Refreshable {
    */
   private void doPaint(final Graphics2D g) {
     final Graphics2D gfx = (Graphics2D) g.create();
-    gfx.translate(offX, offY);
-    gfx.scale(zoom, zoom);
+    zui.transform(gfx);
     painter.draw(gfx, new CanvasContext(true));
     gfx.dispose();
     painter.drawHUD(g, new CanvasContext(false));
@@ -354,84 +317,6 @@ public class Canvas extends JComponent implements Refreshable {
     return paintLock;
   }
 
-  /**
-   * Setter.
-   * 
-   * @param x the x offset.
-   * @param y the y offset.
-   */
-  public void setOffset(final double x, final double y) {
-    offX = x;
-    offY = y;
-    repaint();
-  }
-
-  /**
-   * Zooms to the on screen (in components coordinates) position.
-   * 
-   * @param x The x coordinate.
-   * @param y The y coordinate.
-   * @param zooming The amount of zooming.
-   */
-  public void zoomTo(final double x, final double y, final int zooming) {
-    final double factor = Math.pow(1.1, -zooming);
-    zoomTo(x, y, factor);
-  }
-
-  /**
-   * Zooms to the on screen (in components coordinates) position.
-   * 
-   * @param x The x coordinate.
-   * @param y The y coordinate.
-   * @param factor The factor to alter the zoom level.
-   */
-  public void zoomTo(final double x, final double y, final double factor) {
-    double f = factor;
-    double newZoom = zoom * factor;
-    if(newZoom < minZoom && minZoom > 0) {
-      newZoom = minZoom;
-      f = newZoom / zoom;
-    } else if(newZoom > maxZoom && maxZoom > 0) {
-      newZoom = maxZoom;
-      f = newZoom / zoom;
-    }
-
-    // P = (off - mouse) / zoom
-    // P = (newOff - mouse) / newZoom
-    // newOff = (off - mouse) / zoom * newZoom + mouse
-    // newOff = (off - mouse) * factor + mouse
-    zoom = newZoom;
-    // does repaint
-    setOffset((offX - x) * f + x, (offY - y) * f + y);
-  }
-
-  /**
-   * Zooms towards the center of the display area.
-   * 
-   * @param factor The zoom factor.
-   */
-  public void zoom(final double factor) {
-    final Rectangle box = getVisibleRect();
-    zoomTo(box.width / 2.0, box.height / 2.0, factor);
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return the x offset
-   */
-  public double getOffsetX() {
-    return offX;
-  }
-
-  /**
-   * Getter.
-   * 
-   * @return the y offset
-   */
-  public double getOffsetY() {
-    return offY;
-  }
 
   /**
    * Sets the painter.
@@ -439,8 +324,7 @@ public class Canvas extends JComponent implements Refreshable {
    * @param p The new painter.
    */
   public void setPainter(final Painter p) {
-    if(p == null) throw new NullPointerException("p");
-    painter = p;
+    painter = Objects.requireNonNull(p);
   }
 
   /**
@@ -454,8 +338,7 @@ public class Canvas extends JComponent implements Refreshable {
     final Rectangle2D bbox = painter.getBoundingBox();
     if(bbox == null) {
       final Rectangle2D rect = getVisibleRect();
-      zoom = 1;
-      setOffset(rect.getCenterX(), rect.getCenterY());
+      zui.setTransformation(rect.getCenterX(), rect.getCenterY(), 1);
     } else {
       reset(bbox);
     }
@@ -496,14 +379,12 @@ public class Canvas extends JComponent implements Refreshable {
       final Rectangle2D rect = getVisibleRect();
       final int nw = (int) (rect.getWidth() - 2 * margin);
       final int nh = (int) (rect.getHeight() - 2 * margin);
-      zoom = 1.0;
-      // does repaint
-      setOffset(margin + (nw - bbox.getWidth()) / 2 - bbox.getMinX(), margin
-          + (nh - bbox.getHeight()) / 2 - bbox.getMinY());
+      zui.setTransformation(margin + (nw - bbox.getWidth()) / 2 - bbox.getMinX(), margin
+          + (nh - bbox.getHeight()) / 2 - bbox.getMinY(), 1);
       final double rw = nw / bbox.getWidth();
       final double rh = nh / bbox.getHeight();
       final double factor = rw < rh ? rw : rh;
-      zoom(factor);
+      zui.zoom(factor, rect);
     }
   }
 
@@ -528,117 +409,9 @@ public class Canvas extends JComponent implements Refreshable {
     return isMoveable;
   }
 
-  /**
-   * Calculates the real coordinate of the given input in screen coordinates.
-   * 
-   * @param s The coordinate in screen coordinates. Due to uniform zooming both
-   *          horizontal and vertical coordinates can be converted.
-   * @return In real coordinates.
-   */
-  protected double inReal(final double s) {
-    return s / zoom;
-  }
-
-  /**
-   * Calculates the screen coordinate of the given input in real coordinates.
-   * 
-   * @param s The coordinate in real coordinates. Due to uniform zooming both
-   *          horizontal and vertical coordinates can be converted.
-   * @return In screen coordinates.
-   */
-  protected double fromReal(final double s) {
-    return s * zoom;
-  }
-
-  /**
-   * Calculates the real coordinate from the components coordinate.
-   * 
-   * @param x The components x coordinate.
-   * @return The real coordinate.
-   */
-  protected double getXForScreen(final double x) {
-    return inReal(x - offX);
-  }
-
-  /**
-   * Calculates the real coordinate from the components coordinate.
-   * 
-   * @param y The components y coordinate.
-   * @return The real coordinate.
-   */
-  protected double getYForScreen(final double y) {
-    return inReal(y - offY);
-  }
-
-  /**
-   * Calculates the component coordinate from the real coordinate.
-   * 
-   * @param x The real x coordinate.
-   * @return The component coordinate.
-   */
-  protected double getXFromCanvas(final double x) {
-    return fromReal(x) + offX;
-  }
-
-  /**
-   * Calculates the component coordinate from the real coordinate.
-   * 
-   * @param y The real y coordinate.
-   * @return The component coordinate.
-   */
-  protected double getYFromCanvas(final double y) {
-    return fromReal(y) + offY;
-  }
-
-  /**
-   * Converts a point in component coordinates to canvas coordinates.
-   * 
-   * @param p The point.
-   * @return The point in the canvas coordinates.
-   */
-  protected Point2D getForScreen(final Point2D p) {
-    return new Point2D.Double(getXForScreen(p.getX()), getYForScreen(p.getY()));
-  }
-
   @Override
   public void refresh() {
     repaint();
-  }
-
-  /**
-   * Returns the minimal zoom value.
-   * 
-   * @return The minimal zoom value.
-   */
-  public double getMinZoom() {
-    return minZoom;
-  }
-
-  /**
-   * Sets the current minimal zoom value.
-   * 
-   * @param zoom The new minimal zoom value.
-   */
-  public void setMinZoom(final double zoom) {
-    minZoom = zoom;
-  }
-
-  /**
-   * Returns the maximal zoom value.
-   * 
-   * @return The maximal zoom value.
-   */
-  public double getMaxZoom() {
-    return maxZoom;
-  }
-
-  /**
-   * Sets the current maximal zoom value.
-   * 
-   * @param zoom The new maximal zoom value.
-   */
-  public void setMaxZoom(final double zoom) {
-    maxZoom = zoom;
   }
 
 }

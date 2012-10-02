@@ -562,8 +562,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
     changeMinutesSlider.setMajorTickSpacing(5);
     changeMinutesSlider.setMinorTickSpacing(1);
     changeMinutesSlider.setPaintTicks(true);
-    changeMinutesSlider.addMouseWheelListener(new SimpleMouseWheelListenerSlider(
-        changeMinutesSlider, -5, 60));
+    changeMinutesSlider.addMouseWheelListener(
+        new SimpleMouseWheelListenerSlider(changeMinutesSlider, -5, 60));
 
     final Hashtable<Integer, JLabel> cmLabels = new Hashtable<Integer, JLabel>();
     cmLabels.put(-5, new JLabel("-5"));

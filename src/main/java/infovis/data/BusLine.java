@@ -1,5 +1,7 @@
 package infovis.data;
 
+import infovis.util.Objects;
+
 import java.awt.Color;
 
 /**
@@ -28,9 +30,8 @@ public final class BusLine implements Comparable<BusLine> {
    * @param color bus line color
    */
   BusLine(final String name, final Color color) {
-    if(name == null || color == null) throw new NullPointerException();
-    this.name = name;
-    this.color = color;
+    this.name = Objects.requireNonNull(name);
+    this.color = Objects.requireNonNull(color);
     final String tmp = "0000000000" + name;
     final int l = tmp.length();
     hiddenSortingName = tmp.substring(l - 10, l);
@@ -66,6 +67,16 @@ public final class BusLine implements Comparable<BusLine> {
   @Override
   public String toString() {
     return String.format("%s[%s, %08X]", getClass().getSimpleName(), name, color.getRGB());
+  }
+
+  /**
+   * Checks for equality with other bus lines.
+   * 
+   * @param line The other line.
+   * @return If both are equal and non-null.
+   */
+  public boolean equals(final BusLine line) {
+    return line != null && (this == line || name.equals(line.name));
   }
 
   @Override

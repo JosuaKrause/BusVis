@@ -45,8 +45,8 @@ public final class EdgeMatrix {
      * @param higher The destination station.
      * @param lines The lines.
      */
-    protected UndirectedEdge(final BusStation lower, final BusStation higher,
-        final BusLine[] lines) {
+    protected UndirectedEdge(final BusStation lower,
+        final BusStation higher, final BusLine[] lines) {
       assert lower.getId() < higher.getId();
       this.lower = lower;
       this.higher = higher;

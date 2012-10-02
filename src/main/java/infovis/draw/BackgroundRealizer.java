@@ -5,8 +5,8 @@ import static infovis.busvis.BusvisDrawer.*;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -76,19 +76,18 @@ public interface BackgroundRealizer {
     @Override
     public void drawBackground(final Graphics2D g, final Point2D center,
         final double factor, final double alpha) {
-      boolean b = true;
-      g.setColor(Color.WHITE);
-      for(int i = maxInterval; i > 0; --i) {
-        final Shape circ = getCircle(i, factor, center);
+      g.setColor(Color.LIGHT_GRAY);
+      for(int i = maxInterval; i > 0; i -= 2) {
+        final Area circ = new Area(getCircle(i, factor, center));
+        final Area circIn = new Area(getCircle(i - 1, factor, center));
+        circ.subtract(circIn);
+
         final Graphics2D g2 = (Graphics2D) g.create();
-        if(b) {
-          final double d = (maxInterval - i + 2.0) / (maxInterval + 2);
-          final double curAlpha = alpha * d;
-          g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-              (float) curAlpha));
-          g2.setColor(Color.LIGHT_GRAY);
-        }
-        b = !b;
+        final double d = (maxInterval - i + 2.0) / (maxInterval + 2);
+        final double curAlpha = alpha * d;
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+            (float) curAlpha));
+
         g2.fill(circ);
         g2.dispose();
       }
