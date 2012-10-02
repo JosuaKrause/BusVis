@@ -7,6 +7,7 @@ import infovis.data.BusTime;
 import infovis.layout.Layouts;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
+import infovis.util.Objects;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -364,7 +365,7 @@ public final class Controller implements BusStationEnumerator {
    * @param v The visualization.
    */
   public void addBusVisualization(final BusVisualization v) {
-    if(v == null) throw new NullPointerException("v");
+    Objects.requireNonNull(v);
     if(vis.contains(v)) throw new IllegalStateException("visualization already added");
     vis.add(v);
     v.setLayout(embed);

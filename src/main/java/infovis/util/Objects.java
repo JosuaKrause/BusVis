@@ -36,7 +36,7 @@ public final class Objects {
    * @param or The alternative.
    * @return The first argument if it is non-null or else the second argument.
    */
-  public static <T> T or(final T obj, final T or) {
+  public static <T> T nonNull(final T obj, final T or) {
     return obj != null ? obj : or;
   }
 

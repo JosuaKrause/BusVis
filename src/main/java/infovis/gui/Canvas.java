@@ -46,9 +46,8 @@ public class Canvas extends JComponent implements Refreshable {
    * @param height The initial height of the component.
    */
   public Canvas(final Painter p, final int width, final int height) {
-    if(p == null) throw new NullPointerException("p");
     setPreferredSize(new Dimension(width, height));
-    painter = p;
+    painter = Objects.requireNonNull(p);
     zui = new ZoomableUI(this, null);
     final MouseAdapter mouse = new MouseInteraction() {
 
@@ -253,12 +252,7 @@ public class Canvas extends JComponent implements Refreshable {
     @Override
     public Rectangle2D getVisibleCanvas() {
       if(visCanvas == null) {
-        final Rectangle2D comp = getVisibleComponent();
-        final Point2D topLeft = toCanvasCoordinates(
-            new Point2D.Double(comp.getMinX(), comp.getMinY()));
-        final double width = toCanvasLength(comp.getWidth());
-        final double height = toCanvasLength(comp.getHeight());
-        visCanvas = new Rectangle2D.Double(topLeft.getX(), topLeft.getY(), width, height);
+        visCanvas = zui.toCanvas(getVisibleComponent());
       }
       return visCanvas;
     }

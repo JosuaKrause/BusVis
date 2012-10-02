@@ -162,8 +162,8 @@ public final class BusDataBuilder {
    */
   public BusStation createStation(final String name, final int id, final double x,
       final double y, final double abstractX, final double abstractY) {
-    if(idMap.containsKey(id)) throw new IllegalArgumentException("id: " + id
-        + " already in use");
+    if(idMap.containsKey(id)) throw new IllegalArgumentException(
+        "id: " + id + " already in use");
     // keep bus station ids dense
     final int realId = stations.size();
     idMap.put(id, realId);
@@ -171,8 +171,8 @@ public final class BusDataBuilder {
     edges.add(edgeList);
     final List<Integer> walking = new ArrayList<Integer>();
     walkingDists.add(walking);
-    final BusStation bus = new BusStation(name, realId, x, y, abstractX, abstractY,
-        edgeList, walking);
+    final BusStation bus = new BusStation(name, realId, x, y,
+        abstractX, abstractY, edgeList, walking);
     stations.add(bus);
     return bus;
   }
