@@ -29,7 +29,7 @@ import javax.swing.JFrame;
 public final class Controller implements BusStationEnumerator {
 
   /** How many seconds are considered realtime. */
-  public static final int REALTIME = 10;
+  public static final int REALTIME = 1;
 
   /** The list of active visualizations. */
   private final List<BusVisualization> vis = new ArrayList<BusVisualization>();
