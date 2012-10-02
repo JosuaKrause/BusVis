@@ -1,5 +1,7 @@
 package infovis.gui;
 
+import infovis.util.Objects;
+
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -14,6 +16,9 @@ public final class ZoomableUI {
 
   /** The {@link Refreshable} to be notified when the transformation changes. */
   private final Refreshable refreshee;
+
+  /** An optional restriction of the canvas. */
+  private final RestrictedCanvas restriction;
 
   /** The x offset. */
   private double offX;
@@ -34,10 +39,11 @@ public final class ZoomableUI {
    * Creates a zoomable user interface.
    * 
    * @param refreshee Will be notified when the transformation changes.
+   * @param restriction An optional restriction for the canvas.
    */
-  public ZoomableUI(final Refreshable refreshee) {
-    if(refreshee == null) throw new NullPointerException("refreshee");
-    this.refreshee = refreshee;
+  public ZoomableUI(final Refreshable refreshee, final RestrictedCanvas restriction) {
+    this.refreshee = Objects.requireNonNull(refreshee);
+    this.restriction = restriction;
   }
 
   /**
@@ -60,8 +66,39 @@ public final class ZoomableUI {
    * @param y The y offset.
    */
   public void setOffset(final double x, final double y) {
-    offX = x;
-    offY = y;
+    if(restriction != null) {
+      final Rectangle2D bbox = restriction.getBoundingRect();
+      if(bbox == null) return;
+      offX = x;
+      offY = y;
+      final Rectangle2D visBB = restriction.getCurrentView();
+      // snap back
+      if(!bbox.contains(visBB)) {
+        double transX = 0;
+        double transY = 0;
+
+        if(visBB.getMaxX() > bbox.getMaxX()) {
+          // too far right
+          transX -= visBB.getMaxX() - bbox.getMaxX();
+        } else if(visBB.getMinX() < bbox.getMinX()) {
+          // too far left
+          transX += bbox.getMinX() - visBB.getMinX();
+        }
+        if(visBB.getMaxY() > bbox.getMaxY()) {
+          // too far down
+          transY -= visBB.getMaxY() - bbox.getMaxY();
+        } else if(visBB.getMinY() < bbox.getMinY()) {
+          // too far up
+          transY += bbox.getMinY() - visBB.getMinY();
+        }
+
+        offX -= fromReal(transX);
+        offY -= fromReal(transY);
+      }
+    } else {
+      offX = x;
+      offY = y;
+    }
     refreshee.refresh();
   }
 
@@ -87,12 +124,14 @@ public final class ZoomableUI {
   public void zoomTo(final double x, final double y, final double factor) {
     double f = factor;
     double newZoom = zoom * factor;
-    if(hasMinZoom() && newZoom < minZoom) {
-      newZoom = minZoom;
-      f = newZoom / zoom;
-    } else if(hasMaxZoom() && newZoom > maxZoom) {
-      newZoom = maxZoom;
-      f = newZoom / zoom;
+    if(hasMinZoom()) {
+      if(newZoom < minZoom) {
+        newZoom = minZoom;
+        f = newZoom / zoom;
+      } else if(newZoom > maxZoom) {
+        newZoom = maxZoom;
+        f = newZoom / zoom;
+      }
     }
 
     // P = (off - mouse) / zoom

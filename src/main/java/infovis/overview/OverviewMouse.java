@@ -4,6 +4,7 @@ import infovis.ctrl.Controller;
 import infovis.data.BusStation;
 import infovis.gui.MouseInteraction;
 import infovis.gui.Refreshable;
+import infovis.gui.RestrictedCanvas;
 import infovis.gui.ZoomableUI;
 
 import java.awt.Graphics2D;
@@ -22,7 +23,8 @@ import javax.swing.SwingUtilities;
  * 
  * @author Marc Spicker
  */
-public final class OverviewMouse extends MouseInteraction implements Refreshable {
+public final class OverviewMouse extends MouseInteraction implements Refreshable,
+RestrictedCanvas {
 
   /** The overview visualization. */
   private final Overview over;
@@ -42,7 +44,7 @@ public final class OverviewMouse extends MouseInteraction implements Refreshable
   public OverviewMouse(final Overview over, final Controller ctrl) {
     this.over = over;
     this.ctrl = ctrl;
-    zui = new ZoomableUI(this);
+    zui = new ZoomableUI(this, this);
     zui.setMaxZoom(2.5);
     focus = over;
   }
@@ -152,7 +154,7 @@ public final class OverviewMouse extends MouseInteraction implements Refreshable
    * @param y the mouse y position
    */
   private void move(final int x, final int y) {
-    setOffset(getMoveX(x), getMoveY(y));
+    zui.setOffset(getMoveX(x), getMoveY(y));
   }
 
   @Override
@@ -162,56 +164,13 @@ public final class OverviewMouse extends MouseInteraction implements Refreshable
     }
   }
 
-  /**
-   * Setter.
-   * 
-   * @param x the x offset.
-   * @param y the y offset.
-   */
-  public void setOffset(final double x, final double y) {
-
-    // FIXME remove this method
-
-    final Rectangle2D svgBB = over.getSVGBoundingRect();
-    if(svgBB == null) return;
-
-    double offX = x;
-    double offY = y;
-    final Rectangle2D visBB = getVisibleCanvas();
-
-    // snap back
-    if(!svgBB.contains(visBB)) {
-      double transX = 0;
-      double transY = 0;
-
-      if(visBB.getMaxX() > svgBB.getMaxX()) {
-        // too far right
-        transX -= visBB.getMaxX() - svgBB.getMaxX();
-      } else if(visBB.getMinX() < svgBB.getMinX()) {
-        // too far left
-        transX += svgBB.getMinX() - visBB.getMinX();
-      }
-      if(visBB.getMaxY() > svgBB.getMaxY()) {
-        // too far down
-        transY -= visBB.getMaxY() - svgBB.getMaxY();
-      } else if(visBB.getMinY() < svgBB.getMinY()) {
-        // too far up
-        transY += svgBB.getMinY() - visBB.getMinY();
-      }
-
-      offX -= zui.fromReal(transX);
-      offY -= zui.fromReal(transY);
-    }
-
-    zui.setOffset(offX, offY);
+  @Override
+  public Rectangle2D getBoundingRect() {
+    return over.getSVGBoundingRect();
   }
 
-  /**
-   * Returns the visible rectangle in canvas coordinates.
-   * 
-   * @return The visible rectangle in canvas coordinates.
-   */
-  public Rectangle2D getVisibleCanvas() {
+  @Override
+  public Rectangle2D getCurrentView() {
     final Rectangle2D rect = over.getVisibleRect();
     final Point2D topLeft = zui.getForScreen(new Point2D.Double(rect.getMinX(),
         rect.getMinY()));

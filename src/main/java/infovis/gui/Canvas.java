@@ -47,7 +47,7 @@ public class Canvas extends JComponent implements Refreshable {
     if(p == null) throw new NullPointerException("p");
     setPreferredSize(new Dimension(width, height));
     painter = p;
-    zui = new ZoomableUI(this);
+    zui = new ZoomableUI(this, null);
     final MouseAdapter mouse = new MouseInteraction() {
 
       @Override
