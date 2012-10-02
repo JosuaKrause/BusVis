@@ -6,9 +6,9 @@ import infovis.gui.MouseInteraction;
 import infovis.gui.Refreshable;
 import infovis.gui.RestrictedCanvas;
 import infovis.gui.ZoomableUI;
+import infovis.util.Objects;
 
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
@@ -71,10 +71,7 @@ RestrictedCanvas {
    * @param focus The component to focus when clicked.
    */
   public void setFocusComponent(final JComponent focus) {
-    if(focus == null) {
-      new NullPointerException("focus");
-    }
-    this.focus = focus;
+    this.focus = Objects.requireNonNull(focus);
   }
 
   /**
@@ -171,11 +168,7 @@ RestrictedCanvas {
 
   @Override
   public Rectangle2D getCurrentView() {
-    final Rectangle2D rect = over.getVisibleRect();
-    final Point2D topLeft = zui.getForScreen(new Point2D.Double(rect.getMinX(),
-        rect.getMinY()));
-    return new Rectangle2D.Double(topLeft.getX(), topLeft.getY(),
-        zui.inReal(rect.getWidth()), zui.inReal(rect.getHeight()));
+    return zui.toCanvas(over.getVisibleRect());
   }
 
   @Override
@@ -206,8 +199,7 @@ RestrictedCanvas {
    * @param factor The zoom factor.
    */
   public void zoom(final double factor) {
-    final Rectangle box = over.getVisibleRect();
-    zui.zoom(factor, box);
+    zui.zoom(factor, over.getVisibleRect());
   }
 
   /**

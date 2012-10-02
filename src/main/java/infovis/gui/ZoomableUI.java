@@ -264,6 +264,19 @@ public final class ZoomableUI {
   }
 
   /**
+   * Converts a rectangle in component coordinates to canvas coordinates.
+   * 
+   * @param rect The rectangle.
+   * @return The rectangle in canvas coordinates.
+   */
+  public Rectangle2D toCanvas(final Rectangle2D rect) {
+    final Point2D topLeft =
+        getForScreen(new Point2D.Double(rect.getMinX(), rect.getMinY()));
+    return new Rectangle2D.Double(topLeft.getX(), topLeft.getY(),
+        inReal(rect.getWidth()), inReal(rect.getHeight()));
+  }
+
+  /**
    * Returns the minimal zoom value.
    * 
    * @return The minimal zoom value. If the value is non-positive then no

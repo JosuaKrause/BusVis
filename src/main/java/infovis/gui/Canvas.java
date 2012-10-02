@@ -1,5 +1,7 @@
 package infovis.gui;
 
+import infovis.util.Objects;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -140,10 +142,7 @@ public class Canvas extends JComponent implements Refreshable {
    * @param focus The component to focus when clicked.
    */
   public void setFocusComponent(final JComponent focus) {
-    if(focus == null) {
-      new NullPointerException("focus");
-    }
-    this.focus = focus;
+    this.focus = Objects.requireNonNull(focus);
   }
 
   /**
@@ -331,8 +330,7 @@ public class Canvas extends JComponent implements Refreshable {
    * @param p The new painter.
    */
   public void setPainter(final Painter p) {
-    if(p == null) throw new NullPointerException("p");
-    painter = p;
+    painter = Objects.requireNonNull(p);
   }
 
   /**
