@@ -7,7 +7,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Shape;
-import java.awt.Stroke;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.Arrays;
@@ -125,8 +125,8 @@ public interface LineRealizer {
       g2.dispose();
     }
 
-    /** The normal stroke. */
-    private final Stroke normalStroke = new BasicStroke(1);
+    /** The line width. */
+    private static final double LINE_WIDTH = 1.0;
 
     @Override
     public Shape createLineShape(final Line2D line, final int number, final int maxNumber) {
@@ -161,12 +161,20 @@ public interface LineRealizer {
       final double transX = factor * n2.getX();
       final double transY = factor * n2.getY();
 
-      // create new line
-      final Line2D newLine = new Line2D.Double(line.getP1().getX() - transX,
-          line.getP1().getY() - transY, line.getP2().getX() - transX, line.getP2().getY()
-          - transY);
+      final double x1 = line.getP1().getX() - transX;
+      final double y1 = line.getP1().getY() - transY;
+      final double x2 = line.getP2().getX() - transX;
+      final double y2 = line.getP2().getY() - transY;
 
-      return normalStroke.createStrokedShape(newLine);
+      final Point2D ortho = VecUtil.setLength(
+          new Point2D.Double(y1 - y2, x2 - x1), LINE_WIDTH * 0.5);
+      final GeneralPath gp = new GeneralPath();
+      gp.moveTo(x1 + ortho.getX(), y1 + ortho.getY());
+      gp.lineTo(x2 + ortho.getX(), y2 + ortho.getY());
+      gp.lineTo(x2 - ortho.getX(), y2 - ortho.getY());
+      gp.lineTo(x1 - ortho.getX(), y1 - ortho.getY());
+      gp.closePath();
+      return gp;
     }
 
     /**
