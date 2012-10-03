@@ -6,9 +6,11 @@ import infovis.data.BusStation;
 import infovis.data.BusStationEnumerator;
 import infovis.data.BusTime;
 
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 /**
  * Algorithm for finding shortest routes from a given bus station.
@@ -17,7 +19,7 @@ import java.util.PriorityQueue;
  */
 public final class RouteFinder implements RoutingAlgorithm {
 
-  /** Comparator for comparing Routes by travel time, length an walking time. */
+  /** Comparator for comparing Routes by travel time, length, and walking time. */
   private static final Comparator<Route> CMP = new Comparator<Route>() {
     @Override
     public int compare(final Route o1, final Route o2) {
@@ -33,8 +35,8 @@ public final class RouteFinder implements RoutingAlgorithm {
       final BusStation station, final BitSet dests, final BusTime start, final int wait,
       final int maxDuration, final int maxWalk) throws InterruptedException {
     final int sid = station.getId();
-    final BusEdge[][] map = findRoutesFrom(bse, station, dests, start, wait, maxDuration,
-        maxWalk);
+    final BusEdge[][] map = findRoutesFrom(bse, station, dests,
+        start, wait, maxDuration, maxWalk);
     final RoutingResult[] res = new RoutingResult[bse.maxId() + 1];
     for(int id = 0; id < res.length; ++id) {
       final BusStation to = bse.getForId(id);
@@ -74,23 +76,31 @@ public final class RouteFinder implements RoutingAlgorithm {
       final BusStationEnumerator bse, final BusStation station, final BitSet dests,
       final BusTime start, final int wait, final int maxDuration, final int maxWalk)
           throws InterruptedException {
-    final int maxWalkSecs = maxWalk * BusTime.SECONDS_PER_MINUTE, maxDurSecs = maxDuration
-        * BusTime.SECONDS_PER_MINUTE, waitSecs = wait * BusTime.SECONDS_PER_MINUTE;
+    final int maxWalkSecs = maxWalk * BusTime.SECONDS_PER_MINUTE;
+    final int maxDurSecs = maxDuration * BusTime.SECONDS_PER_MINUTE;
+    final int waitSecs = wait * BusTime.SECONDS_PER_MINUTE;
     // set of stations yet to be found
-    final BitSet notFound = dests == null ? new BitSet() : (BitSet) dests.clone();
+    final BitSet notFound;
     if(dests == null) {
+      notFound = new BitSet();
       for(final BusStation s : bse.getStations()) {
         notFound.set(s.getId());
       }
+    } else {
+      notFound = (BitSet) dests.clone();
     }
     notFound.set(station.getId(), false);
 
-    final Route[] bestRoutes = new Route[bse.maxId() + 1];
+    final int stationCount = bse.maxId() + 1;
+    final int[] bestTimes = new int[stationCount]; // change time included
+    Arrays.fill(bestTimes, -1);
+
+    final Route[] bestRoutes = new Route[stationCount];
     final PriorityQueue<Route> queue = new PriorityQueue<Route>(16, CMP);
     for(final BusEdge e : station.getEdges(start)) {
       final Route route = new Route(start, e);
       if(route.travelTime <= maxDurSecs) {
-        queue.add(route);
+        maybeEnqueue(queue, bestTimes, waitSecs, route);
       }
     }
 
@@ -101,13 +111,28 @@ public final class RouteFinder implements RoutingAlgorithm {
           final BusTime end = start.later(0, walkSecs);
           final Route route = new Route(start, BusEdge.walking(station, dest, start, end));
           if(route.travelTime <= maxDurSecs) {
-            queue.add(route);
+            maybeEnqueue(queue, bestTimes, waitSecs, route);
           }
         }
       }
     }
 
+    // old:
+    // source: BusStation[Zähringerplatz, 122]
+    // routes: 627
+    // queue maxsize: 10433
+
+    // new:
+    // source: BusStation[Zähringerplatz, 122]
+    // routes: 204
+    // queue maxsize: 51
+
+    // int maxSize = 0; // TODO debug
+    // int count = 0; // TODO debug
     for(Route current; !notFound.isEmpty() && (current = queue.poll()) != null;) {
+      // maxSize = Math.max(maxSize, queue.size() + 1); // TODO debug
+      // ++count; // TODO debug
+
       if(Thread.interrupted()) throw new InterruptedException();
       final BusEdge last = current.last;
       final BusStation dest = last.getTo();
@@ -137,7 +162,7 @@ public final class RouteFinder implements RoutingAlgorithm {
           continue;
         }
 
-        queue.add(current.extendedBy(e));
+        maybeEnqueue(queue, bestTimes, waitSecs, current.extendedBy(e));
       }
 
       if(last.getLine() != BusLine.WALK) {
@@ -156,11 +181,15 @@ public final class RouteFinder implements RoutingAlgorithm {
               continue;
             }
 
-            queue.add(current.extendedBy(e));
+            maybeEnqueue(queue, bestTimes, waitSecs, current.extendedBy(e));
           }
         }
       }
     }
+
+    // System.out.println("source: " + station); // TODO debug
+    // System.out.println("routes: " + count); // TODO debug
+    // System.out.println("queue maxsize: " + maxSize); // TODO debug
 
     final BusEdge[][] res = new BusEdge[bse.maxId() + 1][];
     res[station.getId()] = new BusEdge[0];
@@ -171,6 +200,66 @@ public final class RouteFinder implements RoutingAlgorithm {
       res[id] = bestRoutes[id].asArray();
     }
     return res;
+  }
+
+  /**
+   * Checks if a route may be better than the current optimum and enqueues it if
+   * so. Also the optimum gets updated.
+   * 
+   * @param queue The queue.
+   * @param bestTimes The map for current optima.
+   * @param wait The bus change time in seconds.
+   * @param r The route to maybe add.
+   */
+  private static void maybeEnqueue(final Queue<Route> queue, final int[] bestTimes,
+      final int wait, final Route r) {
+    if(!mayBeBetter(bestTimes, r)) return;
+    updateBestTime(bestTimes, r.last.getTo(), r.travelTime, wait);
+    queue.add(r);
+  }
+
+  /**
+   * Updates the optimal time to reach a station.
+   * 
+   * @param bestTimes The map for current optima.
+   * @param station The station.
+   * @param curTime The time in seconds.
+   * @param wait The bus change time in seconds.
+   */
+  private static void updateBestTime(final int[] bestTimes,
+      final BusStation station, final int curTime, final int wait) {
+    final int id = station.getId();
+    final int bestTime = bestTimes[id];
+    final int newTime = curTime + Math.max(wait, 0);
+    if(bestTime < 0 || newTime < bestTime) {
+      bestTimes[id] = newTime;
+    }
+  }
+
+  /**
+   * Whether a route may be better than the current optimum.
+   * 
+   * @param bestTimes The map for current optima.
+   * @param r The route.
+   * @return Whether the route may be faster.
+   */
+  private static boolean mayBeBetter(final int[] bestTimes, final Route r) {
+    return mayBeBetter(bestTimes, r.last.getTo(), r.travelTime);
+  }
+
+  /**
+   * Whether a travel time may be better than the current optimum.
+   * 
+   * @param bestTimes The map for current optima.
+   * @param station The station.
+   * @param time The time in seconds.
+   * @return Whether the travel time may be better.
+   */
+  private static boolean mayBeBetter(final int[] bestTimes,
+      final BusStation station, final int time) {
+    final int id = station.getId();
+    final int bestTime = bestTimes[id];
+    return bestTime < 0 || bestTime >= time;
   }
 
   /**
@@ -187,8 +276,8 @@ public final class RouteFinder implements RoutingAlgorithm {
    * @throws InterruptedException if the current thread was interrupted
    */
   public static BusEdge[] findRoute(final BusStationEnumerator bse,
-      final BusStation station, final BusStation dest,
-      final BusTime start, final int wait, final int maxDuration, final int maxWalk)
+      final BusStation station, final BusStation dest, final BusTime start,
+      final int wait, final int maxDuration, final int maxWalk)
           throws InterruptedException {
     final BitSet set = new BitSet();
     set.set(dest.getId());

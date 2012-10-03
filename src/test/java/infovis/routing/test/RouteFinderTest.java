@@ -213,6 +213,7 @@ public class RouteFinderTest {
    */
   @Test
   public void at12Am() throws Exception {
+    final long nanoTime = System.nanoTime();
     final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
     final AtomicBoolean fail = new AtomicBoolean(false);
     final BitSet set = new BitSet();
@@ -245,12 +246,14 @@ public class RouteFinderTest {
         break;
       }
       System.out.println(a);
-      RouteFinder.findRoutesFrom(man, a, set, NOON, 5, man.getMaxTimeHours()
-          * MINUTES_PER_HOUR, 0);
+      RouteFinder.findRoutesFrom(man, a, set, NOON, 5,
+          man.getMaxTimeHours() * MINUTES_PER_HOUR, 0);
     }
 
     t.interrupt();
     assertFalse("Test took longer than " + (count * 0.1) + "s", fail.get());
+    System.out.println("Took " +
+        (System.nanoTime() - nanoTime) / 1e6 / count + "ms per station");
   }
 
   /**
