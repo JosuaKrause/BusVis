@@ -116,6 +116,7 @@ public class RoutingManagerTest {
         cd.countDown();
         final RoutingResult[] routes = new RouteFinder().findRoutes(man,
             man.getForId(1), null, new BusTime(12, 00), 1, 24 * 60, 0);
+        Thread.sleep(100);
         ref.getAndSet(true); // should not exit normally
         return routes;
       }
