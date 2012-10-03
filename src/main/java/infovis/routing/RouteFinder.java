@@ -96,7 +96,8 @@ public final class RouteFinder implements RoutingAlgorithm {
     Arrays.fill(bestTimes, -1);
 
     final Route[] bestRoutes = new Route[stationCount];
-    final PriorityQueue<Route> queue = new PriorityQueue<Route>(16, CMP);
+    final int initialQueueSize = stationCount / 2;
+    final PriorityQueue<Route> queue = new PriorityQueue<Route>(initialQueueSize, CMP);
     for(final BusEdge e : station.getEdges(start)) {
       final Route route = new Route(start, e);
       if(route.travelTime <= maxDurSecs) {
@@ -192,8 +193,8 @@ public final class RouteFinder implements RoutingAlgorithm {
    * @param wait The bus change time in seconds.
    * @param r The route to maybe add.
    */
-  private static void maybeEnqueue(final Queue<Route> queue, final int[] bestTimes,
-      final int wait, final Route r) {
+  private static void maybeEnqueue(final Queue<Route> queue,
+      final int[] bestTimes, final int wait, final Route r) {
     if(!mayBeBetter(bestTimes, r)) return;
     updateBestTime(bestTimes, r.last.getTo(), r.travelTime, wait);
     queue.add(r);
