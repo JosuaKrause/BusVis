@@ -117,22 +117,7 @@ public final class RouteFinder implements RoutingAlgorithm {
       }
     }
 
-    // old:
-    // source: BusStation[Zähringerplatz, 122]
-    // routes: 627
-    // queue maxsize: 10433
-
-    // new:
-    // source: BusStation[Zähringerplatz, 122]
-    // routes: 204
-    // queue maxsize: 51
-
-    // int maxSize = 0; // TODO debug
-    // int count = 0; // TODO debug
     for(Route current; !notFound.isEmpty() && (current = queue.poll()) != null;) {
-      // maxSize = Math.max(maxSize, queue.size() + 1); // TODO debug
-      // ++count; // TODO debug
-
       if(Thread.interrupted()) throw new InterruptedException();
       final BusEdge last = current.last;
       final BusStation dest = last.getTo();
@@ -186,10 +171,6 @@ public final class RouteFinder implements RoutingAlgorithm {
         }
       }
     }
-
-    // System.out.println("source: " + station); // TODO debug
-    // System.out.println("routes: " + count); // TODO debug
-    // System.out.println("queue maxsize: " + maxSize); // TODO debug
 
     final BusEdge[][] res = new BusEdge[bse.maxId() + 1][];
     res[station.getId()] = new BusEdge[0];
