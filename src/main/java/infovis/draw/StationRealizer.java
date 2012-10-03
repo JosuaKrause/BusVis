@@ -1,6 +1,7 @@
 package infovis.draw;
 
 import infovis.data.BusLine;
+import infovis.util.VecUtil;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -95,8 +96,10 @@ public interface StationRealizer {
         final int[] numbers, final int[] maxNumbers) {
       for(int i = 0; i < lines.length; ++i) {
         g.setColor(busLines[i].getColor());
-        final Shape shape = liner.createLineShape(lines[i], numbers[i], maxNumbers[i]);
-        g.fill(shape);
+        if(VecUtil.containsNaN(lines[i])) {
+          continue;
+        }
+        g.fill(liner.createLineShape(lines[i], numbers[i], maxNumbers[i]));
       }
     }
 

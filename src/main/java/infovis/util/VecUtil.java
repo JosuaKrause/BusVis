@@ -131,4 +131,15 @@ public final class VecUtil {
         b.getY()) < 0;
   }
 
+  /**
+   * Whether the given line contains NaNs.
+   * 
+   * @param line The line to check.
+   * @return Whether the line contains NaNs.
+   */
+  public static boolean containsNaN(final Line2D line) {
+    return Double.isNaN(line.getX1()) || Double.isNaN(line.getX2())
+        || Double.isNaN(line.getY1()) || Double.isNaN(line.getY2());
+  }
+
 }

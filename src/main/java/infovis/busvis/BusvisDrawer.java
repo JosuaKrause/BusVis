@@ -20,7 +20,6 @@ import infovis.util.Interpolator;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Shape;
-import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -119,7 +118,6 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
   public void drawEdges(final Graphics2D g, final Context ctx,
       final LayoutNode n, final Set<BusLine> visibleLines, final boolean secSel) {
     final Rectangle2D visible = ctx.getVisibleCanvas();
-    final Area vis = new Area(visible);
 
     final BusStation station = dist.getStation(n);
     final RoutingResult route = dist.getRoute(station);
@@ -127,6 +125,9 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
 
     final double x1 = n.getX();
     final double y1 = n.getY();
+
+    if(Double.isNaN(x1) || Double.isNaN(y1)) return;
+
     for(final UndirectedEdge e : dist.getMatrix().getEdgesFor(station)) {
       final int degree = e.getLineDegree() - e.walkingHighlighted();
       if(degree <= 0) {
@@ -143,18 +144,15 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
 
       final double x2 = node.getX();
       final double y2 = node.getY();
-      final Line2D line = new Line2D.Double(x1, y1, x2, y2);
-      final Shape lineShape = lineRealize.createLineShape(line, -1, e.getLineDegree());
 
-      final Rectangle2D bbox = lineShape.getBounds2D();
-      if(!visible.intersects(bbox)) {
+      if(Double.isNaN(x2) || Double.isNaN(y2)) {
         continue;
       }
 
-      final Area lineArea = new Area(lineShape);
-      lineArea.intersect(vis);
-      // also ensures that only on screen lines are marked visible
-      if(lineArea.isEmpty()) {
+      final Line2D line = new Line2D.Double(x1, y1, x2, y2);
+      final Shape lineShape = lineRealize.createLineShape(line, -1, e.getLineDegree());
+
+      if(!lineShape.intersects(visible)) {
         continue;
       }
 
@@ -175,6 +173,13 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
         used = null;
       }
 
+      // sorting
+      Arrays.sort(unused);
+      if(used != null) {
+        Arrays.sort(used);
+      }
+
+      // adding to visible lines
       if(used != null) {
         visibleLines.addAll(Arrays.asList(used));
       }

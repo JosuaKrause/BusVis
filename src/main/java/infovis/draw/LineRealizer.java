@@ -10,7 +10,6 @@ import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import java.util.Arrays;
 
 /**
  * Realizes the actual painting of bus lines.
@@ -22,7 +21,7 @@ public interface LineRealizer {
   /**
    * The shape of the line between bus stations.
    * 
-   * @param line The actual line.
+   * @param line The actual line (assumed to contain no NaN values).
    * @param number The currently drawn bus line. If the number is negative the
    *          overall shape (click area and bounding box computation) should be
    *          returned.
@@ -35,7 +34,7 @@ public interface LineRealizer {
    * Draws lines.
    * 
    * @param g The graphics context.
-   * @param line The line coordinates.
+   * @param line The line coordinates (assumed to contain no NaN values).
    * @param unused The unused bus lines.
    * @param used The used bus lines.
    */
@@ -91,14 +90,8 @@ public interface LineRealizer {
   LineRealizer ADVANCED = new LineRealizer() {
 
     @Override
-    public void drawLines(final Graphics2D g, final Line2D line, final BusLine[] unused,
-        final BusLine[] used) {
-      // sorting
-      Arrays.sort(unused);
-      if(used != null) {
-        Arrays.sort(used);
-      }
-
+    public void drawLines(final Graphics2D g, final Line2D line,
+        final BusLine[] unused, final BusLine[] used) {
       final int degree = (used != null ? used.length : 0) + unused.length;
       int counter = 0;
 
@@ -130,10 +123,8 @@ public interface LineRealizer {
 
     @Override
     public Shape createLineShape(final Line2D line, final int number, final int maxNumber) {
-      if(Double.isNaN(line.getX1()) || Double.isNaN(line.getX2())
-          || Double.isNaN(line.getY1()) || Double.isNaN(line.getY2())) return new Line2D.Double();
-
-      if(number < 0) return new BasicStroke(maxNumber).createStrokedShape(line);
+      if(number < 0) return createLine(line.getX1(), line.getY1(),
+          line.getX2(), line.getY2(), maxNumber * LINE_WIDTH);
 
       // calculate normal vector
       final Point2D p1 = line.getP1();
@@ -166,8 +157,23 @@ public interface LineRealizer {
       final double x2 = line.getP2().getX() - transX;
       final double y2 = line.getP2().getY() - transY;
 
+      return createLine(x1, y1, x2, y2, LINE_WIDTH);
+    }
+
+    /**
+     * Creates a line with a given width without using a stroke.
+     * 
+     * @param x1 The first x coordinate.
+     * @param y1 The first y coordinate.
+     * @param x2 The second x coordinate.
+     * @param y2 The second y coordinate.
+     * @param width The width of the line.
+     * @return The shape of the line.
+     */
+    private Shape createLine(final double x1, final double y1, final double x2,
+        final double y2, final double width) {
       final Point2D ortho = VecUtil.setLength(
-          new Point2D.Double(y1 - y2, x2 - x1), LINE_WIDTH * 0.5);
+          new Point2D.Double(y1 - y2, x2 - x1), width * 0.5);
       final GeneralPath gp = new GeneralPath();
       gp.moveTo(x1 + ortho.getX(), y1 + ortho.getY());
       gp.lineTo(x2 + ortho.getX(), y2 + ortho.getY());
