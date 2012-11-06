@@ -5,6 +5,7 @@ import static java.lang.Integer.*;
 import infovis.DesktopApp;
 import infovis.util.IOUtil;
 import infovis.util.Objects;
+import infovis.util.VecUtil;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -97,8 +98,10 @@ public final class BusDataBuilder {
         abstractX = parseDouble(stop[4]);
         abstractY = parseDouble(stop[5]);
       }
-      builder.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[3]) * 10000,
-          -parseDouble(stop[2]) * 10000, abstractX, abstractY);
+      builder.createStation(stop[0], parseInt(stop[1]),
+          VecUtil.scaleAngle(parseDouble(stop[3]), true),
+          VecUtil.scaleAngle(parseDouble(stop[2]), false),
+          abstractX, abstractY);
     }
 
     final CSVReader walk = readerFor(local, path, "walking-dists.csv", cs);
