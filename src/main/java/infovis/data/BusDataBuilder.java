@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -98,10 +99,8 @@ public final class BusDataBuilder {
         abstractX = parseDouble(stop[4]);
         abstractY = parseDouble(stop[5]);
       }
-      builder.createStation(stop[0], parseInt(stop[1]),
-          VecUtil.scaleAngle(parseDouble(stop[3]), true),
-          VecUtil.scaleAngle(parseDouble(stop[2]), false),
-          abstractX, abstractY);
+      builder.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[3]),
+          parseDouble(stop[2]), abstractX, abstractY);
     }
 
     final CSVReader walk = readerFor(local, path, "walking-dists.csv", cs);
@@ -110,7 +109,24 @@ public final class BusDataBuilder {
         builder.setWalkingDistance(parseInt(dist[0]), parseInt(dist[1]), parseInt(dist[2]));
       }
     } else {
-      // TODO compute walking times
+      final Collection<BusStation> s = builder.stations();
+      int pa = 0;
+      for(final BusStation a : s) {
+        int pb = 0;
+        for(final BusStation b : s) {
+          if(pb >= pa) {
+            break;
+          }
+          final double walkDist = VecUtil.earthDistance(a.getLatitude(),
+              a.getLongitude(), b.getLatitude(), b.getLongitude());
+          // assuming 5 km/h ie. 5000m / 3600s
+          final int walkSecs = (int) Math.ceil(walkDist * 60.0 * 60.0 / 5000.0);
+          System.out.println(walkSecs + "s");
+          builder.setWalkingDistance(a, b, walkSecs);
+          ++pb;
+        }
+        ++pa;
+      }
     }
 
     final Map<String, BusLine> lines = new HashMap<String, BusLine>();
@@ -166,14 +182,14 @@ public final class BusDataBuilder {
    * @param name The name.
    * @param id The id. If the id is already used an
    *          {@link IllegalArgumentException} is thrown.
-   * @param x The x position.
-   * @param y The y position.
+   * @param lat The latitude.
+   * @param lon The longitude.
    * @param abstractX The abstract x position.
    * @param abstractY The abstract y position.
    * @return The newly created bus station.
    */
-  public BusStation createStation(final String name, final int id, final double x,
-      final double y, final double abstractX, final double abstractY) {
+  public BusStation createStation(final String name, final int id, final double lat,
+      final double lon, final double abstractX, final double abstractY) {
     if(idMap.containsKey(id)) throw new IllegalArgumentException(
         "id: " + id + " already in use");
     // keep bus station ids dense
@@ -183,10 +199,19 @@ public final class BusDataBuilder {
     edges.add(edgeList);
     final List<Integer> walking = new ArrayList<Integer>();
     walkingDists.add(walking);
-    final BusStation bus = new BusStation(name, realId, x, y,
+    final BusStation bus = new BusStation(name, realId, lat, lon,
         abstractX, abstractY, edgeList, walking);
     stations.add(bus);
     return bus;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The currently created stations.
+   */
+  public Collection<BusStation> stations() {
+    return stations;
   }
 
   /**
