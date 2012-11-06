@@ -4,6 +4,7 @@ import static java.lang.Double.*;
 import static java.lang.Integer.*;
 import infovis.DesktopApp;
 import infovis.util.IOUtil;
+import infovis.util.Objects;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -87,7 +88,7 @@ public final class BusDataBuilder {
     final BusDataBuilder builder = new BusDataBuilder(
         IOUtil.hasContent(overview) ? overview : null);
 
-    final CSVReader stops = readerFor(local, path, "stops.csv", cs);
+    final CSVReader stops = Objects.requireNonNull(readerFor(local, path, "stops.csv", cs));
     for(String[] stop; (stop = stops.readNext()) != null;) {
       double abstractX, abstractY;
       if("UNKNOWN".equals(stop[4])) {
@@ -101,18 +102,24 @@ public final class BusDataBuilder {
     }
 
     final CSVReader walk = readerFor(local, path, "walking-dists.csv", cs);
-    for(String[] dist; (dist = walk.readNext()) != null;) {
-      builder.setWalkingDistance(parseInt(dist[0]), parseInt(dist[1]), parseInt(dist[2]));
+    if(walk != null) {
+      for(String[] dist; (dist = walk.readNext()) != null;) {
+        builder.setWalkingDistance(parseInt(dist[0]), parseInt(dist[1]), parseInt(dist[2]));
+      }
+    } else {
+      // TODO compute walking times
     }
 
     final Map<String, BusLine> lines = new HashMap<String, BusLine>();
-    final CSVReader lineReader = readerFor(local, path, "lines.csv", cs);
+    final CSVReader lineReader = Objects.requireNonNull(readerFor(local, path,
+        "lines.csv", cs));
     for(String[] line; (line = lineReader.readNext()) != null;) {
       final Color c = new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]));
       lines.put(line[0], createLine(line[0].replace('_', '/'), c));
     }
 
-    final CSVReader edgeReader = readerFor(local, path, "edges.csv", cs);
+    final CSVReader edgeReader = Objects.requireNonNull(readerFor(local, path,
+        "edges.csv", cs));
     for(String[] edge; (edge = edgeReader.readNext()) != null;) {
       final BusLine line = lines.get(edge[0]);
       final int tourNr = parseInt(edge[1]), from = parseInt(edge[2]), to = parseInt(edge[5]);
@@ -140,13 +147,14 @@ public final class BusDataBuilder {
    * @param path sub-directory inside the resource directory
    * @param file CSV file
    * @param cs The charset.
-   * @return reader
+   * @return reader or <code>null</code> if not found.
    * @throws IOException I/O exception
    */
   private static CSVReader readerFor(final String local, final String path,
       final String file, final Charset cs) throws IOException {
-    return new CSVReader(IOUtil.charsetReader(
-        IOUtil.getResource(local, path + '/' + file), cs), ';');
+    final URL url = IOUtil.getURL(local, path + '/' + file);
+    if(!IOUtil.hasContent(url)) return null;
+    return new CSVReader(IOUtil.charsetReader(url.openStream(), cs), ';');
   }
 
   /**

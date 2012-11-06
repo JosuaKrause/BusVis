@@ -17,7 +17,7 @@ passed as second argument. The alternative path must contain the following files
 
 -   *abstract.svg*
 
-    A schematic representation of the transportation network as scalable
+    An optional schematic representation of the transportation network as scalable
     vector graphic (svg). The positions of the stations are encoded in *stops.csv*
 
 -   *lines.csv*
@@ -36,6 +36,6 @@ passed as second argument. The alternative path must contain the following files
 
 -   *walking-dists*
 
-    Defines distances between all stations. The distances are undirected and the
+    Optionally defines distances between all stations. The distances are undirected and the
     distance from a station to itself is not needed. The first two columns define
     the pair of stations and the third is the walking time in seconds. 

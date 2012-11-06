@@ -39,19 +39,6 @@ public final class IOUtil {
   }
 
   /**
-   * Gets an {@link InputStream} for a resource.
-   * 
-   * @param local local resource directory
-   * @param resource resource
-   * @return input stream
-   * @throws IOException if the resource can't be found
-   */
-  public static InputStream getResource(final String local, final String resource)
-      throws IOException {
-    return getURL(local, resource).openStream();
-  }
-
-  /**
    * Creates a {@link BufferedReader} from the given {@link InputStream} that
    * interprets the incoming bytes using the given charset.
    * 
