@@ -14,6 +14,7 @@ import java.nio.charset.Charset;
  * @author Leo Woerteler
  */
 public final class IOUtil {
+
   /** Hidden default constructor. */
   private IOUtil() {
     // never used
@@ -61,4 +62,32 @@ public final class IOUtil {
   public static BufferedReader charsetReader(final InputStream in, final Charset charset) {
     return new BufferedReader(new InputStreamReader(in, charset));
   }
+
+  /**
+   * Checks whether the given URL has content. This method does not guarantee
+   * whether the URL has content the next time the stream to it is opened,
+   * though.
+   * 
+   * @param url The URL.
+   * @return If non empty content could be obtained.
+   */
+  public static boolean hasContent(final URL url) {
+    InputStream in = null;
+    try {
+      in = url.openStream();
+      final boolean content = in.read() >= 0;
+      in.close();
+      return content;
+    } catch(final IOException e) {
+      if(in != null) {
+        try {
+          in.close();
+        } catch(final IOException _) {
+          // ignore
+        }
+      }
+      return false;
+    }
+  }
+
 }

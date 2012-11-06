@@ -84,7 +84,8 @@ public final class BusDataBuilder {
   public static BusStationManager load(final String local, final String path,
       final Charset cs) throws IOException {
     final URL overview = IOUtil.getURL(local, path + "/abstract.svg");
-    final BusDataBuilder builder = new BusDataBuilder(overview);
+    final BusDataBuilder builder = new BusDataBuilder(
+        IOUtil.hasContent(overview) ? overview : null);
 
     final CSVReader stops = readerFor(local, path, "stops.csv", cs);
     for(String[] stop; (stop = stops.readNext()) != null;) {

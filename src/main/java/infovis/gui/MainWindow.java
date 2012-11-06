@@ -51,7 +51,8 @@ public final class MainWindow extends JFrame {
       final boolean bigScreen) {
     ctrl = new Controller(m, this);
     wnds = new LinkedList<JFrame>();
-    final Overview over = new Overview(ctrl, 400, 400);
+    final Overview over;
+    over = ctrl.getOverviewURL() != null ? new Overview(ctrl, 400, 400) : null;
     final ControlPanel cp = new ControlPanel(ctrl);
     final BusvisCanvas mainCanvas = BusvisCanvas.createBusCanvas(ctrl, 900, 900);
     add(createUI(over, cp, mainCanvas, bigScreen));
@@ -143,7 +144,9 @@ public final class MainWindow extends JFrame {
 
       @Override
       public void run() {
-        over.loadSVG(ctrl);
+        if(over != null) {
+          over.loadSVG(ctrl);
+        }
       }
 
     });
@@ -151,13 +154,15 @@ public final class MainWindow extends JFrame {
     root.setFocusable(true);
     root.grabFocus();
     mainCanvas.setFocusComponent(root);
-    over.setFocusComponent(root);
+    if(over != null) {
+      over.setFocusComponent(root);
+    }
   }
 
   /**
    * Creates the UI for this window.
    * 
-   * @param over The overview.
+   * @param over The overview. May be <code>null</code>.
    * @param cp The control panel.
    * @param mainCanvas The main canvas.
    * @param bigScreen Whether the application is run on a big screen.
@@ -166,9 +171,15 @@ public final class MainWindow extends JFrame {
   private JComponent createUI(final Overview over, final ControlPanel cp,
       final BusvisCanvas mainCanvas, final boolean bigScreen) {
     if(!bigScreen) {
-      final JSplitPane left = new JSplitPane(JSplitPane.VERTICAL_SPLIT, over, cp);
-      left.setDividerLocation(400);
-      left.setOneTouchExpandable(true);
+      JComponent left;
+      if(over != null) {
+        final JSplitPane l = new JSplitPane(JSplitPane.VERTICAL_SPLIT, over, cp);
+        l.setDividerLocation(400);
+        l.setOneTouchExpandable(true);
+        left = l;
+      } else {
+        left = cp;
+      }
       final JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left,
           mainCanvas);
       return pane;
@@ -177,10 +188,12 @@ public final class MainWindow extends JFrame {
     controlFrame.add(cp);
     controlFrame.pack();
     addAndShowWindow(controlFrame);
-    final JFrame overFrame = new JFrame("Overview");
-    overFrame.add(over);
-    overFrame.pack();
-    addAndShowWindow(overFrame);
+    if(over != null) {
+      final JFrame overFrame = new JFrame("Overview");
+      overFrame.add(over);
+      overFrame.pack();
+      addAndShowWindow(overFrame);
+    }
     return mainCanvas;
   }
 

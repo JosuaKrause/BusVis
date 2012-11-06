@@ -46,7 +46,8 @@ public final class BusStationManager implements BusStationEnumerator {
   /**
    * Getter.
    * 
-   * @return The overview resource URL.
+   * @return The overview resource URL or <code>null</code> if the file does not
+   *         exist.
    */
   public URL getOverviewURL() {
     return overview;

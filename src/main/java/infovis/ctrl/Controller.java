@@ -116,7 +116,7 @@ public final class Controller implements BusStationEnumerator {
   /**
    * Getter.
    * 
-   * @return The resource path.
+   * @return The resource path or <code>null</code> if no path is specified.
    */
   public URL getOverviewURL() {
     return manager.getOverviewURL();
