@@ -2,7 +2,6 @@ package infovis.data;
 
 import static java.lang.Double.*;
 import static java.lang.Integer.*;
-import infovis.DesktopApp;
 import infovis.util.IOUtil;
 import infovis.util.Objects;
 import infovis.util.VecUtil;
@@ -47,8 +46,8 @@ public final class BusDataBuilder {
     this.overview = overview;
   }
 
-  /** The default charset - CP-1252 for Excel compatibility. */
-  private static final Charset DEFAULT_CS = Charset.forName("CP1252");
+  /** The default character set - CP-1252 for Excel compatibility. */
+  private static final Charset DEFAULT_CS = IOUtil.CP1252;
 
   /**
    * Loads a bus station manager from the given path.
@@ -71,7 +70,7 @@ public final class BusDataBuilder {
    * @throws IOException I/O Exception.
    */
   public static BusStationManager loadDefault(final String path) throws IOException {
-    return load(DesktopApp.RESOURCES, path, DEFAULT_CS);
+    return load(IOUtil.RESOURCES, path, DEFAULT_CS);
   }
 
   /**

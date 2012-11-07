@@ -15,8 +15,6 @@ import javax.swing.WindowConstants;
  * @author Joschi <josua.krause@googlemail.com>
  */
 public final class DesktopApp {
-  /** Resource path. */
-  public static final String RESOURCES = "src/main/resources";
 
   /** No constructor. */
   private DesktopApp() {

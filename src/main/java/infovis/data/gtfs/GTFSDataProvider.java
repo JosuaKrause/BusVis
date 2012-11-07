@@ -1,6 +1,7 @@
 package infovis.data.gtfs;
 
-import au.com.bytecode.opencsv.CSVReader;
+import java.util.Collection;
+
 
 /**
  * An interface providing some of the GTFS sources.
@@ -15,7 +16,7 @@ public interface GTFSDataProvider {
    * @return Provides a reader of the content of the file <code>stops.txt</code>
    *         .
    */
-  CSVReader stops();
+  Collection<GTFSRow> stops();
 
   /**
    * Getter.
@@ -23,7 +24,7 @@ public interface GTFSDataProvider {
    * @return Provides a reader of the content of the file
    *         <code>routes.txt</code>.
    */
-  CSVReader routes();
+  Collection<GTFSRow> routes();
 
   /**
    * Getter.
@@ -31,7 +32,7 @@ public interface GTFSDataProvider {
    * @return Provides a reader of the content of the file <code>trips.txt</code>
    *         .
    */
-  CSVReader trips();
+  Collection<GTFSRow> trips();
 
   /**
    * Getter.
@@ -39,6 +40,6 @@ public interface GTFSDataProvider {
    * @return Provides a reader of the content of the file
    *         <code>stop_times.txt</code>.
    */
-  CSVReader stopTimes();
+  Collection<GTFSRow> stopTimes();
 
 }

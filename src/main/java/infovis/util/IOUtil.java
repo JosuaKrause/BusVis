@@ -12,6 +12,7 @@ import java.nio.charset.Charset;
  * I/O utility methods.
  * 
  * @author Leo Woerteler
+ * @author Joschi <josua.krause@googlemail.com>
  */
 public final class IOUtil {
 
@@ -19,6 +20,15 @@ public final class IOUtil {
   private IOUtil() {
     // never used
   }
+
+  /** The CP-1252 character set for Excel compatibility. */
+  public static final Charset CP1252 = Charset.forName("CP1252");
+
+  /** The UTF-8 character set. */
+  public static final Charset UTF8 = Charset.forName("UTF-8");
+
+  /** Resource path. */
+  public static final String RESOURCES = "src/main/resources";
 
   /**
    * Gets the {@link URL} of a resource.
