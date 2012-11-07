@@ -85,6 +85,10 @@ public final class BusDataBuilder {
       final Charset cs) throws IOException {
     final BusDataReader in;
     if(path.endsWith(".zip")) {
+      if(!IOUtil.UTF8.equals(cs)) {
+        System.err.println("Warning: character set '" + cs.displayName()
+            + "' is not 'UTF-8'! Use second command line argument to change");
+      }
       in = new GTFSReader(new ZipGTFSDataProvider());
     } else {
       in = new CSVBusDataReader();
@@ -92,7 +96,7 @@ public final class BusDataBuilder {
     final BusStationManager mngr = in.read(local, path, cs).finish();
     if(mngr.getStations().isEmpty()) throw new IllegalArgumentException(
         "provided source '" + IOUtil.getURL(local, path)
-            + "' does not contain any stations.");
+        + "' does not contain any stations.");
     return mngr;
   }
 
