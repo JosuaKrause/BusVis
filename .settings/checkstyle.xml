@@ -5,7 +5,7 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: BaseX Checkstyle
+    Checkstyle-Configuration: BusVis Checkstyle
     Description: none
 -->
 <module name="Checker">
@@ -55,10 +55,6 @@
     <module name="AvoidNestedBlocks"/>
     <module name="LeftCurly"/>
     <module name="RightCurly"/>
-    <module name="DoubleCheckedLocking">
-      <property name="severity" value="ignore"/>
-      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
-    </module>
     <module name="EqualsHashCode"/>
     <module name="IllegalInstantiation"/>
     <module name="MagicNumber">
