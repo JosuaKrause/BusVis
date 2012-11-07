@@ -34,7 +34,7 @@ passed as second argument. The alternative path must contain the following files
     two columns are the start and end time of the edge in seconds since midnight.
     The last column is the id of the destination station.
 
--   *walking-dists*
+-   *walking-dists.csv*
 
     Optionally defines distances between all stations. The distances are undirected and the
     distance from a station to itself is not needed. The first two columns define

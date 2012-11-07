@@ -1,10 +1,10 @@
 package infovis.data;
 
-import static java.lang.Double.*;
 import static java.lang.Integer.*;
+import infovis.data.csv.CSVBusDataReader;
+import infovis.data.gtfs.GTFSReader;
+import infovis.data.gtfs.ZipGTFSDataProvider;
 import infovis.util.IOUtil;
-import infovis.util.Objects;
-import infovis.util.VecUtil;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -16,8 +16,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import au.com.bytecode.opencsv.CSVReader;
 
 /**
  * Loader for bus data in {@code CSV} format.
@@ -79,72 +77,23 @@ public final class BusDataBuilder {
    * @param local The local resource path or <code>null</code> if a direct path
    *          is specified.
    * @param path data file path
-   * @param cs The charset
-   * @return The bus manager holding the informations.
+   * @param cs The character set
+   * @return The bus manager holding informations.
    * @throws IOException I/O exception
    */
   public static BusStationManager load(final String local, final String path,
       final Charset cs) throws IOException {
-    final URL overview = IOUtil.getURL(local, path + "/abstract.svg");
-    final BusDataBuilder builder = new BusDataBuilder(
-        IOUtil.hasContent(overview) ? overview : null);
-
-    final CSVReader stops = Objects.requireNonNull(readerFor(local, path, "stops.csv", cs));
-    for(String[] stop; (stop = stops.readNext()) != null;) {
-      double abstractX, abstractY;
-      if("UNKNOWN".equals(stop[4])) {
-        abstractX = abstractY = Double.NaN;
-      } else {
-        abstractX = parseDouble(stop[4]);
-        abstractY = parseDouble(stop[5]);
-      }
-      builder.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[3]),
-          parseDouble(stop[2]), abstractX, abstractY);
-    }
-
-    final CSVReader walk = readerFor(local, path, "walking-dists.csv", cs);
-    if(walk != null) {
-      for(String[] dist; (dist = walk.readNext()) != null;) {
-        builder.setWalkingDistance(parseInt(dist[0]), parseInt(dist[1]), parseInt(dist[2]));
-      }
+    final BusDataReader in;
+    if(path.endsWith(".zip")) {
+      in = new GTFSReader(new ZipGTFSDataProvider());
     } else {
-      final Collection<BusStation> s = builder.stations();
-      int pa = 0;
-      for(final BusStation a : s) {
-        int pb = 0;
-        for(final BusStation b : s) {
-          if(pb >= pa) {
-            break;
-          }
-          final double walkDist = VecUtil.earthDistance(a.getLatitude(),
-              a.getLongitude(), b.getLatitude(), b.getLongitude());
-          // assuming 5 km/h ie. 5000m / 3600s
-          final int walkSecs = (int) Math.ceil(walkDist * 60.0 * 60.0 / 5000.0);
-          System.out.println(walkSecs + "s");
-          builder.setWalkingDistance(a, b, walkSecs);
-          ++pb;
-        }
-        ++pa;
-      }
+      in = new CSVBusDataReader();
     }
-
-    final Map<String, BusLine> lines = new HashMap<String, BusLine>();
-    final CSVReader lineReader = Objects.requireNonNull(readerFor(local, path,
-        "lines.csv", cs));
-    for(String[] line; (line = lineReader.readNext()) != null;) {
-      final Color c = new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]));
-      lines.put(line[0], createLine(line[0].replace('_', '/'), c));
-    }
-
-    final CSVReader edgeReader = Objects.requireNonNull(readerFor(local, path,
-        "edges.csv", cs));
-    for(String[] edge; (edge = edgeReader.readNext()) != null;) {
-      final BusLine line = lines.get(edge[0]);
-      final int tourNr = parseInt(edge[1]), from = parseInt(edge[2]), to = parseInt(edge[5]);
-      final BusTime start = parseTime(edge[3]), end = parseTime(edge[4]);
-      builder.addEdge(from, line, tourNr, to, start, end);
-    }
-    return builder.finish();
+    final BusStationManager mngr = in.read(local, path, cs).finish();
+    if(mngr.getStations().isEmpty()) throw new IllegalArgumentException(
+        "provided source '" + IOUtil.getURL(local, path)
+            + "' does not contain any stations.");
+    return mngr;
   }
 
   /**
@@ -153,26 +102,8 @@ public final class BusDataBuilder {
    * @param time time string
    * @return resulting {@link BusTime}
    */
-  private static BusTime parseTime(final String time) {
+  public static BusTime parseTime(final String time) {
     return BusTime.MIDNIGHT.later(0, parseInt(time));
-  }
-
-  /**
-   * Creates a {@link CSVReader} suitable for Microsoft Excel CSV files.
-   * 
-   * @param local The local resource path or <code>null</code> if a direct path
-   *          is specified.
-   * @param path sub-directory inside the resource directory
-   * @param file CSV file
-   * @param cs The charset.
-   * @return reader or <code>null</code> if not found.
-   * @throws IOException I/O exception
-   */
-  private static CSVReader readerFor(final String local, final String path,
-      final String file, final Charset cs) throws IOException {
-    final URL url = IOUtil.getURL(local, path + '/' + file);
-    if(!IOUtil.hasContent(url)) return null;
-    return new CSVReader(IOUtil.charsetReader(url.openStream(), cs), ';');
   }
 
   /**

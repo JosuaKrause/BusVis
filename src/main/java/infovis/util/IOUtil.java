@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.Charset;
 
+import au.com.bytecode.opencsv.CSVReader;
+
 /**
  * I/O utility methods.
  * 
@@ -85,6 +87,24 @@ public final class IOUtil {
       }
       return false;
     }
+  }
+
+  /**
+   * Creates a {@link CSVReader} suitable for Microsoft Excel CSV files.
+   * 
+   * @param local The local resource path or <code>null</code> if a direct path
+   *          is specified.
+   * @param path sub-directory inside the resource directory
+   * @param file CSV file
+   * @param cs The charset.
+   * @return reader or <code>null</code> if not found.
+   * @throws IOException I/O exception
+   */
+  public static CSVReader readerFor(final String local, final String path,
+      final String file, final Charset cs) throws IOException {
+    final URL url = IOUtil.getURL(local, path + '/' + file);
+    if(!IOUtil.hasContent(url)) return null;
+    return new CSVReader(IOUtil.charsetReader(url.openStream(), cs), ';');
   }
 
 }

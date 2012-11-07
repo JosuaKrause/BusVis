@@ -1,9 +1,12 @@
 package infovis.data.gtfs;
 
+import infovis.data.BusDataBuilder;
+import infovis.data.BusDataReader;
 import infovis.util.IOUtil;
+import infovis.util.Objects;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.nio.charset.Charset;
 
 /**
  * A general transfer feed specification (GTFS) implementation in order to
@@ -12,7 +15,7 @@ import java.util.Collection;
  * @author Joschi <josua.krause@googlemail.com>
  *
  */
-public class GTFSReader {
+public class GTFSReader implements BusDataReader {
 
   /** The GTFS data provider. */
   private final GTFSDataProvider data;
@@ -23,20 +26,16 @@ public class GTFSReader {
    * @param data The GTFS data provider.
    */
   public GTFSReader(final GTFSDataProvider data) {
-    this.data = data;
+    this.data = Objects.requireNonNull(data);
   }
 
-  public void doStuff() {
-    final Collection<GTFSRow> routes = data.routes();
-    for(final GTFSRow r : routes) {
-      System.out.println(r.getField("route_id") + ": " + r.getField("route_long_name"));
-    }
-  }
-
-  public static void main(final String[] args) throws IOException {
-    final GTFSReader reader = new GTFSReader(new ZipGTFSDataProvider(IOUtil.getURL(
-        IOUtil.RESOURCES, "gtfs/gtfs.zip")));
-    reader.doStuff();
+  @Override
+  public BusDataBuilder read(final String local, final String path, final Charset cs)
+      throws IOException {
+    data.setSource(IOUtil.getURL(local, path), cs);
+    final BusDataBuilder builder = new BusDataBuilder(null);
+    // TODO Auto-generated method stub
+    return builder;
   }
 
 }

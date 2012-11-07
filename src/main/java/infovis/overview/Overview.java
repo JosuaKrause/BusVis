@@ -42,6 +42,17 @@ import org.w3c.dom.svg.SVGDocument;
  */
 public final class Overview extends JSVGCanvas implements BusVisualization {
 
+  /** The sign that shows a selected station on the abstract map. */
+  private static final Path2D focusSign;
+
+  static {
+    focusSign = new Path2D.Double();
+    focusSign.moveTo(0, 0);
+    focusSign.lineTo(-15, -40);
+    focusSign.curveTo(-5, -30, 5, -30, 15, -40);
+    focusSign.closePath();
+  }
+
   /** The mouse listener for this class. */
   protected final OverviewMouse mouse;
 
@@ -53,9 +64,6 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
 
   /** The half-size of the window that is shown when a station is selected. */
   private final int focusSize = 150;
-
-  /** The sign that shows a selected station on the abstract map. */
-  private final Path2D focusSign;
 
   /** The controller. */
   private final Controller ctrl;
@@ -70,12 +78,6 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
   public Overview(final Controller ctrl, final int width, final int height) {
     this.ctrl = ctrl;
     firstDraw = true;
-
-    focusSign = new Path2D.Double();
-    focusSign.moveTo(0, 0);
-    focusSign.lineTo(-15, -40);
-    focusSign.curveTo(-5, -30, 5, -30, 15, -40);
-    focusSign.closePath();
 
     setPreferredSize(new Dimension(width, height));
     setDisableInteractions(true);

@@ -1,11 +1,10 @@
 package infovis.data.gtfs;
 
-import infovis.util.IOUtil;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,13 +33,12 @@ public class ZipGTFSDataProvider implements GTFSDataProvider {
   /** The content of <code>stop_times.txt</code>. */
   private final Collection<GTFSRow> stopTimes = new ArrayList<GTFSRow>();
 
-  /**
-   * Reads the given URL as ZIP file.
-   * 
-   * @param url The URL for the GTFS data.
-   * @throws IOException I/O Exception.
-   */
-  public ZipGTFSDataProvider(final URL url) throws IOException {
+  @Override
+  public void setSource(final URL url, final Charset cs) throws IOException {
+    stops.clear();
+    routes.clear();
+    trips.clear();
+    stopTimes.clear();
     final Map<String, Collection<GTFSRow>> fileMap = new HashMap<String, Collection<GTFSRow>>();
     fileMap.put("stops.txt", stops);
     fileMap.put("routes.txt", routes);
@@ -51,7 +49,7 @@ public class ZipGTFSDataProvider implements GTFSDataProvider {
     while((cur = zip.getNextEntry()) != null) {
       final Collection<GTFSRow> to = fileMap.get(cur.getName());
       if(to != null) {
-        readFile(zip, to);
+        readFile(zip, to, cs);
       }
       zip.closeEntry();
     }
@@ -63,11 +61,12 @@ public class ZipGTFSDataProvider implements GTFSDataProvider {
    * 
    * @param in The input stream.
    * @param sink The collection to store the result in.
+   * @param cs The character set.
    * @throws IOException I/O Exception.
    */
-  private static void readFile(final InputStream in, final Collection<GTFSRow> sink)
-      throws IOException {
-    readFile(new CSVReader(new InputStreamReader(in, IOUtil.UTF8), ',', '"'), sink);
+  private static void readFile(final InputStream in,
+      final Collection<GTFSRow> sink, final Charset cs) throws IOException {
+    readFile(new CSVReader(new InputStreamReader(in, cs), ',', '"'), sink);
   }
 
   /**
