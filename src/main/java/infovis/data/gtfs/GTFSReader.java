@@ -1,5 +1,6 @@
 package infovis.data.gtfs;
 
+import static java.lang.Double.*;
 import infovis.data.BusDataBuilder;
 import infovis.data.BusDataReader;
 import infovis.util.IOUtil;
@@ -34,6 +35,14 @@ public class GTFSReader implements BusDataReader {
       throws IOException {
     data.setSource(IOUtil.getURL(local, path), cs);
     final BusDataBuilder builder = new BusDataBuilder(null);
+    for(final GTFSRow row : data.stops()) {
+      final String id = row.getField("stop_id");
+      final String name = row.getField("stop_name");
+      final double lat = parseDouble(row.getField("stop_lat"));
+      final double lon = parseDouble(row.getField("stop_lon"));
+      // TODO make alias for parent_station
+      builder.createStation(name, id, lat, lon, NaN, NaN);
+    }
     // TODO Auto-generated method stub
     return builder;
   }

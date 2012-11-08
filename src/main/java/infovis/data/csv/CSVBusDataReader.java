@@ -41,7 +41,7 @@ public class CSVBusDataReader implements BusDataReader {
     for(String[] stop; (stop = stops.readNext()) != null;) {
       double abstractX, abstractY;
       if("UNKNOWN".equals(stop[4])) {
-        abstractX = abstractY = Double.NaN;
+        abstractX = abstractY = NaN;
       } else {
         abstractX = parseDouble(stop[4]);
         abstractY = parseDouble(stop[5]);
