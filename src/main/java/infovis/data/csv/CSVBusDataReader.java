@@ -6,17 +6,14 @@ import static java.lang.Integer.*;
 import infovis.data.BusDataBuilder;
 import infovis.data.BusDataReader;
 import infovis.data.BusLine;
-import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.util.IOUtil;
 import infovis.util.Objects;
-import infovis.util.VecUtil;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,23 +53,7 @@ public class CSVBusDataReader implements BusDataReader {
         builder.setWalkingDistance(dist[0], dist[1], parseInt(dist[2]));
       }
     } else {
-      final Collection<BusStation> s = builder.stations();
-      int pa = 0;
-      for(final BusStation a : s) {
-        int pb = 0;
-        for(final BusStation b : s) {
-          if(pb >= pa) {
-            break;
-          }
-          final double walkDist = VecUtil.earthDistance(a.getLatitude(),
-              a.getLongitude(), b.getLatitude(), b.getLongitude());
-          // assuming 5 km/h ie. 5000m / 3600s
-          final int walkSecs = (int) Math.ceil(walkDist * 60.0 * 60.0 / 5000.0);
-          builder.setWalkingDistance(a, b, walkSecs);
-          ++pb;
-        }
-        ++pa;
-      }
+      builder.calcWalkingDistances();
     }
 
     final Map<String, BusLine> lines = new HashMap<String, BusLine>();

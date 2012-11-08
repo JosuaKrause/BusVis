@@ -3,11 +3,15 @@ package infovis.data.gtfs;
 import static java.lang.Double.*;
 import infovis.data.BusDataBuilder;
 import infovis.data.BusDataReader;
+import infovis.data.BusLine;
 import infovis.util.IOUtil;
 import infovis.util.Objects;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A general transfer feed specification (GTFS) implementation in order to
@@ -17,6 +21,9 @@ import java.nio.charset.Charset;
  *
  */
 public class GTFSReader implements BusDataReader {
+
+  /** Maps a line id to a bus line. */
+  private final Map<String, BusLine> lineMap = new HashMap<String, BusLine>();
 
   /** The GTFS data provider. */
   private final GTFSDataProvider data;
@@ -40,8 +47,22 @@ public class GTFSReader implements BusDataReader {
       final String name = row.getField("stop_name");
       final double lat = parseDouble(row.getField("stop_lat"));
       final double lon = parseDouble(row.getField("stop_lon"));
-      // TODO make alias for parent_station
+      // TODO make alias for parent_station and using location_type
       builder.createStation(name, id, lat, lon, NaN, NaN);
+    }
+    builder.calcWalkingDistances();
+    for(final GTFSRow row : data.routes()) {
+      final String id = row.getField("route_id");
+      final String name = row.getField("route_long_name");
+      final String c = row.getField("route_color");
+      Color color;
+      try {
+        color = new Color(0xff000000 | Integer.parseInt(c, 16));
+      } catch(final NumberFormatException e) {
+        color = null;
+      }
+      // TODO use WHITE as default color
+      lineMap.put(id, BusDataBuilder.createLine(name, Objects.nonNull(color, Color.BLUE)));
     }
     // TODO Auto-generated method stub
     return builder;

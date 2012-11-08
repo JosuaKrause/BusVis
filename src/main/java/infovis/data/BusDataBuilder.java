@@ -5,13 +5,13 @@ import infovis.data.csv.CSVBusDataReader;
 import infovis.data.gtfs.GTFSReader;
 import infovis.data.gtfs.ZipGTFSDataProvider;
 import infovis.util.IOUtil;
+import infovis.util.VecUtil;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -140,15 +140,6 @@ public final class BusDataBuilder {
   }
 
   /**
-   * Getter.
-   * 
-   * @return The currently created stations.
-   */
-  public Collection<BusStation> stations() {
-    return stations;
-  }
-
-  /**
    * Creates a new bus line.
    * 
    * @param line The name.
@@ -215,6 +206,26 @@ public final class BusDataBuilder {
    */
   public void setWalkingDistance(final String id1, final String id2, final int secs) {
     setWalkingDistance(getStation(id1), getStation(id2), secs);
+  }
+
+  /** Computes walking distances for the current set of stations. */
+  public void calcWalkingDistances() {
+    int pa = 0;
+    for(final BusStation a : stations) {
+      int pb = 0;
+      for(final BusStation b : stations) {
+        if(pb >= pa) {
+          break;
+        }
+        final double walkDist = VecUtil.earthDistance(a.getLatitude(),
+            a.getLongitude(), b.getLatitude(), b.getLongitude());
+        // assuming 5 km/h ie. 5000m / 3600s
+        final int walkSecs = (int) Math.ceil(walkDist * 60.0 * 60.0 / 5000.0);
+        setWalkingDistance(a, b, walkSecs);
+        ++pb;
+      }
+      ++pa;
+    }
   }
 
   /**
