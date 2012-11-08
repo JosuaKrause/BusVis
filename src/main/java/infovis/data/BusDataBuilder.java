@@ -26,6 +26,8 @@ public final class BusDataBuilder {
 
   /** Maps the external bus station ids to the internal ones. */
   private final Map<String, Integer> idMap = new HashMap<String, Integer>();
+  /** Maps a line id to a bus line. */
+  private final Map<String, BusLine> lineMap = new HashMap<String, BusLine>();
   /** Bus stations. */
   private final List<BusStation> stations = new ArrayList<BusStation>();
   /** Map from station IDs to the bus edges originating at this station. */
@@ -103,7 +105,7 @@ public final class BusDataBuilder {
   /**
    * Parses a {@link BusTime}.
    * 
-   * @param time time string
+   * @param time time string in seconds after midnight
    * @return resulting {@link BusTime}
    */
   public static BusTime parseTime(final String time) {
@@ -125,7 +127,7 @@ public final class BusDataBuilder {
   public BusStation createStation(final String name, final String id, final double lat,
       final double lon, final double abstractX, final double abstractY) {
     if(idMap.containsKey(id)) throw new IllegalArgumentException(
-        "id: " + id + " already in use");
+        "bus id: " + id + " already in use");
     // keep bus station ids dense
     final int realId = stations.size();
     idMap.put(id, realId);
@@ -142,12 +144,30 @@ public final class BusDataBuilder {
   /**
    * Creates a new bus line.
    * 
+   * @param id The id of the line.
    * @param line The name.
    * @param color The color.
    * @return The bus line.
    */
-  public static BusLine createLine(final String line, final Color color) {
-    return new BusLine(line, color);
+  public BusLine createLine(final String id, final String line, final Color color) {
+    if(lineMap.containsKey(id)) throw new IllegalArgumentException(
+        "line id: " + id + " already in use");
+    final BusLine res = new BusLine(line, color);
+    lineMap.put(id, res);
+    return res;
+  }
+
+  /**
+   * Gets the line from the line map.
+   * 
+   * @param id line ID
+   * @return associated line
+   * @throws IllegalArgumentException if the ID has no associated line
+   */
+  public BusLine getLine(final String id) {
+    final BusLine line = lineMap.get(id);
+    if(line == null) throw new IllegalArgumentException("Unknown line: " + id);
+    return line;
   }
 
   /**

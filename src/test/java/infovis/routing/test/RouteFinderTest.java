@@ -37,8 +37,8 @@ public class RouteFinderTest {
   @Test
   public void shouldChange() throws InterruptedException {
     final BusDataBuilder builder = new BusDataBuilder(null);
-    final BusLine s1 = BusDataBuilder.createLine("B1", Color.RED), s2 = BusDataBuilder.createLine(
-        "B2", Color.BLUE);
+    final BusLine s1 = builder.createLine("B1", "B1", Color.RED);
+    final BusLine s2 = builder.createLine("B2", "B2", Color.BLUE);
     final BusStation a = builder.createStation("A", "0", 0, 0, 0, 0);
     final BusStation b = builder.createStation("B", "1", 0, 0, 0, 0);
     final BusStation c = builder.createStation("C", "2", 0, 0, 0, 0);
@@ -71,8 +71,9 @@ public class RouteFinderTest {
   @Test
   public void continuous() throws InterruptedException {
     final BusDataBuilder builder = new BusDataBuilder(null);
-    final BusLine s1 = BusDataBuilder.createLine("B1", Color.RED), s2 = BusDataBuilder.createLine(
-        "B2", Color.BLUE), s3 = BusDataBuilder.createLine("B3", Color.YELLOW);
+    final BusLine s1 = builder.createLine("B1", "B1", Color.RED);
+    final BusLine s2 = builder.createLine("B2", "B2", Color.BLUE);
+    final BusLine s3 = builder.createLine("B3", "B3", Color.YELLOW);
     final BusStation a = builder.createStation("A", "0", 0, 0, 0, 0);
     final BusStation b = builder.createStation("B", "1", 0, 0, 0, 0);
     final BusStation c = builder.createStation("C", "2", 0, 0, 0, 0);
@@ -114,7 +115,7 @@ public class RouteFinderTest {
   @Test
   public void generalTest() throws InterruptedException {
     final BusDataBuilder builder = new BusDataBuilder(null);
-    final BusLine line = BusDataBuilder.createLine("1", Color.RED);
+    final BusLine line = builder.createLine("1", "1", Color.RED);
     final BusStation a = builder.createStation("a", "0", 0, 0, 0, 0);
     final BusStation b = builder.createStation("b", "1", 0, 0, 0, 0);
     final BusStation c = builder.createStation("c", "2", 0, 0, 0, 0);
@@ -153,8 +154,8 @@ public class RouteFinderTest {
   @Test
   public void lineChanging() throws InterruptedException {
     final BusDataBuilder builder = new BusDataBuilder(null);
-    final BusLine line = BusDataBuilder.createLine("1", Color.RED);
-    final BusLine other = BusDataBuilder.createLine("2", Color.BLUE);
+    final BusLine line = builder.createLine("1", "1", Color.RED);
+    final BusLine other = builder.createLine("2", "2", Color.BLUE);
     final BusStation e = builder.createStation("e", "4", 0, 0, 0, 0);
     final BusStation f = builder.createStation("f", "5", 0, 0, 0, 0);
     final BusStation g = builder.createStation("g", "6", 0, 0, 0, 0);

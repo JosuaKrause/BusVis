@@ -14,8 +14,6 @@ import java.awt.Color;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -56,18 +54,17 @@ public class CSVBusDataReader implements BusDataReader {
       builder.calcWalkingDistances();
     }
 
-    final Map<String, BusLine> lines = new HashMap<String, BusLine>();
     final CSVReader lineReader = Objects.requireNonNull(IOUtil.readerFor(local, path,
         "lines.csv", cs));
     for(String[] line; (line = lineReader.readNext()) != null;) {
       final Color c = new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]));
-      lines.put(line[0], createLine(line[0].replace('_', '/'), c));
+      builder.createLine(line[0], line[0].replace('_', '/'), c);
     }
 
     final CSVReader edgeReader = Objects.requireNonNull(
         IOUtil.readerFor(local, path, "edges.csv", cs));
     for(String[] edge; (edge = edgeReader.readNext()) != null;) {
-      final BusLine line = lines.get(edge[0]);
+      final BusLine line = builder.getLine(edge[0]);
       final int tourNr = parseInt(edge[1]);
       final String from = edge[2];
       final String to = edge[5];

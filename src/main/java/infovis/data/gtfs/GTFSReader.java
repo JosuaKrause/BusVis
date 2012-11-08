@@ -3,15 +3,12 @@ package infovis.data.gtfs;
 import static java.lang.Double.*;
 import infovis.data.BusDataBuilder;
 import infovis.data.BusDataReader;
-import infovis.data.BusLine;
 import infovis.util.IOUtil;
 import infovis.util.Objects;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A general transfer feed specification (GTFS) implementation in order to
@@ -21,9 +18,6 @@ import java.util.Map;
  *
  */
 public class GTFSReader implements BusDataReader {
-
-  /** Maps a line id to a bus line. */
-  private final Map<String, BusLine> lineMap = new HashMap<String, BusLine>();
 
   /** The GTFS data provider. */
   private final GTFSDataProvider data;
@@ -62,7 +56,7 @@ public class GTFSReader implements BusDataReader {
         color = null;
       }
       // TODO use WHITE as default color
-      lineMap.put(id, BusDataBuilder.createLine(name, Objects.nonNull(color, Color.BLUE)));
+      builder.createLine(id, name, Objects.nonNull(color, Color.BLUE));
     }
     // TODO Auto-generated method stub
     return builder;
