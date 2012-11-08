@@ -25,7 +25,7 @@ import java.util.Map;
 public final class BusDataBuilder {
 
   /** Maps the external bus station ids to the internal ones. */
-  private final Map<Integer, Integer> idMap = new HashMap<Integer, Integer>();
+  private final Map<String, Integer> idMap = new HashMap<String, Integer>();
   /** Bus stations. */
   private final List<BusStation> stations = new ArrayList<BusStation>();
   /** Map from station IDs to the bus edges originating at this station. */
@@ -122,7 +122,7 @@ public final class BusDataBuilder {
    * @param abstractY The abstract y position.
    * @return The newly created bus station.
    */
-  public BusStation createStation(final String name, final int id, final double lat,
+  public BusStation createStation(final String name, final String id, final double lat,
       final double lon, final double abstractX, final double abstractY) {
     if(idMap.containsKey(id)) throw new IllegalArgumentException(
         "id: " + id + " already in use");
@@ -188,8 +188,8 @@ public final class BusDataBuilder {
    * @param end The end time.
    * @return added edge
    */
-  public BusEdge addEdge(final int stationID, final BusLine line, final int tourNr,
-      final int destID, final BusTime start, final BusTime end) {
+  public BusEdge addEdge(final String stationID, final BusLine line, final int tourNr,
+      final String destID, final BusTime start, final BusTime end) {
     return addEdge(getStation(stationID), line, tourNr, getStation(destID), start, end);
   }
 
@@ -213,7 +213,7 @@ public final class BusDataBuilder {
    * @param id2 second station's ID
    * @param secs walking time in seconds
    */
-  public void setWalkingDistance(final int id1, final int id2, final int secs) {
+  public void setWalkingDistance(final String id1, final String id2, final int secs) {
     setWalkingDistance(getStation(id1), getStation(id2), secs);
   }
 
@@ -245,7 +245,7 @@ public final class BusDataBuilder {
    * @return associated station
    * @throws IllegalArgumentException if the ID has no associated station
    */
-  private BusStation getStation(final int id) {
+  private BusStation getStation(final String id) {
     final BusStation station = stations.get(idMap.get(id));
     if(station == null) throw new IllegalArgumentException("Unknown station: " + id);
     return station;

@@ -46,14 +46,14 @@ public class CSVBusDataReader implements BusDataReader {
         abstractX = parseDouble(stop[4]);
         abstractY = parseDouble(stop[5]);
       }
-      builder.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[3]),
+      builder.createStation(stop[0], stop[1], parseDouble(stop[3]),
           parseDouble(stop[2]), abstractX, abstractY);
     }
 
     final CSVReader walk = IOUtil.readerFor(local, path, "walking-dists.csv", cs);
     if(walk != null) {
       for(String[] dist; (dist = walk.readNext()) != null;) {
-        builder.setWalkingDistance(parseInt(dist[0]), parseInt(dist[1]), parseInt(dist[2]));
+        builder.setWalkingDistance(dist[0], dist[1], parseInt(dist[2]));
       }
     } else {
       final Collection<BusStation> s = builder.stations();
@@ -87,8 +87,11 @@ public class CSVBusDataReader implements BusDataReader {
         IOUtil.readerFor(local, path, "edges.csv", cs));
     for(String[] edge; (edge = edgeReader.readNext()) != null;) {
       final BusLine line = lines.get(edge[0]);
-      final int tourNr = parseInt(edge[1]), from = parseInt(edge[2]), to = parseInt(edge[5]);
-      final BusTime start = parseTime(edge[3]), end = parseTime(edge[4]);
+      final int tourNr = parseInt(edge[1]);
+      final String from = edge[2];
+      final String to = edge[5];
+      final BusTime start = parseTime(edge[3]);
+      final BusTime end = parseTime(edge[4]);
       builder.addEdge(from, line, tourNr, to, start, end);
     }
 

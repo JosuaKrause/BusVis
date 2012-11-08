@@ -28,11 +28,11 @@ public class BusStationTest {
     final BusLine line = BusDataBuilder.createLine("1", Color.RED);
     final BusLine other = BusDataBuilder.createLine("2", Color.BLUE);
 
-    final BusStation a = builder.createStation("a", 0, 0, 0, 0, 0);
-    final BusStation b = builder.createStation("b", 1, 0, 0, 0, 0);
-    final BusStation c = builder.createStation("c", 2, 0, 0, 0, 0);
-    final BusStation d = builder.createStation("d", 3, 0, 0, 0, 0);
-    final BusStation e = builder.createStation("e", 4, 0, 0, 0, 0);
+    final BusStation a = builder.createStation("a", "0", 0, 0, 0, 0);
+    final BusStation b = builder.createStation("b", "1", 0, 0, 0, 0);
+    final BusStation c = builder.createStation("c", "2", 0, 0, 0, 0);
+    final BusStation d = builder.createStation("d", "3", 0, 0, 0, 0);
+    final BusStation e = builder.createStation("e", "4", 0, 0, 0, 0);
     builder.addEdge(a, line, 0, c, new BusTime(3, 10), new BusTime(3, 13));
     builder.addEdge(a, line, 1, b, new BusTime(3, 10), new BusTime(3, 12));
     builder.addEdge(a, line, 2, d, new BusTime(3, 10), new BusTime(3, 11));
@@ -43,9 +43,9 @@ public class BusStationTest {
     builder.addEdge(d, line, 6, b, new BusTime(0, 2), new BusTime(0, 3));
     builder.addEdge(d, line, 7, c, new BusTime(0, 3), new BusTime(0, 4));
     builder.addEdge(d, line, 8, e, new BusTime(0, 4), new BusTime(0, 5));
-    final BusStation f = builder.createStation("f", 5, 0, 0, 0, 0);
-    final BusStation g = builder.createStation("g", 6, 0, 0, 0, 0);
-    final BusStation h = builder.createStation("h", 7, 0, 0, 0, 0);
+    final BusStation f = builder.createStation("f", "5", 0, 0, 0, 0);
+    final BusStation g = builder.createStation("g", "6", 0, 0, 0, 0);
+    final BusStation h = builder.createStation("h", "7", 0, 0, 0, 0);
     builder.addEdge(e, line, 0, h, new BusTime(23, 59), new BusTime(0, 1));
     builder.addEdge(e, line, 1, h, new BusTime(0, 7), new BusTime(0, 0));
     builder.addEdge(e, line, 2, h, new BusTime(0, 0), new BusTime(0, 6));
@@ -132,7 +132,7 @@ public class BusStationTest {
   public void emptyEdges() {
     assertFalse(
         "must be empty",
-        new BusDataBuilder(null).createStation("r", 12345, 0, 0, 0, 0).
+        new BusDataBuilder(null).createStation("r", "12345", 0, 0, 0, 0).
         getEdges(new BusTime(12, 15)).iterator().hasNext());
   }
 
@@ -143,8 +143,8 @@ public class BusStationTest {
   public void duplicateStation() {
     final BusDataBuilder builder = new BusDataBuilder(null);
     try {
-      builder.createStation("ok", 0, 0, 0, 0, 0);
-      builder.createStation("fail", 0, 0, 0, 0, 0);
+      builder.createStation("ok", "0", 0, 0, 0, 0);
+      builder.createStation("fail", "0", 0, 0, 0, 0);
       fail("bus stations must have unique ids");
     } catch(final IllegalArgumentException e) {
       // success
