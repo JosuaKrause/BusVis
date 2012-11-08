@@ -105,7 +105,7 @@ public final class Controller implements BusStationEnumerator {
             // we stop now-mode here
             time = BusTime.now();
           }
-          setTime(time.later(getFastForwardStep()));
+          setTime(time.later(getFastForwardStep(), 0));
         }
       }
 

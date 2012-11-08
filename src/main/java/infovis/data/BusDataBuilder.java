@@ -5,6 +5,7 @@ import infovis.data.csv.CSVBusDataReader;
 import infovis.data.gtfs.GTFSReader;
 import infovis.data.gtfs.ZipGTFSDataProvider;
 import infovis.util.IOUtil;
+import infovis.util.Objects;
 import infovis.util.VecUtil;
 
 import java.awt.Color;
@@ -165,7 +166,7 @@ public final class BusDataBuilder {
    * @throws IllegalArgumentException if the ID has no associated line
    */
   public BusLine getLine(final String id) {
-    final BusLine line = lineMap.get(id);
+    final BusLine line = lineMap.get(Objects.requireNonNull(id));
     if(line == null) throw new IllegalArgumentException("Unknown line: " + id);
     return line;
   }
@@ -276,8 +277,8 @@ public final class BusDataBuilder {
    * @return associated station
    * @throws IllegalArgumentException if the ID has no associated station
    */
-  private BusStation getStation(final String id) {
-    final BusStation station = stations.get(idMap.get(id));
+  public BusStation getStation(final String id) {
+    final BusStation station = stations.get(Objects.requireNonNull(idMap.get(id)));
     if(station == null) throw new IllegalArgumentException("Unknown station: " + id);
     return station;
   }
