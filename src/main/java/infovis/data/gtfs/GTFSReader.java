@@ -179,7 +179,8 @@ public class GTFSReader implements BusDataReader {
   private void readLines() {
     for(final GTFSRow row : data.routes()) {
       final String id = Objects.requireNonNull(row.getField("route_id"));
-      final String name = Objects.requireNonNull(row.getField("route_long_name"));
+      final String name = Objects.requireNonNull(row.getField("route_short_name"));
+      final String longName = Objects.requireNonNull(row.getField("route_long_name"));
       final String c = row.getField("route_color");
       Color color;
       if(c == null) {
@@ -191,7 +192,8 @@ public class GTFSReader implements BusDataReader {
           color = null;
         }
       }
-      builder.createLine(id, name, Objects.nonNull(color, Color.WHITE));
+      builder.createLine(id, name, name + " - " + longName,
+          Objects.nonNull(color, Color.WHITE));
     }
   }
 

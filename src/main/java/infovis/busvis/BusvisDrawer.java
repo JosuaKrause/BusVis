@@ -316,7 +316,7 @@ public final class BusvisDrawer implements NodeDrawer, Fader {
       final BusLine line = e.getLine();
       drawLabel(g2, ctx, to, false, e.getEnd().pretty() + " (" +
           BusTime.minutesToString(start.minutesTo(e.getEnd())) +
-          ") - " + line.getFullName());
+          ") - " + line.getName());
       g2.dispose();
       visited.set(to.getId());
     }

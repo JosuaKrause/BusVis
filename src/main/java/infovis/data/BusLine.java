@@ -12,10 +12,13 @@ import java.awt.Color;
 public final class BusLine implements Comparable<BusLine> {
 
   /** Bus line used for walked sections of a route. */
-  public static final BusLine WALK = new BusLine("Walk", Color.BLACK);
+  public static final BusLine WALK = new BusLine("Walk", null, Color.BLACK);
 
   /** Bus line name. */
   private final String name;
+
+  /** Long bus line name. */
+  private final String longName;
 
   /** Bus color. */
   private final Color color;
@@ -26,11 +29,13 @@ public final class BusLine implements Comparable<BusLine> {
   /**
    * Constructor taking the name and the color.
    * 
-   * @param name bus line name
-   * @param color bus line color
+   * @param name Bus line name,
+   * @param longName Long bus line name, may be <code>null</code>.
+   * @param color Bus line color.
    */
-  BusLine(final String name, final Color color) {
+  BusLine(final String name, final String longName, final Color color) {
     this.name = Objects.requireNonNull(name);
+    this.longName = Objects.nonNull(longName, name);
     this.color = Objects.requireNonNull(color);
     final String tmp = "0000000000" + name;
     final int l = tmp.length();
@@ -52,7 +57,7 @@ public final class BusLine implements Comparable<BusLine> {
    * @return The full bus line name.
    */
   public String getFullName() {
-    return (this == WALK ? "" : "Line ") + getName();
+    return longName;
   }
 
   /**

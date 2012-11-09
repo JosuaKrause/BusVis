@@ -58,7 +58,8 @@ public class CSVBusDataReader implements BusDataReader {
         "lines.csv", cs));
     for(String[] line; (line = lineReader.readNext()) != null;) {
       final Color c = new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]));
-      builder.createLine(line[0], line[0].replace('_', '/'), c);
+      final String name = line[0].replace('_', '/');
+      builder.createLine(line[0], name, "Line " + name, c);
     }
 
     final CSVReader edgeReader = Objects.requireNonNull(

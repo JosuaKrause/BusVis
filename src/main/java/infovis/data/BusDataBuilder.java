@@ -200,13 +200,15 @@ public final class BusDataBuilder {
    * 
    * @param id The id of the line.
    * @param line The name.
+   * @param longName The long name. May be <code>null</code>.
    * @param color The color.
    * @return The bus line.
    */
-  public BusLine createLine(final String id, final String line, final Color color) {
+  public BusLine createLine(final String id, final String line,
+      final String longName, final Color color) {
     if(lineMap.containsKey(id)) throw new IllegalArgumentException(
         "line id: " + id + " already in use");
-    final BusLine res = new BusLine(line, color);
+    final BusLine res = new BusLine(line, longName, color);
     lineMap.put(id, res);
     return res;
   }
