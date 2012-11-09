@@ -15,15 +15,18 @@ import java.awt.Color;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A general transfer feed specification (GTFS) implementation in order to
- * obtain our internal transit network format.
+ * obtain our internal transit network format. This reader is not thread safe
+ * and should be used only once.
  * 
  * @author Joschi <josua.krause@googlemail.com>
- *
  */
 public class GTFSReader implements BusDataReader {
 
@@ -36,6 +39,15 @@ public class GTFSReader implements BusDataReader {
   /** Mapping from a trip id to corresponding bus lines. */
   private final Map<String, BusLine> tripMap = new HashMap<String, BusLine>();
 
+  /** Maps to the parent of the station. */
+  private final Map<String, String> stationParent = new HashMap<String, String>();
+
+  /** The current builder. Note that only one builder at a time can be used. */
+  private BusDataBuilder builder;
+
+  /** Whether this reader was used before. */
+  private final AtomicBoolean used = new AtomicBoolean(false);
+
   /**
    * Creates a GTFS reader for the given data provider.
    * 
@@ -45,88 +57,188 @@ public class GTFSReader implements BusDataReader {
     this.data = Objects.requireNonNull(data);
   }
 
+  /**
+   * Resolves the id of a station.
+   * 
+   * @param id The id of a station.
+   * @return The station.
+   */
+  public BusStation getStation(final String id) {
+    return builder.getStation(stationParent.get(id));
+  }
+
+  /**
+   * A temporal representation of a station.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  private static final class TempStation {
+
+    /** The id of the station. */
+    private final String id;
+
+    /** The name of the station. */
+    private final String name;
+
+    /** The latitude of the station. */
+    private final double lat;
+
+    /** The longitude of the station. */
+    private final double lon;
+
+    /**
+     * Creates a station.
+     * 
+     * @param id The id.
+     * @param name The name.
+     * @param lat The latitude.
+     * @param lon The longitude.
+     */
+    public TempStation(final String id, final String name, final double lat,
+        final double lon) {
+      this.id = id;
+      this.name = name;
+      this.lat = lat;
+      this.lon = lon;
+    }
+
+    /**
+     * Creates the actual station.
+     * 
+     * @param builder The builder.
+     */
+    public void create(final BusDataBuilder builder) {
+      builder.createStation(name, id, lat, lon, NaN, NaN);
+    }
+
+  }
+
   @Override
   public BusDataBuilder read(final String local, final String path, final Charset cs)
       throws IOException {
+    if(used.getAndSet(true)) throw new IllegalStateException(
+        "this reader was used before");
     final Stopwatch a = new Stopwatch();
     final Stopwatch t = new Stopwatch();
     System.out.println("Loading " + path + "...");
     data.setSource(IOUtil.getURL(local, path), cs);
-    final BusDataBuilder builder = new BusDataBuilder(null);
+    builder = new BusDataBuilder(null);
     System.out.println("Took " + t.reset());
     System.out.println("Reading stations...");
-    for(final GTFSRow row : data.stops()) {
-      final String id = row.getField("stop_id");
-      final String name = row.getField("stop_name");
-      final double lat = parseDouble(row.getField("stop_lat"));
-      final double lon = parseDouble(row.getField("stop_lon"));
-      // TODO make alias for parent_station and using location_type
-      builder.createStation(name, id, lat, lon, NaN, NaN);
-    }
+    readStations();
     System.out.println(builder.stationCount() + " stations (" + t.reset() + ")");
     System.out.println("Computing walk distances...");
     builder.calcWalkingDistances();
     System.out.println(builder.walkingCount() + " walking edges (" + t.reset() + ")");
     System.out.println("Reading lines...");
-    for(final GTFSRow row : data.routes()) {
-      final String id = row.getField("route_id");
-      final String name = row.getField("route_long_name");
-      final String c = row.getField("route_color");
-      Color color;
-      try {
-        color = new Color(0xff000000 | Integer.parseInt(c, 16));
-      } catch(final NumberFormatException e) {
-        color = null;
-      }
-      builder.createLine(id, name, Objects.nonNull(color, Color.WHITE));
-    }
+    readLines();
     System.out.println(builder.lineCount() + " lines (" + t.reset() + ")");
     System.out.println("Reading trips...");
-    // TODO use trips and calendar to find valid trips
-    for(final GTFSRow row : data.trips()) {
-      tripMap.put(row.getField("trip_id"), builder.getLine(row.getField("route_id")));
-    }
+    readTrips();
     System.out.println(tripMap.size() + " trips (" + t.reset() + ")");
     System.out.println("Reading stop times...");
-    int min = Integer.MAX_VALUE;
-    int max = Integer.MIN_VALUE;
-    for(final GTFSRow row : data.stopTimes()) {
-      final String tripId = row.getField("trip_id");
-      final BusTime arrival = getTime(row.getField("arrival_time"));
-      final BusTime departure = getTime(row.getField("departure_time"));
-      final BusStation station = builder.getStation(row.getField("stop_id"));
-      final int seq = Integer.parseInt(row.getField("stop_sequence"));
-      if(seq < min) {
-        min = seq;
-      }
-      if(seq > max) {
-        max = seq;
-      }
-      trips.put(new TripSegment(tripId, seq),
-          new TripStation(station, arrival, departure));
-    }
+    readStopTimes();
     System.out.println(trips.size() + " used trips (" + t.reset() + ")");
     System.out.println("Building edges...");
-    buildEdges(builder, min, max);
+    buildEdges();
     System.out.println(builder.edgeCount() + " edges (" + t.reset() + ")");
     System.out.println("Loading took " + a.current());
     return builder;
   }
 
+  /** Reads the stations. */
+  private void readStations() {
+    final Map<String, TempStation> stations = new HashMap<String, TempStation>();
+    for(final GTFSRow row : data.stops()) {
+      final String id = Objects.requireNonNull(row.getField("stop_id"));
+      final String name = Objects.requireNonNull(row.getField("stop_name"));
+      final double lat = parseDouble(row.getField("stop_lat"));
+      final double lon = parseDouble(row.getField("stop_lon"));
+      final String parent = row.getField("parent_station");
+      stationParent.put(id, Objects.nonNull(parent, id));
+      stations.put(id, new TempStation(id, name, lat, lon));
+    }
+    final Set<TempStation> created = new HashSet<TempStation>();
+    for(final Entry<String, TempStation> e : stations.entrySet()) {
+      final String id = e.getKey();
+      final String parent = stationParent.get(id);
+      TempStation t = stations.get(parent);
+      if(t == null) {
+        // fake parent
+        stationParent.put(id, id);
+        t = e.getValue();
+      }
+      if(!created.contains(t)) {
+        t.create(builder);
+        created.add(t);
+      }
+    }
+  }
+
+  /** Reads the lines. */
+  private void readLines() {
+    for(final GTFSRow row : data.routes()) {
+      final String id = Objects.requireNonNull(row.getField("route_id"));
+      final String name = Objects.requireNonNull(row.getField("route_long_name"));
+      final String c = row.getField("route_color");
+      Color color;
+      if(c == null) {
+        color = null;
+      } else {
+        try {
+          color = new Color(0xff000000 | Integer.parseInt(c, 16));
+        } catch(final NumberFormatException e) {
+          color = null;
+        }
+      }
+      builder.createLine(id, name, Objects.nonNull(color, Color.WHITE));
+    }
+  }
+
+  /** Reads the trips. */
+  private void readTrips() {
+    // TODO use trips and calendar to find valid trips
+    for(final GTFSRow row : data.trips()) {
+      tripMap.put(Objects.requireNonNull(row.getField("trip_id")),
+          builder.getLine(Objects.requireNonNull(row.getField("route_id"))));
+    }
+  }
+
+  /** The minimal sequence number. */
+  private int minSeq = Integer.MAX_VALUE;
+
+  /** The maximal sequence number. */
+  private int maxSeq = Integer.MIN_VALUE;
+
+  /** Reads the stop times. */
+  private void readStopTimes() {
+    for(final GTFSRow row : data.stopTimes()) {
+      final String tripId = Objects.requireNonNull(row.getField("trip_id"));
+      final BusTime arrival = getTime(row.getField("arrival_time"));
+      final BusTime departure = getTime(row.getField("departure_time"));
+      final BusStation station = getStation(Objects.requireNonNull(row.getField("stop_id")));
+      final int seq = Integer.parseInt(row.getField("stop_sequence"));
+      if(seq < minSeq) {
+        minSeq = seq;
+      }
+      if(seq > maxSeq) {
+        maxSeq = seq;
+      }
+      trips.put(new TripSegment(tripId, seq),
+          new TripStation(station, arrival, departure));
+    }
+  }
+
   /**
    * Builds edges from the previously read trips.
-   * 
-   * @param builder The builder to build to.
-   * @param min The minimal sequence number.
-   * @param max The maximal sequence number.
    */
-  private void buildEdges(final BusDataBuilder builder, final int min, final int max) {
+  private void buildEdges() {
     int tourNr = 0;
     for(final Entry<String, BusLine> trip : tripMap.entrySet()) {
       final String tripId = trip.getKey();
       TripStation curStation = null;
-      int p = min;
-      for(; p < max; ++p) {
+      int p = minSeq;
+      for(; p < maxSeq; ++p) {
         // when only a segment with max exists then there can be no edge
         if((curStation = trips.get(new TripSegment(tripId, p))) != null) {
           break;
@@ -136,9 +248,9 @@ public class GTFSReader implements BusDataReader {
         continue;
       }
       TripStation nextStation = null;
-      while(p < max) {
+      while(p < maxSeq) {
         ++p;
-        for(; p <= max; ++p) {
+        for(; p <= maxSeq; ++p) {
           if((nextStation = trips.get(new TripSegment(tripId, p))) != null) {
             break;
           }
