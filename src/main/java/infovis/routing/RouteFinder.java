@@ -5,6 +5,7 @@ import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusStationEnumerator;
 import infovis.data.BusTime;
+import infovis.util.Stopwatch;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -76,6 +77,10 @@ public final class RouteFinder implements RoutingAlgorithm {
       final BusStationEnumerator bse, final BusStation station, final BitSet dests,
       final BusTime start, final int wait, final int maxDuration, final int maxWalk)
           throws InterruptedException {
+    final Stopwatch t = new Stopwatch();
+    long edgeCount = 0;
+    long enqueued = 0;
+
     final int maxWalkSecs = maxWalk * BusTime.SECONDS_PER_MINUTE;
     final int maxDurSecs = maxDuration * BusTime.SECONDS_PER_MINUTE;
     final int waitSecs = wait * BusTime.SECONDS_PER_MINUTE;
@@ -101,7 +106,9 @@ public final class RouteFinder implements RoutingAlgorithm {
     for(final BusEdge e : station.getEdges(start)) {
       final Route route = new Route(start, e);
       if(route.travelTime <= maxDurSecs) {
-        maybeEnqueue(queue, bestTimes, waitSecs, route);
+        if(maybeEnqueue(queue, bestTimes, waitSecs, route)) {
+          ++enqueued;
+        }
       }
     }
 
@@ -112,13 +119,17 @@ public final class RouteFinder implements RoutingAlgorithm {
           final BusTime end = start.later(0, walkSecs);
           final Route route = new Route(start, BusEdge.walking(station, dest, start, end));
           if(route.travelTime <= maxDurSecs) {
-            maybeEnqueue(queue, bestTimes, waitSecs, route);
+            if(maybeEnqueue(queue, bestTimes, waitSecs, route)) {
+              ++enqueued;
+            }
           }
         }
       }
     }
 
     for(Route current; !notFound.isEmpty() && (current = queue.poll()) != null;) {
+      ++edgeCount;
+
       if(Thread.interrupted()) throw new InterruptedException();
       final BusEdge last = current.last;
       final BusStation dest = last.getTo();
@@ -148,7 +159,9 @@ public final class RouteFinder implements RoutingAlgorithm {
           continue;
         }
 
-        maybeEnqueue(queue, bestTimes, waitSecs, current.extendedBy(e));
+        if(maybeEnqueue(queue, bestTimes, waitSecs, current.extendedBy(e))) {
+          ++enqueued;
+        }
       }
 
       if(last.getLine() != BusLine.WALK) {
@@ -167,7 +180,9 @@ public final class RouteFinder implements RoutingAlgorithm {
               continue;
             }
 
-            maybeEnqueue(queue, bestTimes, waitSecs, current.extendedBy(e));
+            if(maybeEnqueue(queue, bestTimes, waitSecs, current.extendedBy(e))) {
+              ++enqueued;
+            }
           }
         }
       }
@@ -181,6 +196,10 @@ public final class RouteFinder implements RoutingAlgorithm {
       }
       res[id] = bestRoutes[id].asArray();
     }
+
+    System.out.println("Routing (thread: " + Thread.currentThread().getName()
+        + " time: " + t.current() + " edges: " + edgeCount
+        + " enqueued: " + enqueued + ")");
     return res;
   }
 
@@ -192,12 +211,14 @@ public final class RouteFinder implements RoutingAlgorithm {
    * @param bestTimes The map for current optima.
    * @param wait The bus change time in seconds.
    * @param r The route to maybe add.
+   * @return <code>true</code> if the route was enqueued.
    */
-  private static void maybeEnqueue(final Queue<Route> queue,
+  private static boolean maybeEnqueue(final Queue<Route> queue,
       final int[] bestTimes, final int wait, final Route r) {
-    if(!mayBeBetter(bestTimes, r)) return;
+    if(!mayBeBetter(bestTimes, r)) return false;
     updateBestTime(bestTimes, r.last.getTo(), r.travelTime, wait);
     queue.add(r);
+    return true;
   }
 
   /**
