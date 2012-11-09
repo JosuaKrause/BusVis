@@ -1,5 +1,6 @@
 package infovis.data;
 
+import static infovis.util.IOUtil.*;
 import static java.lang.Integer.*;
 import infovis.data.csv.CSVBusDataReader;
 import infovis.data.gtfs.GTFSReader;
@@ -47,20 +48,72 @@ public final class BusDataBuilder {
     this.overview = overview;
   }
 
-  /** The default character set - CP-1252 for Excel compatibility. */
-  private static final Charset DEFAULT_CS = IOUtil.CP1252;
+  /**
+   * Getter.
+   * 
+   * @return The number of registered stations.
+   */
+  public int stationCount() {
+    return stations.size();
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The number of registered lines.
+   */
+  public int lineCount() {
+    return lineMap.size();
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The number of registered edges.
+   */
+  public long edgeCount() {
+    long sum = 0;
+    for(final List<BusEdge> e : edges) {
+      sum += e.size();
+    }
+    return sum;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The number of registered walking edges.
+   */
+  public long walkingCount() {
+    long sum = 0;
+    for(final List<Integer> e : walkingDists) {
+      sum += e.size();
+    }
+    return sum;
+  }
+
+  /**
+   * The default character set. <code>CP-1252</code> for Excel compatibility and
+   * <code>UTF-8</code> for ZIP files.
+   * 
+   * @param path The path of the resource.
+   * @return The default character set.
+   */
+  public static Charset defaultCharset(final String path) {
+    return path.endsWith(".zip") ? UTF8 : CP1252;
+  }
 
   /**
    * Loads a bus station manager from the given path.
    * 
    * @param path The path.
-   * @param cs The charset or <code>null</code>.
+   * @param cs The character set or <code>null</code>.
    * @return The bus station manager.
    * @throws IOException I/O Exception.
    */
   public static BusStationManager loadPath(final String path, final String cs)
       throws IOException {
-    return load(null, path, cs != null ? Charset.forName(cs) : DEFAULT_CS);
+    return load(null, path, cs != null ? Charset.forName(cs) : defaultCharset(path));
   }
 
   /**
@@ -71,7 +124,7 @@ public final class BusDataBuilder {
    * @throws IOException I/O Exception.
    */
   public static BusStationManager loadDefault(final String path) throws IOException {
-    return load(IOUtil.RESOURCES, path, DEFAULT_CS);
+    return load(IOUtil.RESOURCES, path, defaultCharset(path));
   }
 
   /**
@@ -88,7 +141,7 @@ public final class BusDataBuilder {
       final Charset cs) throws IOException {
     final BusDataReader in;
     if(path.endsWith(".zip")) {
-      if(!IOUtil.UTF8.equals(cs)) {
+      if(!UTF8.equals(cs)) {
         System.err.println("Warning: character set '" + cs.displayName()
             + "' is not 'UTF-8'! Use second command line argument to change");
       }
@@ -282,7 +335,6 @@ public final class BusDataBuilder {
     if(station == null) throw new IllegalArgumentException("Unknown station: " + id);
     return station;
   }
-
 
   /**
    * Finishes the building process and returns the bus station manager.

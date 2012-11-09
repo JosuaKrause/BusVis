@@ -9,6 +9,7 @@ import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.util.IOUtil;
 import infovis.util.Objects;
+import infovis.util.Stopwatch;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -47,8 +48,13 @@ public class GTFSReader implements BusDataReader {
   @Override
   public BusDataBuilder read(final String local, final String path, final Charset cs)
       throws IOException {
+    final Stopwatch a = new Stopwatch();
+    final Stopwatch t = new Stopwatch();
+    System.out.println("Loading " + path + "...");
     data.setSource(IOUtil.getURL(local, path), cs);
     final BusDataBuilder builder = new BusDataBuilder(null);
+    System.out.println("Took " + t.reset());
+    System.out.println("Reading stations...");
     for(final GTFSRow row : data.stops()) {
       final String id = row.getField("stop_id");
       final String name = row.getField("stop_name");
@@ -57,7 +63,11 @@ public class GTFSReader implements BusDataReader {
       // TODO make alias for parent_station and using location_type
       builder.createStation(name, id, lat, lon, NaN, NaN);
     }
+    System.out.println(builder.stationCount() + " stations (" + t.reset() + ")");
+    System.out.println("Computing walk distances...");
     builder.calcWalkingDistances();
+    System.out.println(builder.walkingCount() + " walking edges (" + t.reset() + ")");
+    System.out.println("Reading lines...");
     for(final GTFSRow row : data.routes()) {
       final String id = row.getField("route_id");
       final String name = row.getField("route_long_name");
@@ -68,13 +78,16 @@ public class GTFSReader implements BusDataReader {
       } catch(final NumberFormatException e) {
         color = null;
       }
-      // TODO use WHITE as default color
-      builder.createLine(id, name, Objects.nonNull(color, Color.BLUE));
+      builder.createLine(id, name, Objects.nonNull(color, Color.WHITE));
     }
+    System.out.println(builder.lineCount() + " lines (" + t.reset() + ")");
+    System.out.println("Reading trips...");
     // TODO use trips and calendar to find valid trips
     for(final GTFSRow row : data.trips()) {
       tripMap.put(row.getField("trip_id"), builder.getLine(row.getField("route_id")));
     }
+    System.out.println(tripMap.size() + " trips (" + t.reset() + ")");
+    System.out.println("Reading stop times...");
     int min = Integer.MAX_VALUE;
     int max = Integer.MIN_VALUE;
     for(final GTFSRow row : data.stopTimes()) {
@@ -92,7 +105,11 @@ public class GTFSReader implements BusDataReader {
       trips.put(new TripSegment(tripId, seq),
           new TripStation(station, arrival, departure));
     }
+    System.out.println(trips.size() + " used trips (" + t.reset() + ")");
+    System.out.println("Building edges...");
     buildEdges(builder, min, max);
+    System.out.println(builder.edgeCount() + " edges (" + t.reset() + ")");
+    System.out.println("Loading took " + a.current());
     return builder;
   }
 
@@ -129,8 +146,8 @@ public class GTFSReader implements BusDataReader {
         if(nextStation == null) {
           break;
         }
-        builder.addEdge(curStation.station, trip.getValue(),
-            tourNr, nextStation.station, curStation.departure, nextStation.arrival);
+        builder.addEdge(curStation.station, trip.getValue(), tourNr,
+            nextStation.station, curStation.departure, nextStation.arrival);
         curStation = nextStation;
         nextStation = null;
         ++tourNr;
