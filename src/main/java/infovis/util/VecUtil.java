@@ -184,7 +184,7 @@ public final class VecUtil {
   }
 
   /** The value to scale angles. */
-  private static final double SCALE = 6000;
+  private static final double SCALE = 4000;
 
   /**
    * Scales the given angle to a bigger representable size.
@@ -194,7 +194,7 @@ public final class VecUtil {
    * @return A coordinate.
    */
   public static double scaleAngle(final double angle, final boolean lat) {
-    return angle * SCALE * (lat ? 1 : -1);
+    return (angle + 180) * SCALE * (lat ? 1 : -1);
   }
 
   /**
@@ -205,7 +205,7 @@ public final class VecUtil {
    * @return The corresponding angle.
    */
   public static double unscaleAngle(final double coord, final boolean lat) {
-    return coord / SCALE * (lat ? 1 : -1);
+    return coord / SCALE * (lat ? 1 : -1) - 180;
   }
 
 }

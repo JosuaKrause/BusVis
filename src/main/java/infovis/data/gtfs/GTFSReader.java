@@ -94,8 +94,8 @@ public class GTFSReader implements BusDataReader {
      * @param lat The latitude.
      * @param lon The longitude.
      */
-    public TempStation(final String id, final String name, final double lat,
-        final double lon) {
+    public TempStation(final String id, final String name,
+        final double lat, final double lon) {
       this.id = id;
       this.name = name;
       this.lat = lat;
@@ -152,8 +152,13 @@ public class GTFSReader implements BusDataReader {
     for(final GTFSRow row : data.stops()) {
       final String id = Objects.requireNonNull(row.getField("stop_id"));
       final String name = Objects.requireNonNull(row.getField("stop_name"));
-      final double lat = parseDouble(row.getField("stop_lat"));
-      final double lon = parseDouble(row.getField("stop_lon"));
+      double lat = parseDouble(row.getField("stop_lat"));
+      double lon = parseDouble(row.getField("stop_lon"));
+      // TODO nyc gtfs switched lat and lon
+      final double t = lat;
+      lat = lon;
+      lon = t;
+      // ---
       final String parent = row.getField("parent_station");
       stationParent.put(id, Objects.nonNull(parent, id));
       stations.put(id, new TempStation(id, name, lat, lon));
