@@ -3,7 +3,6 @@ package infovis.data.gtfs;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.Collection;
 
 
 /**
@@ -28,7 +27,7 @@ public interface GTFSDataProvider {
    * @return Provides a reader of the content of the file <code>stops.txt</code>
    *         .
    */
-  Collection<GTFSRow> stops();
+  Iterable<GTFSRow> stops();
 
   /**
    * Getter.
@@ -36,7 +35,7 @@ public interface GTFSDataProvider {
    * @return Provides a reader of the content of the file
    *         <code>routes.txt</code>.
    */
-  Collection<GTFSRow> routes();
+  Iterable<GTFSRow> routes();
 
   /**
    * Getter.
@@ -44,7 +43,7 @@ public interface GTFSDataProvider {
    * @return Provides a reader of the content of the file <code>trips.txt</code>
    *         .
    */
-  Collection<GTFSRow> trips();
+  Iterable<GTFSRow> trips();
 
   /**
    * Getter.
@@ -52,6 +51,6 @@ public interface GTFSDataProvider {
    * @return Provides a reader of the content of the file
    *         <code>stop_times.txt</code>.
    */
-  Collection<GTFSRow> stopTimes();
+  Iterable<GTFSRow> stopTimes();
 
 }

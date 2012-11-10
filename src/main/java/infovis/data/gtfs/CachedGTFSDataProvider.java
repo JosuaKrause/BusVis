@@ -15,11 +15,11 @@ import java.util.zip.ZipInputStream;
 import au.com.bytecode.opencsv.CSVReader;
 
 /**
- * An implementation of {@link GTFSDataProvider} for ZIP files.
+ * An cached implementation of {@link GTFSDataProvider} for ZIP files.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class ZipGTFSDataProvider implements GTFSDataProvider {
+public class CachedGTFSDataProvider implements GTFSDataProvider {
 
   /** The content of <code>stops.txt</code>. */
   private final Collection<GTFSRow> stops = new ArrayList<GTFSRow>();
@@ -83,25 +83,7 @@ public class ZipGTFSDataProvider implements GTFSDataProvider {
     if(names == null) return;
     String[] cur;
     while((cur = in.readNext()) != null) {
-      final Map<String, String> map = new HashMap<String, String>();
-      final int len = Math.min(names.length, cur.length);
-      for(int i = 0; i < len; ++i) {
-        map.put(names[i], cur[i]);
-      }
-      final GTFSRow row = new GTFSRow() {
-
-        @Override
-        public boolean hasField(final String name) {
-          return map.containsKey(name);
-        }
-
-        @Override
-        public String getField(final String name) {
-          return map.get(name);
-        }
-
-      };
-      sink.add(row);
+      sink.add(LazyGTFSDataProvider.getRow(names, cur));
     }
   }
 

@@ -4,7 +4,7 @@ import static infovis.util.IOUtil.*;
 import static java.lang.Integer.*;
 import infovis.data.csv.CSVBusDataReader;
 import infovis.data.gtfs.GTFSReader;
-import infovis.data.gtfs.ZipGTFSDataProvider;
+import infovis.data.gtfs.LazyGTFSDataProvider;
 import infovis.util.IOUtil;
 import infovis.util.Objects;
 import infovis.util.VecUtil;
@@ -145,7 +145,7 @@ public final class BusDataBuilder {
         System.err.println("Warning: character set '" + cs.displayName()
             + "' is not 'UTF-8'! Use second command line argument to change");
       }
-      in = new GTFSReader(new ZipGTFSDataProvider());
+      in = new GTFSReader(new LazyGTFSDataProvider());
     } else {
       in = new CSVBusDataReader();
     }
