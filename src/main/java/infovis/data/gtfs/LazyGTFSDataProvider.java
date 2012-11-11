@@ -142,68 +142,45 @@ public final class LazyGTFSDataProvider implements GTFSDataProvider {
     return row;
   }
 
-  @Override
-  public Iterable<GTFSRow> stops() {
+  /**
+   * Creates an iterable for the given file in the ZIP archive.
+   * 
+   * @param file The file.
+   * @return The iterable.
+   */
+  private Iterable<GTFSRow> iterable(final String file) {
     return new Iterable<GTFSRow>() {
 
       @Override
       public Iterator<GTFSRow> iterator() {
         try {
-          return readFile("stops.txt");
+          return readFile(file);
         } catch(final IOException e) {
           throw new IllegalStateException(e);
         }
       }
 
     };
+  }
+
+  @Override
+  public Iterable<GTFSRow> stops() {
+    return iterable("stops.txt");
   }
 
   @Override
   public Iterable<GTFSRow> routes() {
-    return new Iterable<GTFSRow>() {
-
-      @Override
-      public Iterator<GTFSRow> iterator() {
-        try {
-          return readFile("routes.txt");
-        } catch(final IOException e) {
-          throw new IllegalStateException(e);
-        }
-      }
-
-    };
+    return iterable("routes.txt");
   }
 
   @Override
   public Iterable<GTFSRow> trips() {
-    return new Iterable<GTFSRow>() {
-
-      @Override
-      public Iterator<GTFSRow> iterator() {
-        try {
-          return readFile("trips.txt");
-        } catch(final IOException e) {
-          throw new IllegalStateException(e);
-        }
-      }
-
-    };
+    return iterable("trips.txt");
   }
 
   @Override
   public Iterable<GTFSRow> stopTimes() {
-    return new Iterable<GTFSRow>() {
-
-      @Override
-      public Iterator<GTFSRow> iterator() {
-        try {
-          return readFile("stop_times.txt");
-        } catch(final IOException e) {
-          throw new IllegalStateException(e);
-        }
-      }
-
-    };
+    return iterable("stop_times.txt");
   }
 
 }
