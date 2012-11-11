@@ -56,15 +56,18 @@ public class StressLayout extends DirectLayouter {
   }
 
   @Override
-  protected void changedWeights(final Collection<LayoutNode> nodes, final LayoutNode ref,
+  protected void changedWeights(final Collection<LayoutNode> nodes,
+      final Collection<LayoutNode> relevant, final LayoutNode ref,
       final Point2D refP, final Point2D diff) {
+    // TODO use relevant and refine later
     Arrays.fill(positions, null);
 
     final Map<NodeDyad, NodeDyad> dyads = new HashMap<NodeDyad, NodeDyad>();
     for(final LayoutNode n : nodes) {
       for(final WeightedEdge e : weighter.edgesTo(n)) {
         final NodeDyad dyad = new NodeDyad(e.from, e.to);
-        final NodeDyad old = dyads.get(dyad), nw = old == null ? dyad : old;
+        final NodeDyad old = dyads.get(dyad);
+        final NodeDyad nw = old == null ? dyad : old;
         if(nw != old) {
           dyads.put(nw, nw);
         }
@@ -113,8 +116,7 @@ public class StressLayout extends DirectLayouter {
   }
 
   @Override
-  protected Point2D getDestination(final LayoutNode n, final Point2D pos,
-      final LayoutNode ref, final Point2D refP, final Point2D diff) {
+  protected Point2D getDestination(final LayoutNode n) {
     return positions[n.getId()];
   }
 

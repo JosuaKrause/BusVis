@@ -11,6 +11,7 @@ import infovis.data.BusTime;
 import infovis.util.Interpolator;
 
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 
@@ -36,6 +37,12 @@ public abstract class DirectLayouter extends AbstractLayouter {
     this.weighter = weighter;
   }
 
+  /** The current set of relevant (ie. valid) nodes. */
+  private final Collection<LayoutNode> relevantNodes = new ArrayList<LayoutNode>();
+
+  /** Whether to further iterate. */
+  private boolean iterateAfterwards;
+
   @Override
   protected boolean step() {
     final ChangeType change = weighter.changes();
@@ -48,8 +55,8 @@ public abstract class DirectLayouter extends AbstractLayouter {
     }
     final LayoutNode ref = weighter.getReferenceNode();
     if(change != NO_CHANGE) {
-      final Point2D diff;
       final Point2D refP;
+      final Point2D diff;
       if(ref != null) {
         final Point2D orig = weighter.getDefaultPosition(ref);
         refP = ref.getPos();
@@ -59,8 +66,10 @@ public abstract class DirectLayouter extends AbstractLayouter {
         diff = null;
       }
       final Collection<LayoutNode> nodes = weighter.nodes();
+      relevantNodes.clear();
+      iterateAfterwards = true;
       if(refP != null) {
-        changedWeights(nodes, ref, refP, diff);
+        changedWeights(nodes, relevantNodes, ref, refP, diff);
       }
       for(final LayoutNode n : nodes) {
         final Point2D pos = weighter.getDefaultPosition(n);
@@ -71,7 +80,7 @@ public abstract class DirectLayouter extends AbstractLayouter {
         if(refP == null) {
           dest = pos;
         } else {
-          dest = getDestination(n, pos, ref, refP, diff);
+          dest = getDestination(n);
         }
         switch(change) {
           case FAST_ANIMATION_CHANGE:
@@ -91,26 +100,58 @@ public abstract class DirectLayouter extends AbstractLayouter {
             n.startAnimationTo(dest, Interpolator.SMOOTH, LayoutNode.NORMAL);
         }
       }
+    } else if(iterateAfterwards) {
+      final Point2D refP = ref != null ? ref.getPos() : null;
+      if(relevantNodes.isEmpty() || refP == null) {
+        iterateAfterwards = false;
+      }
+      if(iterateAfterwards) {
+        iterateAfterwards = refinePositions(relevantNodes, refP);
+        for(final LayoutNode n : relevantNodes) {
+          if(n == ref) {
+            continue;
+          }
+          n.changeAnimationTo(getDestination(n), Interpolator.SMOOTH,
+              LayoutNode.NORMAL);
+        }
+      }
     }
     boolean needsRedraw = weighter.inAnimation();
     for(final LayoutNode n : weighter.nodes()) {
       n.animate();
       needsRedraw = needsRedraw || n.lazyInAnimation();
     }
-    return needsRedraw;
+    return iterateAfterwards || needsRedraw;
+  }
+
+  /**
+   * Refines the position after the initial layout until this method return
+   * <code>false</code>.
+   * 
+   * @param relevant The relevant nodes.
+   * @param refP The reference point.
+   * @return Whether to keep refining the layout.
+   */
+  protected boolean refinePositions(
+      @SuppressWarnings("unused") final Collection<LayoutNode> relevant,
+      @SuppressWarnings("unused") final Point2D refP) {
+    return false;
   }
 
   /**
    * Is called when weights have changed.
    * 
+   * @param nodes The nodes.
+   * @param relevant This array must be filled with nodes that are relevant ie.
+   *          valid.
    * @param ref The reference node.
    * @param refP The position of the reference node.
    * @param diff The vector from the reference nodes default position to its
    *          current position.
-   * @param nodes The nodes.
    */
   @SuppressWarnings("unused")
-  protected void changedWeights(final Collection<LayoutNode> nodes, final LayoutNode ref,
+  protected void changedWeights(final Collection<LayoutNode> nodes,
+      final Collection<LayoutNode> relevant, final LayoutNode ref,
       final Point2D refP, final Point2D diff) {
     // nothing to do
   }
@@ -119,14 +160,8 @@ public abstract class DirectLayouter extends AbstractLayouter {
    * Calculates the destination of the given node.
    * 
    * @param n The node.
-   * @param pos The default position of this node.
-   * @param ref The reference node.
-   * @param refP The position of the reference node.
-   * @param diff The vector from the reference nodes default position to its
-   *          current position.
    * @return The desired position of the given node.
    */
-  protected abstract Point2D getDestination(LayoutNode n, Point2D pos, LayoutNode ref,
-      Point2D refP, Point2D diff);
+  protected abstract Point2D getDestination(LayoutNode n);
 
 }
