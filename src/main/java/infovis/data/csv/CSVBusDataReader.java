@@ -24,6 +24,16 @@ import au.com.bytecode.opencsv.CSVReader;
  */
 public class CSVBusDataReader implements BusDataReader {
 
+  public static final String UNKNOWN = "UNKNOWN";
+
+  public static final String WALKING_DIST = "walking-dists.csv";
+
+  public static final String LINES = "lines.csv";
+
+  public static final String EDGES = "edges.csv";
+
+  public static final String STOPS = "stops.csv";
+
   @Override
   public BusDataBuilder read(final String local, final String path, final Charset cs)
       throws IOException {
@@ -32,10 +42,10 @@ public class CSVBusDataReader implements BusDataReader {
         IOUtil.hasContent(overview) ? overview : null);
 
     final CSVReader stops = Objects.requireNonNull(IOUtil.readerFor(local, path,
-        "stops.csv", cs));
+        STOPS, cs));
     for(String[] stop; (stop = stops.readNext()) != null;) {
       double abstractX, abstractY;
-      if("UNKNOWN".equals(stop[4])) {
+      if(UNKNOWN.equals(stop[4])) {
         abstractX = abstractY = NaN;
       } else {
         abstractX = parseDouble(stop[4]);
@@ -45,7 +55,7 @@ public class CSVBusDataReader implements BusDataReader {
           parseDouble(stop[2]), abstractX, abstractY);
     }
 
-    final CSVReader walk = IOUtil.readerFor(local, path, "walking-dists.csv", cs);
+    final CSVReader walk = IOUtil.readerFor(local, path, WALKING_DIST, cs);
     if(walk != null) {
       for(String[] dist; (dist = walk.readNext()) != null;) {
         builder.setWalkingDistance(dist[0], dist[1], parseInt(dist[2]));
@@ -55,15 +65,21 @@ public class CSVBusDataReader implements BusDataReader {
     }
 
     final CSVReader lineReader = Objects.requireNonNull(IOUtil.readerFor(local, path,
-        "lines.csv", cs));
+        LINES, cs));
     for(String[] line; (line = lineReader.readNext()) != null;) {
       final Color c = new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]));
       final String name = line[0].replace('_', '/');
-      builder.createLine(line[0], name, "Line " + name, c);
+      String longName;
+      if(line.length > 4) {
+        longName = line[4];
+      } else {
+        longName = "Line " + name;
+      }
+      builder.createLine(line[0], name, longName, c);
     }
 
     final CSVReader edgeReader = Objects.requireNonNull(
-        IOUtil.readerFor(local, path, "edges.csv", cs));
+        IOUtil.readerFor(local, path, EDGES, cs));
     for(String[] edge; (edge = edgeReader.readNext()) != null;) {
       final BusLine line = builder.getLine(edge[0]);
       final int tourNr = parseInt(edge[1]);
