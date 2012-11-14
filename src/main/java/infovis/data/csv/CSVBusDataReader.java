@@ -14,6 +14,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -41,9 +42,10 @@ public class CSVBusDataReader implements BusDataReader {
     final BusDataBuilder builder = new BusDataBuilder(
         IOUtil.hasContent(overview) ? overview : null);
 
-    final CSVReader stops = Objects.requireNonNull(IOUtil.readerFor(local, path,
-        STOPS, cs));
+    final CSVReader stops = Objects.requireNonNull(
+        IOUtil.readerFor(local, path, STOPS, cs));
     for(String[] stop; (stop = stops.readNext()) != null;) {
+      System.out.println(Arrays.toString(stop));
       double abstractX, abstractY;
       if(UNKNOWN.equals(stop[4])) {
         abstractX = abstractY = NaN;

@@ -32,6 +32,33 @@ public final class IOUtil {
   /** Resource path. */
   public static final String RESOURCES = "src/main/resources";
 
+  public static String getParent(final String path) {
+    String f = path;
+    while(endsWithDelim(f)) {
+      f = parent(f);
+    }
+    return parent(f);
+  }
+
+  private static String parent(final String path) {
+    final int i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+    return path.substring(0, i + 1);
+  }
+
+  private static boolean endsWithDelim(final String path) {
+    final char end = path.charAt(path.length() - 1);
+    return end == '/' || end == '\\';
+  }
+
+  public static File directFile(final String path) {
+    return new File(path);
+  }
+
+  public static File directFile(final String path, final String file) {
+    if(endsWithDelim(path)) return directFile(path + file);
+    return directFile(path + "/" + file);
+  }
+
   /**
    * Gets the {@link URL} of a resource.
    * 

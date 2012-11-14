@@ -7,12 +7,16 @@ import infovis.data.BusDataReader;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.data.csv.CSVBusDataReader;
+import infovis.data.out.BusDataWriter;
 import infovis.util.IOUtil;
 import infovis.util.Objects;
 import infovis.util.Stopwatch;
 
 import java.awt.Color;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -118,6 +122,35 @@ public class GTFSReader implements BusDataReader {
       throws IOException {
     if(used.getAndSet(true)) throw new IllegalStateException(
         "this reader was used before");
+    final boolean caching = local == null;
+    if(caching) {
+      final String root = IOUtil.getParent(path);
+      final File stops = IOUtil.directFile(root, CSVBusDataReader.STOPS);
+      final File zip = IOUtil.directFile(path);
+      final URL stopsURL = stops.toURI().toURL();
+      if(IOUtil.hasContent(stopsURL) && zip.lastModified() < stops.lastModified()) {
+        final Stopwatch t = new Stopwatch();
+        System.out.println("Loading cached from " + root + "...");
+        final BusDataReader in = new CSVBusDataReader();
+        builder = in.read(local, root, cs);
+        System.out.println("Loading took " + t.current());
+        return builder;
+      }
+    }
+    doRead(local, path, cs);
+    if(caching) {
+      final String root = IOUtil.getParent(path);
+      System.out.println("Writing cache to " + root + "...");
+      final Stopwatch t = new Stopwatch();
+      final BusDataWriter out = new BusDataWriter(builder.finish());
+      out.write(IOUtil.directFile(root), cs);
+      System.out.println("Took " + t.current());
+    }
+    return builder;
+  }
+
+  private void doRead(final String local, final String path, final Charset cs)
+      throws IOException {
     final Stopwatch a = new Stopwatch();
     final Stopwatch t = new Stopwatch();
     System.out.println("Loading " + path + "...");
@@ -143,7 +176,6 @@ public class GTFSReader implements BusDataReader {
     buildEdges();
     System.out.println(builder.edgeCount() + " edges (" + t.reset() + ")");
     System.out.println("Loading took " + a.current());
-    return builder;
   }
 
   /** Reads the stations. */

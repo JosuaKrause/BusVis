@@ -338,16 +338,21 @@ public final class BusDataBuilder {
     return station;
   }
 
+  private BusStationManager result;
+
   /**
    * Finishes the building process and returns the bus station manager.
    * 
    * @return bus station manager
    */
   public BusStationManager finish() {
-    for(final List<BusEdge> e : edges) {
-      Collections.sort(e);
+    if(result == null) {
+      for(final List<BusEdge> e : edges) {
+        Collections.sort(e);
+      }
+      result = new BusStationManager(stations, overview);
     }
-    return new BusStationManager(stations, overview);
+    return result;
   }
 
 }
