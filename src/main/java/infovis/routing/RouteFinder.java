@@ -26,7 +26,7 @@ public final class RouteFinder implements RoutingAlgorithm {
       final int timeDiff = o1.travelTime - o2.travelTime;
       if(timeDiff != 0) return timeDiff;
       final int stepsDiff = o1.getLength() - o2.getLength();
-      return stepsDiff != 0 ? timeDiff : o1.walkTimeSecs() - o2.walkTimeSecs();
+      return stepsDiff != 0 ? stepsDiff : o1.walkTimeSecs() - o2.walkTimeSecs();
     }
   };
 
