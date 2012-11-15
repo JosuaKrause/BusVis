@@ -13,11 +13,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Set;
 
-import au.com.bytecode.opencsv.CSVWriter;
+import jkit.io.csv.CSVWriter;
 
 public class BusDataWriter {
 
@@ -58,32 +59,46 @@ public class BusDataWriter {
 
   private CSVWriter getWriter(final File folder, final String name, final Charset cs)
       throws FileNotFoundException {
-    return new CSVWriter(new OutputStreamWriter(
-        new FileOutputStream(new File(folder, name)), cs));
+    return new CSVWriter(new PrintWriter(new OutputStreamWriter(
+        new FileOutputStream(new File(folder, name)), cs), true));
   }
 
   private void writeEdges(final CSVWriter out, final BusEdge edge) {
-    out.writeNext(new String[] { edge.getLine().getName(), "" + edge.getTourNr(),
-        "" + edge.getFrom().getId(), writeTime(edge.getStart()),
-        writeTime(edge.getEnd()), "" + edge.getTo().getId()});
+    out.writeCell(edge.getLine().getName());
+    out.writeCell("" + edge.getTourNr());
+    out.writeCell("" + edge.getFrom().getId());
+    out.writeCell(writeTime(edge.getStart()));
+    out.writeCell(writeTime(edge.getEnd()));
+    out.writeCell("" + edge.getTo().getId());
+    out.writeRow();
   }
 
   private void writeWalkingDist(final CSVWriter out, final BusStation from,
       final BusStation to, final int seconds) {
-    out.writeNext(new String[] { "" + from.getId(), "" + to.getId(), "" + seconds});
+    out.writeCell("" + from.getId());
+    out.writeCell("" + to.getId());
+    out.writeCell("" + seconds);
+    out.writeRow();
   }
 
   private void writeLine(final CSVWriter out, final BusLine line) {
     final Color color = line.getColor();
-    out.writeNext(new String[] { line.getName(), "" + color.getRed(),
-        "" + color.getGreen(), "" + color.getBlue(), line.getFullName()});
+    out.writeCell(line.getName());
+    out.writeCell("" + color.getRed());
+    out.writeCell("" + color.getGreen());
+    out.writeCell("" + color.getBlue());
+    out.writeCell(line.getFullName());
+    out.writeRow();
   }
 
   private void writeStation(final CSVWriter out, final BusStation station) {
-    out.writeNext(new String[] { station.getName(), "" + station.getId(),
-        "" + station.getLatitude(), "" + station.getLongitude(),
-        abstractCoordinate(station.getAbstractX()),
-        abstractCoordinate(station.getAbstractY())});
+    out.writeCell(station.getName());
+    out.writeCell("" + station.getId());
+    out.writeCell("" + station.getLatitude());
+    out.writeCell("" + station.getLongitude());
+    out.writeCell(abstractCoordinate(station.getAbstractX()));
+    out.writeCell(abstractCoordinate(station.getAbstractY()));
+    out.writeRow();
   }
 
   private String abstractCoordinate(final double coordinate) {

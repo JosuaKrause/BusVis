@@ -8,7 +8,8 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.Charset;
 
-import au.com.bytecode.opencsv.CSVReader;
+import jkit.io.csv.CSVHandler;
+import jkit.io.csv.CSVReader;
 
 /**
  * I/O utility methods.
@@ -127,11 +128,14 @@ public final class IOUtil {
    * @return reader or <code>null</code> if not found.
    * @throws IOException I/O exception
    */
-  public static CSVReader readerFor(final String local, final String path,
-      final String file, final Charset cs) throws IOException {
+  public static boolean read(final CSVReader reader, final String local,
+      final String path, final String file, final Charset cs,
+      final CSVHandler handler) throws IOException {
     final URL url = IOUtil.getURL(local, path + '/' + file);
-    if(!IOUtil.hasContent(url)) return null;
-    return new CSVReader(IOUtil.charsetReader(url.openStream(), cs), ';');
+    if(!IOUtil.hasContent(url)) return false;
+    reader.setHandler(handler);
+    reader.read(IOUtil.charsetReader(url.openStream(), cs));
+    return true;
   }
 
 }

@@ -26,6 +26,10 @@ public final class Objects {
     return obj;
   }
 
+  public static void requireTrue(final boolean value) {
+    if(!value) throw new IllegalStateException("expected true");
+  }
+
   /**
    * Returns the first argument if it is non-null otherwise the second argument
    * is returned. This is a short-hand for:

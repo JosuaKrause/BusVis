@@ -16,7 +16,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import au.com.bytecode.opencsv.CSVReader;
+import jkit.io.csv.CSVReader;
 
 /**
  * Reading transit data in CSV format specified in <code>readme.md</code>.
@@ -38,6 +38,7 @@ public class CSVBusDataReader implements BusDataReader {
   @Override
   public BusDataBuilder read(final String local, final String path, final Charset cs)
       throws IOException {
+    final CSVReader reader = new CSVReader();
     final URL overview = IOUtil.getURL(local, path + "/abstract.svg");
     final BusDataBuilder builder = new BusDataBuilder(
         IOUtil.hasContent(overview) ? overview : null);
