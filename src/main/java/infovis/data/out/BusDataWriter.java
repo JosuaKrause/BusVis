@@ -20,14 +20,32 @@ import java.util.Set;
 
 import jkit.io.csv.CSVWriter;
 
+/**
+ * Writes the bus data in the internal format to the disk.
+ * 
+ * @author Joschi <josua.krause@googlemail.com>
+ */
 public class BusDataWriter {
 
+  /** The bus manager to write the informations of. */
   private final BusStationManager manager;
 
+  /**
+   * Creates a bus data writer for the given manager.
+   * 
+   * @param manager The bus manager.
+   */
   public BusDataWriter(final BusStationManager manager) {
     this.manager = manager;
   }
 
+  /**
+   * Actually writes the data to the specified path.
+   * 
+   * @param folder The path.
+   * @param cs The character encoding.
+   * @throws IOException I/O Exception.
+   */
   public void write(final File folder, final Charset cs) throws IOException {
     final CSVWriter edges = getWriter(folder, EDGES, cs);
     final CSVWriter walks = getWriter(folder, WALKING_DIST, cs);

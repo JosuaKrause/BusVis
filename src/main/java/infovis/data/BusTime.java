@@ -120,6 +120,11 @@ public final class BusTime implements Comparable<BusTime> {
     return (end.seconds - seconds + SECONDS_PER_DAY) % SECONDS_PER_DAY;
   }
 
+  /**
+   * Getter.
+   * 
+   * @return The seconds from midnight.
+   */
   public int secondsFromMidnight() {
     return seconds;
   }

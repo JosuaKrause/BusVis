@@ -3,10 +3,16 @@
  */
 package jkit.io.csv;
 
+import infovis.util.IOUtil;
+
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.Charset;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * An easy to use csv reader. During the reading events are generated and passed
@@ -133,6 +139,122 @@ public class CSVReader {
     rowTitle = rowTitles;
     colTitle = columnTitles;
     handler = null;
+  }
+
+  public static final Iterable<CSVRow> readRows(final String local, final String path,
+      final String file, final Charset cs, final CSVReader reader) throws IOException {
+    if(!IOUtil.hasContent(IOUtil.getURL(local, path, file))) return null;
+    return new Iterable<CSVRow>() {
+
+      @Override
+      public Iterator<CSVRow> iterator() {
+        try {
+          return readRows(IOUtil.reader(local, path, file, cs), reader);
+        } catch(final IOException e) {
+          throw new IllegalStateException(e);
+        }
+      }
+
+    };
+  }
+
+  public static final Iterator<CSVRow> readRows(final Reader r, final CSVReader reader) {
+    return new Iterator<CSVRow>() {
+
+      private final CSVHandler handler = new CSVAdapter() {
+
+        private CSVRow cur;
+
+        private int len;
+
+        @Override
+        public void colTitle(final CSVContext ctx, final String title) {
+          ++len;
+        }
+
+        @Override
+        public void cell(final CSVContext ctx, final String content) {
+          final String name = reader.readColTitles() ? ctx.colName() : null;
+          final int i = ctx.col();
+          len = Math.max(i + 1, len);
+          if(cur == null) {
+            cur = new CSVRow(len);
+          }
+          cur.addCell(i, name, content);
+        }
+
+        @Override
+        public void row(final CSVContext ctx) {
+          if(cur != null) {
+            try {
+              rows.put(cur);
+            } catch(final InterruptedException e) {
+              Thread.currentThread().interrupt();
+            }
+            cur = null;
+          }
+        }
+
+        @Override
+        public void end(final CSVContext ctx) {
+          row(ctx);
+          finish = true;
+        }
+
+      };
+
+      protected final BlockingQueue<CSVRow> rows = new LinkedBlockingQueue<CSVRow>(10);
+
+      protected volatile boolean finish = false;
+
+      {
+        final CSVHandler h = handler;
+        final Thread runner = new Thread() {
+
+          @Override
+          public void run() {
+            try {
+              reader.setHandler(h);
+              reader.read(r);
+            } catch(final IOException e) {
+              e.printStackTrace();
+            } finally {
+              finish = true;
+            }
+          }
+
+        };
+        runner.setDaemon(true);
+        runner.start();
+        fetchNext();
+      }
+
+      private CSVRow cur;
+
+      private void fetchNext() {
+        while((cur = rows.poll()) == null) {
+          if(finish) return;
+        }
+      }
+
+      @Override
+      public boolean hasNext() {
+        return cur != null;
+      }
+
+      @Override
+      public CSVRow next() {
+        final CSVRow row = cur;
+        fetchNext();
+        return row;
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException();
+      }
+
+    };
   }
 
   /**

@@ -140,7 +140,7 @@ public class GTFSReader implements BusDataReader {
     doRead(local, path, cs);
     if(caching) {
       final String root = IOUtil.getParent(path);
-      System.out.println("Writing cache to " + root + "...");
+      System.out.println("Writing cache to " + root);
       final Stopwatch t = new Stopwatch();
       final BusDataWriter out = new BusDataWriter(builder.finish());
       out.write(IOUtil.directFile(root), cs);
@@ -149,6 +149,15 @@ public class GTFSReader implements BusDataReader {
     return builder;
   }
 
+  /**
+   * Reads the zipped GTFS data.
+   * 
+   * @param local The local resource path or <code>null</code> if a direct path
+   *          is specified.
+   * @param path The path of the data.
+   * @param cs The character set.
+   * @throws IOException I/O Exception
+   */
   private void doRead(final String local, final String path, final Charset cs)
       throws IOException {
     final Stopwatch a = new Stopwatch();

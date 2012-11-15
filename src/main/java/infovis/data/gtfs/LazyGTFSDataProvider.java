@@ -7,15 +7,13 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import au.com.bytecode.opencsv.CSVReader;
+import jkit.io.csv.CSVReader;
+import jkit.io.csv.CSVRow;
 
 /**
  * An lazy implementation of {@link GTFSDataProvider} for ZIP files.
@@ -29,6 +27,9 @@ public final class LazyGTFSDataProvider implements GTFSDataProvider {
 
   /** The character set. */
   private Charset cs;
+
+  /** The CSV reader for GTFS files. */
+  private final CSVReader reader = new CSVReader(',', '"', true, false);
 
   @Override
   public void setSource(final URL url, final Charset cs) throws IOException {
@@ -60,48 +61,31 @@ public final class LazyGTFSDataProvider implements GTFSDataProvider {
       final List<GTFSRow> empty = Collections.emptyList();
       return empty.iterator();
     }
-    final CSVReader reader = new CSVReader(new InputStreamReader(zip, cs), ',', '"');
-    final String[] names = reader.readNext();
-    if(names == null) {
-      zip.closeEntry();
-      zip.close();
-      final List<GTFSRow> empty = Collections.emptyList();
-      return empty.iterator();
-    }
+    final Iterator<CSVRow> it = CSVReader.readRows(new InputStreamReader(zip, cs), reader);
     final Iterator<GTFSRow> res = new Iterator<GTFSRow>() {
-
-      private GTFSRow row;
-
-      {
-        fillNext();
-      }
-
-      private void fillNext() throws IOException {
-        final String[] cur = reader.readNext();
-        if(cur == null) {
-          zip.closeEntry();
-          zip.close();
-          row = null;
-          return;
-        }
-        row = getRow(names, cur);
-      }
 
       @Override
       public boolean hasNext() {
-        return row != null;
+        return it.hasNext();
       }
 
       @Override
       public GTFSRow next() {
-        if(row == null) throw new NoSuchElementException();
-        final GTFSRow res = row;
-        try {
-          fillNext();
-        } catch(final IOException e) {
-          throw new IllegalStateException(e);
-        }
-        return res;
+        return new GTFSRow() {
+
+          private final CSVRow row = it.next();
+
+          @Override
+          public boolean hasField(final String name) {
+            return row.has(name);
+          }
+
+          @Override
+          public String getField(final String name) {
+            return row.get(name);
+          }
+
+        };
       }
 
       @Override
@@ -111,35 +95,6 @@ public final class LazyGTFSDataProvider implements GTFSDataProvider {
 
     };
     return res;
-  }
-
-  /**
-   * Converts strings to a GTFS row.
-   * 
-   * @param names The column names.
-   * @param cur The strings.
-   * @return The row.
-   */
-  public static GTFSRow getRow(final String[] names, final String[] cur) {
-    final Map<String, String> map = new HashMap<String, String>();
-    final int len = Math.min(names.length, cur.length);
-    for(int i = 0; i < len; ++i) {
-      map.put(names[i], cur[i]);
-    }
-    final GTFSRow row = new GTFSRow() {
-
-      @Override
-      public boolean hasField(final String name) {
-        return map.containsKey(name);
-      }
-
-      @Override
-      public String getField(final String name) {
-        return map.get(name);
-      }
-
-    };
-    return row;
   }
 
   /**

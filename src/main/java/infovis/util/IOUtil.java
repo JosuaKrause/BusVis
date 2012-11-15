@@ -5,11 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
-
-import jkit.io.csv.CSVHandler;
-import jkit.io.csv.CSVReader;
 
 /**
  * I/O utility methods.
@@ -58,6 +56,12 @@ public final class IOUtil {
   public static File directFile(final String path, final String file) {
     if(endsWithDelim(path)) return directFile(path + file);
     return directFile(path + "/" + file);
+  }
+
+  public static URL getURL(final String local, final String path,
+      final String file) throws IOException {
+    final String resource = endsWithDelim(path) ? path + file : path + "/" + file;
+    return getURL(local, resource);
   }
 
   /**
@@ -118,24 +122,21 @@ public final class IOUtil {
   }
 
   /**
-   * Creates a {@link CSVReader} suitable for Microsoft Excel CSV files.
+   * Creates a {@link Reader}.
    * 
    * @param local The local resource path or <code>null</code> if a direct path
    *          is specified.
    * @param path sub-directory inside the resource directory
-   * @param file CSV file
+   * @param file The text file.
    * @param cs The charset.
    * @return reader or <code>null</code> if not found.
    * @throws IOException I/O exception
    */
-  public static boolean read(final CSVReader reader, final String local,
-      final String path, final String file, final Charset cs,
-      final CSVHandler handler) throws IOException {
+  public static Reader reader(final String local, final String path,
+      final String file, final Charset cs) throws IOException {
     final URL url = IOUtil.getURL(local, path + '/' + file);
-    if(!IOUtil.hasContent(url)) return false;
-    reader.setHandler(handler);
-    reader.read(IOUtil.charsetReader(url.openStream(), cs));
-    return true;
+    if(!IOUtil.hasContent(url)) return null;
+    return IOUtil.charsetReader(url.openStream(), cs);
   }
 
 }

@@ -338,6 +338,7 @@ public final class BusDataBuilder {
     return station;
   }
 
+  /** The cached finished bus manager. */
   private BusStationManager result;
 
   /**
