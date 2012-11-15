@@ -7,8 +7,8 @@ import infovis.data.BusDataReader;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.data.csv.CSVBusDataWriter;
 import infovis.data.csv.CSVBusDataReader;
-import infovis.data.out.BusDataWriter;
 import infovis.util.IOUtil;
 import infovis.util.Objects;
 import infovis.util.Stopwatch;
@@ -142,7 +142,7 @@ public class GTFSReader implements BusDataReader {
       final String root = IOUtil.getParent(path);
       System.out.println("Writing cache to " + root);
       final Stopwatch t = new Stopwatch();
-      final BusDataWriter out = new BusDataWriter(builder.finish());
+      final CSVBusDataWriter out = new CSVBusDataWriter(builder.finish());
       out.write(IOUtil.directFile(root), cs);
       System.out.println("Took " + t.current());
     }
@@ -193,13 +193,8 @@ public class GTFSReader implements BusDataReader {
     for(final GTFSRow row : data.stops()) {
       final String id = Objects.requireNonNull(row.getField("stop_id"));
       final String name = Objects.requireNonNull(row.getField("stop_name"));
-      double lat = parseDouble(row.getField("stop_lat"));
-      double lon = parseDouble(row.getField("stop_lon"));
-      // TODO nyc gtfs switched lat and lon
-      final double t = lat;
-      lat = lon;
-      lon = t;
-      // ---
+      final double lat = parseDouble(row.getField("stop_lat"));
+      final double lon = parseDouble(row.getField("stop_lon"));
       final String parent = row.getField("parent_station");
       stationParent.put(id, Objects.nonNull(parent, id));
       stations.put(id, new TempStation(id, name, lat, lon));

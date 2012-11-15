@@ -52,8 +52,8 @@ public class CSVBusDataReader implements BusDataReader {
         abstractX = parseDouble(stop.get(4));
         abstractY = parseDouble(stop.get(5));
       }
-      builder.createStation(stop.get(0), stop.get(1), parseDouble(stop.get(3)),
-          parseDouble(stop.get(2)), abstractX, abstractY);
+      builder.createStation(stop.get(0), stop.get(1), parseDouble(stop.get(2)),
+          parseDouble(stop.get(3)), abstractX, abstractY);
     }
 
     final Iterable<CSVRow> walk = CSVReader.readRows(local, path, WALKING_DIST, cs,

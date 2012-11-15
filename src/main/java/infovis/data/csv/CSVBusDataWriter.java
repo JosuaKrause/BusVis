@@ -1,4 +1,4 @@
-package infovis.data.out;
+package infovis.data.csv;
 
 import static infovis.data.csv.CSVBusDataReader.*;
 import infovis.data.BusEdge;
@@ -25,7 +25,7 @@ import jkit.io.csv.CSVWriter;
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
-public class BusDataWriter {
+public class CSVBusDataWriter {
 
   /** The bus manager to write the informations of. */
   private final BusStationManager manager;
@@ -35,7 +35,7 @@ public class BusDataWriter {
    * 
    * @param manager The bus manager.
    */
-  public BusDataWriter(final BusStationManager manager) {
+  public CSVBusDataWriter(final BusStationManager manager) {
     this.manager = manager;
   }
 
