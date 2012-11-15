@@ -24,16 +24,22 @@ import jkit.io.csv.CSVRow;
  */
 public class CSVBusDataReader implements BusDataReader {
 
+  /** The replacement value for unknown abstract positions. */
   public static final String UNKNOWN = "UNKNOWN";
 
+  /** The walking distances table. */
   public static final String WALKING_DIST = "walking-dists.csv";
 
+  /** The bus line table. */
   public static final String LINES = "lines.csv";
 
+  /** The edge table. */
   public static final String EDGES = "edges.csv";
 
+  /** The stop table. */
   public static final String STOPS = "stops.csv";
 
+  /** The schematic overview. */
   public static final String ABSTRACT = "abstract.svg";
 
   @Override

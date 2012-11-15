@@ -31,6 +31,12 @@ public final class IOUtil {
   /** Resource path. */
   public static final String RESOURCES = "src/main/resources";
 
+  /**
+   * Computes the parent of a path.
+   * 
+   * @param path The path.
+   * @return The parent.
+   */
   public static String getParent(final String path) {
     String f = path;
     while(endsWithDelim(f)) {
@@ -39,25 +45,60 @@ public final class IOUtil {
     return parent(f);
   }
 
+  /**
+   * Computes the parent of a path or removes the trailing delimiter.
+   * 
+   * @param path The path.
+   * @return The parent or the path without trailing delimiter.
+   */
   private static String parent(final String path) {
     final int i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
     return path.substring(0, i + 1);
   }
 
+  /**
+   * Checks whether the path ends with a delimiter.
+   * 
+   * @param path The path.
+   * @return <code>true</code> if the path ends with a delimiter.
+   */
   private static boolean endsWithDelim(final String path) {
     final char end = path.charAt(path.length() - 1);
     return end == '/' || end == '\\';
   }
 
+  /**
+   * Creates a direct file from a path.
+   * 
+   * @param path The path.
+   * @return The file.
+   */
   public static File directFile(final String path) {
     return new File(path);
   }
 
+  /**
+   * Creates a direct file from a path and file.
+   * 
+   * @param path The path.
+   * @param file The file.
+   * @return The file object.
+   */
   public static File directFile(final String path, final String file) {
     if(endsWithDelim(path)) return directFile(path + file);
     return directFile(path + "/" + file);
   }
 
+  /**
+   * Gets the {@link URL} of a resource.
+   * 
+   * @param local local resource path or <code>null</code> if a direct path is
+   *          specified.
+   * @param path The path part.
+   * @param file The file part.
+   * @return the URL
+   * @throws IOException if the resource can't be found
+   */
   public static URL getURL(final String local, final String path,
       final String file) throws IOException {
     final String resource = endsWithDelim(path) ? path + file : path + "/" + file;

@@ -22,18 +22,29 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class CSVReader {
 
-  private static final String NL = System.getProperty("line.separator");
+  /** The line delimiter -- assumed to be LF. */
+  private static final String NL = "\n";
 
+  /**
+   * The context of the CSV cursor.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
   private final class Context implements CSVContext {
 
+    /** The column names. */
     private final List<String> colNames;
 
+    /** Whether row names are stored. */
     private final boolean hasRowNames;
 
+    /** The current column. */
     private int col;
 
+    /** The current row. */
     private int row;
 
+    /** The current row name if they are stored. */
     private String rowName;
 
     public Context(final boolean hasColNames, final boolean hasRowNames) {

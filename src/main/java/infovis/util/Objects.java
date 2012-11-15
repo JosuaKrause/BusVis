@@ -26,6 +26,12 @@ public final class Objects {
     return obj;
   }
 
+  /**
+   * Requires a <code>true</code> statement.
+   * 
+   * @param value The statement that needs to be <code>true</code>.
+   * @throws IllegalStateException When the statement is <code>false</code>.
+   */
   public static void requireTrue(final boolean value) {
     if(!value) throw new IllegalStateException("expected true");
   }
