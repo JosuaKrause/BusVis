@@ -75,13 +75,28 @@ public class CSVBusDataWriter {
     lines.close();
   }
 
-  private CSVWriter getWriter(final File folder, final String name, final Charset cs)
-      throws FileNotFoundException {
+  /**
+   * Creates a CSV writer for the given file.
+   * 
+   * @param folder The folder.
+   * @param name The name of the file.
+   * @param cs The character set.
+   * @return The writer.
+   * @throws FileNotFoundException I/O Exception.
+   */
+  private static CSVWriter getWriter(final File folder, final String name,
+      final Charset cs) throws FileNotFoundException {
     return new CSVWriter(new PrintWriter(new OutputStreamWriter(
         new FileOutputStream(new File(folder, name)), cs), true));
   }
 
-  private void writeEdges(final CSVWriter out, final BusEdge edge) {
+  /**
+   * Writes an edge.
+   * 
+   * @param out The writer.
+   * @param edge The edge.
+   */
+  private static void writeEdges(final CSVWriter out, final BusEdge edge) {
     out.writeCell(edge.getLine().getName());
     out.writeCell("" + edge.getTourNr());
     out.writeCell("" + edge.getFrom().getId());
@@ -91,15 +106,29 @@ public class CSVBusDataWriter {
     out.writeRow();
   }
 
-  private void writeWalkingDist(final CSVWriter out, final BusStation from,
-      final BusStation to, final int seconds) {
+  /**
+   * Writes a walking distance.
+   * 
+   * @param out The writer.
+   * @param from The first station.
+   * @param to The second station.
+   * @param seconds The time needed to walk.
+   */
+  private static void writeWalkingDist(final CSVWriter out,
+      final BusStation from, final BusStation to, final int seconds) {
     out.writeCell("" + from.getId());
     out.writeCell("" + to.getId());
     out.writeCell("" + seconds);
     out.writeRow();
   }
 
-  private void writeLine(final CSVWriter out, final BusLine line) {
+  /**
+   * Writes a line.
+   * 
+   * @param out The writer.
+   * @param line The line.
+   */
+  private static void writeLine(final CSVWriter out, final BusLine line) {
     final Color color = line.getColor();
     out.writeCell(line.getName());
     out.writeCell("" + color.getRed());
@@ -109,7 +138,13 @@ public class CSVBusDataWriter {
     out.writeRow();
   }
 
-  private void writeStation(final CSVWriter out, final BusStation station) {
+  /**
+   * Writes a station.
+   * 
+   * @param out The writer.
+   * @param station The station.
+   */
+  private static void writeStation(final CSVWriter out, final BusStation station) {
     out.writeCell(station.getName());
     out.writeCell("" + station.getId());
     out.writeCell("" + station.getLatitude());
@@ -119,11 +154,23 @@ public class CSVBusDataWriter {
     out.writeRow();
   }
 
-  private String abstractCoordinate(final double coordinate) {
+  /**
+   * Converts a coordinate to a CSV ready form.
+   * 
+   * @param coordinate The coordinate.
+   * @return A string representing the coordinate.
+   */
+  private static String abstractCoordinate(final double coordinate) {
     return Double.isNaN(coordinate) ? UNKNOWN : "" + coordinate;
   }
 
-  private String writeTime(final BusTime time) {
+  /**
+   * Converts a time to a CSV ready form.
+   * 
+   * @param time The time.
+   * @return A string representing the coordinate.
+   */
+  private static String writeTime(final BusTime time) {
     return "" + time.secondsFromMidnight();
   }
 

@@ -40,29 +40,64 @@ public class CSVTest {
     /* end of declaration */;
   }
 
+  /**
+   * An CSV event.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
   private static final class Event {
 
+    /** The event type. */
     private final EventType type;
 
+    /** The content of the cell. */
     private final String content;
 
+    /** The row title. */
     private final String row;
 
+    /** The col title. */
     private final String col;
 
+    /** The row index. */
     private final int r;
 
+    /** The col index. */
     private final int c;
 
+    /**
+     * Creates an event without content.
+     * 
+     * @param type The event type.
+     * @param r The row index.
+     * @param c The column index.
+     */
     public Event(final EventType type, final int r, final int c) {
       this(type, r, c, null);
     }
 
-    public Event(final EventType type, final int r, final int c,
-        final String content) {
+    /**
+     * Creates an event with content.
+     * 
+     * @param type The event type.
+     * @param r The row index.
+     * @param c The column index.
+     * @param content The content.
+     */
+    public Event(final EventType type, final int r, final int c, final String content) {
       this(type, r, c, content, null, null);
     }
 
+    /**
+     * Creates an event with row and column title.
+     * 
+     * @param type The event type.
+     * @param r The row index.
+     * @param c The column index.
+     * @param content The content.
+     * @param row The row title.
+     * @param col The column title.
+     */
     public Event(final EventType type, final int r, final int c,
         final String content, final String row, final String col) {
       this.type = type;
@@ -103,14 +138,21 @@ public class CSVTest {
 
   }
 
-  private final class TestHandler implements CSVHandler {
+  /**
+   * The handler for tests.
+   * 
+   * @author Joschi <josua.krause@googlemail.com>
+   */
+  protected final class TestHandler implements CSVHandler {
 
-    private final List<Event> events;
+    /** The list with events. */
+    private final List<Event> events = new ArrayList<Event>();
 
-    public TestHandler() {
-      events = new ArrayList<Event>();
-    }
-
+    /**
+     * Checks whether the received events are correct.
+     * 
+     * @param es The events.
+     */
     public void test(final Event[] es) {
       for(int i = 0; i < es.length; ++i) {
         if(events.size() <= i) {
@@ -166,105 +208,126 @@ public class CSVTest {
 
   }
 
-  private static final String NL = System.getProperty("line.separator");
+  /** New line. */
+  private static final String NL = "\n";
 
+  /** Test 0. */
   private static final String STR_TEST0 = "hallo;\"abc\"; buh ;\r\nbello;;"
       + "\"ab\"\"cd\";\"wu\r\nff\"\r\ngrr"
       + "rh;\"te;st\"\rblubb\nblubb;;";
 
+  /** Events for test 0. */
   private static final Event[] EV_TEST0 = new Event[] {
-      new Event(START, 0, 0), new Event(ROW, 0, 0),
-      new Event(CELL, 0, 0, "hallo"), new Event(CELL, 0, 1, "abc"),
-      new Event(CELL, 0, 2, " buh "), new Event(CELL, 0, 3, ""),
-      new Event(ROW, 1, 0), new Event(CELL, 1, 0, "bello"),
-      new Event(CELL, 1, 1, ""), new Event(CELL, 1, 2, "ab\"cd"),
-      new Event(CELL, 1, 3, "wu" + NL + "ff"), new Event(ROW, 2, 0),
-      new Event(CELL, 2, 0, "grrrh"), new Event(CELL, 2, 1, "te;st"),
-      new Event(ROW, 3, 0), new Event(CELL, 3, 0, "blubbblubb"),
-      new Event(CELL, 3, 1, ""), new Event(END, -2, -2)};
+    new Event(START, 0, 0), new Event(ROW, 0, 0),
+    new Event(CELL, 0, 0, "hallo"), new Event(CELL, 0, 1, "abc"),
+    new Event(CELL, 0, 2, " buh "), new Event(CELL, 0, 3, ""),
+    new Event(ROW, 1, 0), new Event(CELL, 1, 0, "bello"),
+    new Event(CELL, 1, 1, ""), new Event(CELL, 1, 2, "ab\"cd"),
+    new Event(CELL, 1, 3, "wu" + NL + "ff"), new Event(ROW, 2, 0),
+    new Event(CELL, 2, 0, "grrrh"), new Event(CELL, 2, 1, "te;st"),
+    new Event(ROW, 3, 0), new Event(CELL, 3, 0, "blubbblubb"),
+    new Event(CELL, 3, 1, ""), new Event(END, -2, -2)};
 
+  /** Test 1 with carriage return. */
   private static final String STR_TEST1R =
       "abc;def;ghi\rjkl;mno;pqr\rstu;vwx;yz_";
 
+  /** Test 1 with carriage return line feed. */
   private static final String STR_TEST1RN =
       "abc;def;ghi\r\njkl;mno;pqr\r\nstu;vwx;yz_\r\n";
 
+  /** Test 1 with line feed. */
   private static final String STR_TEST1N =
       "abc;def;ghi\njkl;mno;pqr\nstu;vwx;yz_\n";
 
+  /** Events for test 1. */
   private static final Event[] EV_TEST1 = new Event[] {
-      new Event(START, 0, 0), new Event(ROW, 0, 0),
-      new Event(CELL, 0, 0, "abc"), new Event(CELL, 0, 1, "def"),
-      new Event(CELL, 0, 2, "ghi"), new Event(ROW, 1, 0),
-      new Event(CELL, 1, 0, "jkl"), new Event(CELL, 1, 1, "mno"),
-      new Event(CELL, 1, 2, "pqr"), new Event(ROW, 2, 0),
-      new Event(CELL, 2, 0, "stu"), new Event(CELL, 2, 1, "vwx"),
-      new Event(CELL, 2, 2, "yz_"), new Event(END, -2, -2)};
+    new Event(START, 0, 0), new Event(ROW, 0, 0),
+    new Event(CELL, 0, 0, "abc"), new Event(CELL, 0, 1, "def"),
+    new Event(CELL, 0, 2, "ghi"), new Event(ROW, 1, 0),
+    new Event(CELL, 1, 0, "jkl"), new Event(CELL, 1, 1, "mno"),
+    new Event(CELL, 1, 2, "pqr"), new Event(ROW, 2, 0),
+    new Event(CELL, 2, 0, "stu"), new Event(CELL, 2, 1, "vwx"),
+    new Event(CELL, 2, 2, "yz_"), new Event(END, -2, -2)};
 
+  /** Test 2. */
   private static final String STR_TEST2 = "a\"b;c\"d;e\"f;\"gh\"";
 
+  /** Events for test 2. */
   private static final Event[] EV_TEST2 = new Event[] {
-      new Event(START, 0, 0), new Event(ROW, 0, 0),
-      new Event(CELL, 0, 0, "a\"b"), new Event(CELL, 0, 1, "c\"d"),
-      new Event(CELL, 0, 2, "e\"f"), new Event(CELL, 0, 3, "gh"),
-      new Event(END, -2, -2)};
+    new Event(START, 0, 0), new Event(ROW, 0, 0),
+    new Event(CELL, 0, 0, "a\"b"), new Event(CELL, 0, 1, "c\"d"),
+    new Event(CELL, 0, 2, "e\"f"), new Event(CELL, 0, 3, "gh"),
+    new Event(END, -2, -2)};
 
+  /** Test 3. */
   private static final String STR_TEST3 =
       "-;c1;\"c2\";c3\nr1;1;2;3\n\"r2\";4;5;\"6\"\n\"r3\";7;8;9\n";
 
+  /** Events for test 3 r. */
   private static final Event[] EV_TEST3R = new Event[] {
-      new Event(START, 0, -1), new Event(ROW, 0, -1, "-"),
-      new Event(ROW, 0, 0), new Event(CELL, 0, 0, "c1"),
-      new Event(CELL, 0, 1, "c2"), new Event(CELL, 0, 2, "c3"),
-      new Event(ROW, 1, -1, "r1"), new Event(ROW, 1, 0),
-      new Event(CELL, 1, 0, "1", "r1", null),
-      new Event(CELL, 1, 1, "2", "r1", null),
-      new Event(CELL, 1, 2, "3", "r1", null),
-      new Event(ROW, 2, -1, "r2"), new Event(ROW, 2, 0),
-      new Event(CELL, 2, 0, "4", "r2", null),
-      new Event(CELL, 2, 1, "5", "r2", null),
-      new Event(CELL, 2, 2, "6", "r2", null),
-      new Event(ROW, 3, -1, "r3"), new Event(ROW, 3, 0),
-      new Event(CELL, 3, 0, "7", "r3", null),
-      new Event(CELL, 3, 1, "8", "r3", null),
-      new Event(CELL, 3, 2, "9", "r3", null), new Event(END, -2, -2)};
+    new Event(START, 0, -1), new Event(ROW, 0, -1, "-"),
+    new Event(ROW, 0, 0), new Event(CELL, 0, 0, "c1"),
+    new Event(CELL, 0, 1, "c2"), new Event(CELL, 0, 2, "c3"),
+    new Event(ROW, 1, -1, "r1"), new Event(ROW, 1, 0),
+    new Event(CELL, 1, 0, "1", "r1", null),
+    new Event(CELL, 1, 1, "2", "r1", null),
+    new Event(CELL, 1, 2, "3", "r1", null),
+    new Event(ROW, 2, -1, "r2"), new Event(ROW, 2, 0),
+    new Event(CELL, 2, 0, "4", "r2", null),
+    new Event(CELL, 2, 1, "5", "r2", null),
+    new Event(CELL, 2, 2, "6", "r2", null),
+    new Event(ROW, 3, -1, "r3"), new Event(ROW, 3, 0),
+    new Event(CELL, 3, 0, "7", "r3", null),
+    new Event(CELL, 3, 1, "8", "r3", null),
+    new Event(CELL, 3, 2, "9", "r3", null), new Event(END, -2, -2)};
 
+  /** Events for test 3 c. */
   private static final Event[] EV_TEST3C = new Event[] {
-      new Event(START, -1, 0), new Event(COL, -1, 0, "-"),
-      new Event(COL, -1, 1, "c1"), new Event(COL, -1, 2, "c2"),
-      new Event(COL, -1, 3, "c3"), new Event(ROW, 0, 0),
-      new Event(CELL, 0, 0, "r1", null, "-"),
-      new Event(CELL, 0, 1, "1", null, "c1"),
-      new Event(CELL, 0, 2, "2", null, "c2"),
-      new Event(CELL, 0, 3, "3", null, "c3"), new Event(ROW, 1, 0),
-      new Event(CELL, 1, 0, "r2", null, "-"),
-      new Event(CELL, 1, 1, "4", null, "c1"),
-      new Event(CELL, 1, 2, "5", null, "c2"),
-      new Event(CELL, 1, 3, "6", null, "c3"), new Event(ROW, 2, 0),
-      new Event(CELL, 2, 0, "r3", null, "-"),
-      new Event(CELL, 2, 1, "7", null, "c1"),
-      new Event(CELL, 2, 2, "8", null, "c2"),
-      new Event(CELL, 2, 3, "9", null, "c3"), new Event(END, -2, -2)};
+    new Event(START, -1, 0), new Event(COL, -1, 0, "-"),
+    new Event(COL, -1, 1, "c1"), new Event(COL, -1, 2, "c2"),
+    new Event(COL, -1, 3, "c3"), new Event(ROW, 0, 0),
+    new Event(CELL, 0, 0, "r1", null, "-"),
+    new Event(CELL, 0, 1, "1", null, "c1"),
+    new Event(CELL, 0, 2, "2", null, "c2"),
+    new Event(CELL, 0, 3, "3", null, "c3"), new Event(ROW, 1, 0),
+    new Event(CELL, 1, 0, "r2", null, "-"),
+    new Event(CELL, 1, 1, "4", null, "c1"),
+    new Event(CELL, 1, 2, "5", null, "c2"),
+    new Event(CELL, 1, 3, "6", null, "c3"), new Event(ROW, 2, 0),
+    new Event(CELL, 2, 0, "r3", null, "-"),
+    new Event(CELL, 2, 1, "7", null, "c1"),
+    new Event(CELL, 2, 2, "8", null, "c2"),
+    new Event(CELL, 2, 3, "9", null, "c3"), new Event(END, -2, -2)};
 
+  /** Events for test 3 rc. */
   private static final Event[] EV_TEST3RC = new Event[] {
-      new Event(START, -1, -1), new Event(COL, -1, 0, "c1"),
-      new Event(COL, -1, 1, "c2"), new Event(COL, -1, 2, "c3"),
-      new Event(ROW, 0, -1, "r1"),
-      new Event(ROW, 0, 0, null, "r1", null),
-      new Event(CELL, 0, 0, "1", "r1", "c1"),
-      new Event(CELL, 0, 1, "2", "r1", "c2"),
-      new Event(CELL, 0, 2, "3", "r1", "c3"),
-      new Event(ROW, 1, -1, "r2"),
-      new Event(ROW, 1, 0, null, "r2", null),
-      new Event(CELL, 1, 0, "4", "r2", "c1"),
-      new Event(CELL, 1, 1, "5", "r2", "c2"),
-      new Event(CELL, 1, 2, "6", "r2", "c3"),
-      new Event(ROW, 2, -1, "r3"),
-      new Event(ROW, 2, 0, null, "r3", null),
-      new Event(CELL, 2, 0, "7", "r3", "c1"),
-      new Event(CELL, 2, 1, "8", "r3", "c2"),
-      new Event(CELL, 2, 2, "9", "r3", "c3"), new Event(END, -2, -2)};
+    new Event(START, -1, -1), new Event(COL, -1, 0, "c1"),
+    new Event(COL, -1, 1, "c2"), new Event(COL, -1, 2, "c3"),
+    new Event(ROW, 0, -1, "r1"),
+    new Event(ROW, 0, 0, null, "r1", null),
+    new Event(CELL, 0, 0, "1", "r1", "c1"),
+    new Event(CELL, 0, 1, "2", "r1", "c2"),
+    new Event(CELL, 0, 2, "3", "r1", "c3"),
+    new Event(ROW, 1, -1, "r2"),
+    new Event(ROW, 1, 0, null, "r2", null),
+    new Event(CELL, 1, 0, "4", "r2", "c1"),
+    new Event(CELL, 1, 1, "5", "r2", "c2"),
+    new Event(CELL, 1, 2, "6", "r2", "c3"),
+    new Event(ROW, 2, -1, "r3"),
+    new Event(ROW, 2, 0, null, "r3", null),
+    new Event(CELL, 2, 0, "7", "r3", "c1"),
+    new Event(CELL, 2, 1, "8", "r3", "c2"),
+    new Event(CELL, 2, 2, "9", "r3", "c3"), new Event(END, -2, -2)};
 
+  /**
+   * Does the actual test.
+   * 
+   * @param reader The reader.
+   * @param in The input string.
+   * @param valid Valid events in the correct order.
+   * @throws Exception Exception.
+   */
   private void doTest(final CSVReader reader, final String in,
       final Event[] valid) throws Exception {
     final TestHandler th = new TestHandler();
@@ -362,4 +425,5 @@ public class CSVTest {
         "expected \"" + test + "\" got \""
             + out.toString() + "\"");
   }
+
 }

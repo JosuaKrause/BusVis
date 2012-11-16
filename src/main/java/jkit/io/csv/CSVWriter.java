@@ -5,20 +5,25 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * Provides an interface to write a csv file.
+ * Provides an interface to write a CSV file.
  * 
  * @author Joschi <josua.krause@googlemail.com>
  */
 public class CSVWriter implements Closeable {
 
+  /** The print writer. */
   private PrintWriter out;
 
+  /** The delimiter. */
   private final char delimiter;
 
+  /** The string indicator. */
   private final String string;
 
+  /** Check string for invalid characters. */
   private final String check;
 
+  /** Whether its the first cell in a row. */
   private boolean first;
 
   /**
@@ -61,6 +66,13 @@ public class CSVWriter implements Closeable {
     out.print(sanitize(content));
   }
 
+  /**
+   * Whether there are any invalid characters in the string.
+   * 
+   * @param haystack The string to check.
+   * @param chars The invalid characters.
+   * @return <code>true</code> if invalid characters are contained.
+   */
   private static boolean hasChars(final String haystack, final String chars) {
     for(int i = 0; i < chars.length(); ++i) {
       if(haystack.indexOf(chars.charAt(i)) >= 0) return true;
@@ -68,20 +80,25 @@ public class CSVWriter implements Closeable {
     return false;
   }
 
+  /**
+   * Sanitizes the given string.
+   * 
+   * @param content The string.
+   * @return The sanitized string.
+   */
   private String sanitize(final String content) {
     if(!hasChars(content, check)) return content;
     return string + content.replace(string, string + string) + string;
   }
 
-  /**
-   * Starts the next row.
-   */
+  /** Starts the next row. */
   public void writeRow() {
     ensureOpen();
     out.println();
     first = true;
   }
 
+  /** Ensures that the writer is still open. */
   private void ensureOpen() {
     if(out == null) throw new IllegalStateException("already closed");
   }

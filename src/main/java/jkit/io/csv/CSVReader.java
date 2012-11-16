@@ -47,6 +47,12 @@ public class CSVReader {
     /** The current row name if they are stored. */
     private String rowName;
 
+    /**
+     * Creates a context.
+     * 
+     * @param hasColNames Whether column names are present.
+     * @param hasRowNames Whether row names are present.
+     */
     public Context(final boolean hasColNames, final boolean hasRowNames) {
       this.hasRowNames = hasRowNames;
       colNames = hasColNames ? new LinkedList<String>() : null;
@@ -55,18 +61,30 @@ public class CSVReader {
       col = hasRowNames ? -1 : 0;
     }
 
+    /**
+     * Adds a column name.
+     * 
+     * @param name The name.
+     */
     public void addColName(final String name) {
       colNames.add(name);
     }
 
+    /**
+     * Sets the current row name.
+     * 
+     * @param rowName The name.
+     */
     public void setRowName(final String rowName) {
       this.rowName = rowName;
     }
 
+    /** Advances the cell. */
     public void nextCell() {
       ++col;
     }
 
+    /** Advances the row. */
     public void nextRow() {
       ++row;
       col = hasRowNames ? -1 : 0;
@@ -106,14 +124,19 @@ public class CSVReader {
 
   }
 
+  /** The CSV delimiter. */
   private final char delimiter;
 
+  /** The string indicator. */
   private final char string;
 
+  /** Whether column titles are used. */
   private boolean colTitle;
 
+  /** Whether row titles are used. */
   private boolean rowTitle;
 
+  /** The currently installed handler. */
   private CSVHandler handler;
 
   /**
@@ -152,6 +175,17 @@ public class CSVReader {
     handler = null;
   }
 
+  /**
+   * Creates a lazy representation of the rows of a resource.
+   * 
+   * @param local The local path or <code>null</code>.
+   * @param path The path.
+   * @param file The filename.
+   * @param cs The character set.
+   * @param reader The CSV reader.
+   * @return A lazy collection of rows.
+   * @throws IOException I/O Exception.
+   */
   public static final Iterable<CSVRow> readRows(final String local, final String path,
       final String file, final Charset cs, final CSVReader reader) throws IOException {
     if(!IOUtil.hasContent(IOUtil.getURL(local, path, file))) return null;
@@ -169,12 +203,19 @@ public class CSVReader {
     };
   }
 
+  /**
+   * Reads rows from a reader.
+   * 
+   * @param r The reader.
+   * @param reader The CSV reader.
+   * @return A lazy iterator.
+   */
   public static final Iterator<CSVRow> readRows(final Reader r, final CSVReader reader) {
     return new Iterator<CSVRow>() {
 
       private final CSVHandler handler = new CSVAdapter() {
 
-        private CSVRow cur;
+        private CSVRow current;
 
         private int len;
 
@@ -188,21 +229,21 @@ public class CSVReader {
           final String name = reader.readColTitles() ? ctx.colName() : null;
           final int i = ctx.col();
           len = Math.max(i + 1, len);
-          if(cur == null) {
-            cur = new CSVRow(len);
+          if(current == null) {
+            current = new CSVRow(len);
           }
-          cur.addCell(i, name, content);
+          current.addCell(i, name, content);
         }
 
         @Override
         public void row(final CSVContext ctx) {
-          if(cur != null) {
+          if(current != null) {
             try {
-              rows.put(cur);
+              rows.put(current);
             } catch(final InterruptedException e) {
               Thread.currentThread().interrupt();
             }
-            cur = null;
+            current = null;
           }
         }
 
@@ -345,8 +386,14 @@ public class CSVReader {
     hnd.end(ctx);
   }
 
-  private static void handle(final CSVHandler hnd, final String content,
-      final Context ctx) {
+  /**
+   * Handles a cell.
+   * 
+   * @param hnd The handler.
+   * @param content The content.
+   * @param ctx The context.
+   */
+  private static void handle(final CSVHandler hnd, final String content, final Context ctx) {
     switch(ctx.col()) {
       case -1:
         if(ctx.row() < 0) {
@@ -373,6 +420,11 @@ public class CSVReader {
     ctx.nextCell();
   }
 
+  /**
+   * Advances the current line.
+   * 
+   * @param ctx The context.
+   */
   private static void line(final Context ctx) {
     ctx.nextRow();
   }
