@@ -27,6 +27,16 @@ public final class Objects {
   }
 
   /**
+   * Requires a <code>true</code> statement.
+   * 
+   * @param value The statement that needs to be <code>true</code>.
+   * @throws IllegalStateException When the statement is <code>false</code>.
+   */
+  public static void requireTrue(final boolean value) {
+    if(!value) throw new IllegalStateException("expected true");
+  }
+
+  /**
    * Returns the first argument if it is non-null otherwise the second argument
    * is returned. This is a short-hand for:
    * <code>(obj != null ? obj : or)</code>

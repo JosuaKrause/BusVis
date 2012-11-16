@@ -5,10 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
-
-import au.com.bytecode.opencsv.CSVReader;
 
 /**
  * I/O utility methods.
@@ -31,6 +30,80 @@ public final class IOUtil {
 
   /** Resource path. */
   public static final String RESOURCES = "src/main/resources";
+
+  /**
+   * Computes the parent of a path.
+   * 
+   * @param path The path.
+   * @return The parent.
+   */
+  public static String getParent(final String path) {
+    String f = path;
+    while(endsWithDelim(f)) {
+      f = parent(f);
+    }
+    return parent(f);
+  }
+
+  /**
+   * Computes the parent of a path or removes the trailing delimiter.
+   * 
+   * @param path The path.
+   * @return The parent or the path without trailing delimiter.
+   */
+  private static String parent(final String path) {
+    final int i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+    return path.substring(0, i + 1);
+  }
+
+  /**
+   * Checks whether the path ends with a delimiter.
+   * 
+   * @param path The path.
+   * @return <code>true</code> if the path ends with a delimiter.
+   */
+  private static boolean endsWithDelim(final String path) {
+    final char end = path.charAt(path.length() - 1);
+    return end == '/' || end == '\\';
+  }
+
+  /**
+   * Creates a direct file from a path.
+   * 
+   * @param path The path.
+   * @return The file.
+   */
+  public static File directFile(final String path) {
+    return new File(path);
+  }
+
+  /**
+   * Creates a direct file from a path and file.
+   * 
+   * @param path The path.
+   * @param file The file.
+   * @return The file object.
+   */
+  public static File directFile(final String path, final String file) {
+    if(endsWithDelim(path)) return directFile(path + file);
+    return directFile(path + "/" + file);
+  }
+
+  /**
+   * Gets the {@link URL} of a resource.
+   * 
+   * @param local local resource path or <code>null</code> if a direct path is
+   *          specified.
+   * @param path The path part.
+   * @param file The file part.
+   * @return the URL
+   * @throws IOException if the resource can't be found
+   */
+  public static URL getURL(final String local, final String path,
+      final String file) throws IOException {
+    final String resource = endsWithDelim(path) ? path + file : path + "/" + file;
+    return getURL(local, resource);
+  }
 
   /**
    * Gets the {@link URL} of a resource.
@@ -90,21 +163,21 @@ public final class IOUtil {
   }
 
   /**
-   * Creates a {@link CSVReader} suitable for Microsoft Excel CSV files.
+   * Creates a {@link Reader}.
    * 
    * @param local The local resource path or <code>null</code> if a direct path
    *          is specified.
    * @param path sub-directory inside the resource directory
-   * @param file CSV file
+   * @param file The text file.
    * @param cs The charset.
    * @return reader or <code>null</code> if not found.
    * @throws IOException I/O exception
    */
-  public static CSVReader readerFor(final String local, final String path,
+  public static Reader reader(final String local, final String path,
       final String file, final Charset cs) throws IOException {
     final URL url = IOUtil.getURL(local, path + '/' + file);
     if(!IOUtil.hasContent(url)) return null;
-    return new CSVReader(IOUtil.charsetReader(url.openStream(), cs), ';');
+    return IOUtil.charsetReader(url.openStream(), cs);
   }
 
 }

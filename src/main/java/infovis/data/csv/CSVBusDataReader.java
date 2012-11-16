@@ -8,14 +8,14 @@ import infovis.data.BusDataReader;
 import infovis.data.BusLine;
 import infovis.data.BusTime;
 import infovis.util.IOUtil;
-import infovis.util.Objects;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 
-import au.com.bytecode.opencsv.CSVReader;
+import jkit.io.csv.CSVReader;
+import jkit.io.csv.CSVRow;
 
 /**
  * Reading transit data in CSV format specified in <code>readme.md</code>.
@@ -24,53 +24,75 @@ import au.com.bytecode.opencsv.CSVReader;
  */
 public class CSVBusDataReader implements BusDataReader {
 
+  /** The replacement value for unknown abstract positions. */
+  public static final String UNKNOWN = "UNKNOWN";
+
+  /** The walking distances table. */
+  public static final String WALKING_DIST = "walking-dists.csv";
+
+  /** The bus line table. */
+  public static final String LINES = "lines.csv";
+
+  /** The edge table. */
+  public static final String EDGES = "edges.csv";
+
+  /** The stop table. */
+  public static final String STOPS = "stops.csv";
+
+  /** The schematic overview. */
+  public static final String ABSTRACT = "abstract.svg";
+
   @Override
   public BusDataBuilder read(final String local, final String path, final Charset cs)
       throws IOException {
-    final URL overview = IOUtil.getURL(local, path + "/abstract.svg");
+    final CSVReader reader = new CSVReader();
+    final URL overview = IOUtil.getURL(local, path, ABSTRACT);
     final BusDataBuilder builder = new BusDataBuilder(
         IOUtil.hasContent(overview) ? overview : null);
 
-    final CSVReader stops = Objects.requireNonNull(IOUtil.readerFor(local, path,
-        "stops.csv", cs));
-    for(String[] stop; (stop = stops.readNext()) != null;) {
+    for(final CSVRow stop : CSVReader.readRows(local, path, STOPS, cs, reader)) {
       double abstractX, abstractY;
-      if("UNKNOWN".equals(stop[4])) {
+      if(UNKNOWN.equals(stop.get(4))) {
         abstractX = abstractY = NaN;
       } else {
-        abstractX = parseDouble(stop[4]);
-        abstractY = parseDouble(stop[5]);
+        abstractX = parseDouble(stop.get(4));
+        abstractY = parseDouble(stop.get(5));
       }
-      builder.createStation(stop[0], stop[1], parseDouble(stop[3]),
-          parseDouble(stop[2]), abstractX, abstractY);
+      builder.createStation(stop.get(0), stop.get(1), parseDouble(stop.get(2)),
+          parseDouble(stop.get(3)), abstractX, abstractY);
     }
 
-    final CSVReader walk = IOUtil.readerFor(local, path, "walking-dists.csv", cs);
+    final Iterable<CSVRow> walk = CSVReader.readRows(local, path, WALKING_DIST, cs,
+        reader);
     if(walk != null) {
-      for(String[] dist; (dist = walk.readNext()) != null;) {
-        builder.setWalkingDistance(dist[0], dist[1], parseInt(dist[2]));
+      for(final CSVRow dist : walk) {
+        builder.setWalkingDistance(dist.get(0), dist.get(1), parseInt(dist.get(2)));
       }
     } else {
       builder.calcWalkingDistances();
     }
 
-    final CSVReader lineReader = Objects.requireNonNull(IOUtil.readerFor(local, path,
-        "lines.csv", cs));
-    for(String[] line; (line = lineReader.readNext()) != null;) {
-      final Color c = new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]));
-      final String name = line[0].replace('_', '/');
-      builder.createLine(line[0], name, "Line " + name, c);
+    for(final CSVRow line : CSVReader.readRows(local, path, LINES, cs, reader)) {
+      final Color c = new Color(parseInt(line.get(1)), parseInt(line.get(2)),
+          parseInt(line.get(3)));
+      final String id = line.get(0);
+      final String name = id.replace('_', '/');
+      String longName;
+      if(line.hasIndex(4)) {
+        longName = line.get(4);
+      } else {
+        longName = "Line " + name;
+      }
+      builder.createLine(id, name, longName, c);
     }
 
-    final CSVReader edgeReader = Objects.requireNonNull(
-        IOUtil.readerFor(local, path, "edges.csv", cs));
-    for(String[] edge; (edge = edgeReader.readNext()) != null;) {
-      final BusLine line = builder.getLine(edge[0]);
-      final int tourNr = parseInt(edge[1]);
-      final String from = edge[2];
-      final String to = edge[5];
-      final BusTime start = parseTime(edge[3]);
-      final BusTime end = parseTime(edge[4]);
+    for(final CSVRow edge : CSVReader.readRows(local, path, EDGES, cs, reader)) {
+      final BusLine line = builder.getLine(edge.get(0));
+      final int tourNr = parseInt(edge.get(1));
+      final String from = edge.get(2);
+      final String to = edge.get(5);
+      final BusTime start = parseTime(edge.get(3));
+      final BusTime end = parseTime(edge.get(4));
       builder.addEdge(from, line, tourNr, to, start, end);
     }
 

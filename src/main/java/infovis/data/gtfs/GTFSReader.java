@@ -7,12 +7,16 @@ import infovis.data.BusDataReader;
 import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusTime;
+import infovis.data.csv.CSVBusDataWriter;
+import infovis.data.csv.CSVBusDataReader;
 import infovis.util.IOUtil;
 import infovis.util.Objects;
 import infovis.util.Stopwatch;
 
 import java.awt.Color;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -118,6 +122,44 @@ public class GTFSReader implements BusDataReader {
       throws IOException {
     if(used.getAndSet(true)) throw new IllegalStateException(
         "this reader was used before");
+    final boolean caching = local == null;
+    if(caching) {
+      final String root = IOUtil.getParent(path);
+      final File stops = IOUtil.directFile(root, CSVBusDataReader.STOPS);
+      final File zip = IOUtil.directFile(path);
+      final URL stopsURL = stops.toURI().toURL();
+      if(IOUtil.hasContent(stopsURL) && zip.lastModified() < stops.lastModified()) {
+        final Stopwatch t = new Stopwatch();
+        System.out.println("Loading cached from " + root + "...");
+        final BusDataReader in = new CSVBusDataReader();
+        builder = in.read(local, root, cs);
+        System.out.println("Loading took " + t.current());
+        return builder;
+      }
+    }
+    doRead(local, path, cs);
+    if(caching) {
+      final String root = IOUtil.getParent(path);
+      System.out.println("Writing cache to " + root);
+      final Stopwatch t = new Stopwatch();
+      final CSVBusDataWriter out = new CSVBusDataWriter(builder.finish());
+      out.write(IOUtil.directFile(root), cs);
+      System.out.println("Took " + t.current());
+    }
+    return builder;
+  }
+
+  /**
+   * Reads the zipped GTFS data.
+   * 
+   * @param local The local resource path or <code>null</code> if a direct path
+   *          is specified.
+   * @param path The path of the data.
+   * @param cs The character set.
+   * @throws IOException I/O Exception
+   */
+  private void doRead(final String local, final String path, final Charset cs)
+      throws IOException {
     final Stopwatch a = new Stopwatch();
     final Stopwatch t = new Stopwatch();
     System.out.println("Loading " + path + "...");
@@ -143,7 +185,6 @@ public class GTFSReader implements BusDataReader {
     buildEdges();
     System.out.println(builder.edgeCount() + " edges (" + t.reset() + ")");
     System.out.println("Loading took " + a.current());
-    return builder;
   }
 
   /** Reads the stations. */
@@ -152,13 +193,8 @@ public class GTFSReader implements BusDataReader {
     for(final GTFSRow row : data.stops()) {
       final String id = Objects.requireNonNull(row.getField("stop_id"));
       final String name = Objects.requireNonNull(row.getField("stop_name"));
-      double lat = parseDouble(row.getField("stop_lat"));
-      double lon = parseDouble(row.getField("stop_lon"));
-      // TODO nyc gtfs switched lat and lon
-      final double t = lat;
-      lat = lon;
-      lon = t;
-      // ---
+      final double lat = parseDouble(row.getField("stop_lat"));
+      final double lon = parseDouble(row.getField("stop_lon"));
       final String parent = row.getField("parent_station");
       stationParent.put(id, Objects.nonNull(parent, id));
       stations.put(id, new TempStation(id, name, lat, lon));

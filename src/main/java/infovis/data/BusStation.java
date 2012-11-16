@@ -60,8 +60,8 @@ public final class BusStation implements Comparable<BusStation> {
     this.abstractY = abstractY;
     this.edges = edges;
     this.walkingDists = walkingDists;
-    x = VecUtil.scaleAngle(latitude, true);
-    y = VecUtil.scaleAngle(longitude, false);
+    x = VecUtil.scaleAngle(longitude, false);
+    y = VecUtil.scaleAngle(latitude, true);
   }
 
   /**
@@ -180,10 +180,10 @@ public final class BusStation implements Comparable<BusStation> {
   /**
    * Getter.
    * 
-   * @return The latitude of this bus station.
+   * @return The longitude of this bus station.
    */
-  public double getLatitude() {
-    return VecUtil.unscaleAngle(x, true);
+  public double getLongitude() {
+    return VecUtil.unscaleAngle(x, false);
   }
 
   /**
@@ -198,10 +198,10 @@ public final class BusStation implements Comparable<BusStation> {
   /**
    * Getter.
    * 
-   * @return The longitude of this bus station.
+   * @return The latitude of this bus station.
    */
-  public double getLongitude() {
-    return VecUtil.unscaleAngle(y, false);
+  public double getLatitude() {
+    return VecUtil.unscaleAngle(y, true);
   }
 
   /**

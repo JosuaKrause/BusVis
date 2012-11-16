@@ -194,7 +194,7 @@ public final class VecUtil {
    * @return A coordinate.
    */
   public static double scaleAngle(final double angle, final boolean lat) {
-    return (angle + 180) * SCALE * (lat ? 1 : -1);
+    return (angle + 180) * SCALE * (lat ? -1 : 1);
   }
 
   /**
@@ -205,7 +205,7 @@ public final class VecUtil {
    * @return The corresponding angle.
    */
   public static double unscaleAngle(final double coord, final boolean lat) {
-    return coord / SCALE * (lat ? 1 : -1) - 180;
+    return coord / SCALE * (lat ? -1 : 1) - 180;
   }
 
 }
