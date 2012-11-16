@@ -333,8 +333,10 @@ public final class BusvisWeighter implements Weighter {
     if(fr.equals(from)) return 0;
     final BusStation to = getStation(t);
     if(to.equals(from)) {
-      if(getRoute(fr).isReachable()) return factor * getRoute(fr).seconds()
-          / BusTime.SECONDS_PER_MINUTE;
+      if(getRoute(fr).isReachable()) {
+        final double secs = factor * getRoute(fr).seconds();
+        return secs / BusTime.SECONDS_PER_MINUTE;
+      }
       return Double.NaN;
     }
     return -minDist;

@@ -24,7 +24,8 @@ passed as second argument. The alternative path must contain the following files
 
     Defines the colors of the transportation lines. The first column is the
     unique name of the line. The next three columns are the color channels,
-    red, green, and blue respectively.
+    red, green, and blue respectively. An optional fourth column has a long
+    version of the name of the lines.
 
 -   *edges.csv*
 

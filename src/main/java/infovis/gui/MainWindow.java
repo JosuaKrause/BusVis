@@ -140,16 +140,16 @@ public final class MainWindow extends JFrame {
       }
 
     });
-    SwingUtilities.invokeLater(new Runnable() {
+    if(over != null) {
+      SwingUtilities.invokeLater(new Runnable() {
 
-      @Override
-      public void run() {
-        if(over != null) {
+        @Override
+        public void run() {
           over.loadSVG(ctrl);
         }
-      }
 
-    });
+      });
+    }
     final JRootPane root = getRootPane();
     root.setFocusable(true);
     root.grabFocus();
