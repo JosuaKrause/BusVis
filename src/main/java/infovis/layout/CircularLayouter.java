@@ -101,11 +101,7 @@ public final class CircularLayouter extends DirectLayouter {
   @Override
   protected boolean refinePositions(
       final Collection<LayoutNode> relevant, final Point2D refP) {
-    // for(final LayoutNode n : relevant) {
-    // setPos(n, n.getPos());
-    // }
-    // return resolve(relevant, refP, 100);
-    return false;
+    return resolve(relevant, refP, 100);
   }
 
   /**

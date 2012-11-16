@@ -126,7 +126,7 @@ public class GTFSReader implements BusDataReader {
       final File zip = r.directFile();
       if(stops.hasContent() && zip.lastModified() < stops.directFile().lastModified()) {
         final Stopwatch t = new Stopwatch();
-        System.out.println("Loading cached from " + root + "...");
+        System.out.println("Loading cached from " + root);
         final BusDataReader in = new CSVBusDataReader();
         builder = in.read(root);
         System.out.println("Loading took " + t.current());
@@ -154,7 +154,7 @@ public class GTFSReader implements BusDataReader {
   private void doRead(final Resource r) throws IOException {
     final Stopwatch a = new Stopwatch();
     final Stopwatch t = new Stopwatch();
-    System.out.println("Loading " + r + "...");
+    System.out.println("Loading " + r);
     data.setSource(r);
     builder = new BusDataBuilder(null);
     System.out.println("Took " + t.reset());

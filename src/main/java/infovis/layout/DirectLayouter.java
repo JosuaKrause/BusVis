@@ -111,8 +111,7 @@ public abstract class DirectLayouter extends AbstractLayouter {
           if(n == ref) {
             continue;
           }
-          n.changeAnimationTo(getDestination(n), Interpolator.SMOOTH,
-              LayoutNode.NORMAL);
+          n.changeAnimationTo(getDestination(n), Interpolator.LINEAR, LayoutNode.FAST);
         }
       }
     }
