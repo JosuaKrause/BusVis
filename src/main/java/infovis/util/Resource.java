@@ -284,4 +284,9 @@ public final class Resource {
     return isZip(path) ? UTF8 : CP1252;
   }
 
+  @Override
+  public String toString() {
+    return (local != null ? local : "") + getResource();
+  }
+
 }
