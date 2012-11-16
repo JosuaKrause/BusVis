@@ -1,11 +1,10 @@
 package infovis.data.gtfs;
 
 import infovis.util.Objects;
+import infovis.util.Resource;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -22,19 +21,15 @@ import jkit.io.csv.CSVRow;
  */
 public final class LazyGTFSDataProvider implements GTFSDataProvider {
 
-  /** The source URL. */
-  private URL url;
-
-  /** The character set. */
-  private Charset cs;
+  /** The resource. */
+  private Resource r;
 
   /** The CSV reader for GTFS files. */
   private final CSVReader reader = new CSVReader(',', '"', true, false);
 
   @Override
-  public void setSource(final URL url, final Charset cs) throws IOException {
-    this.url = url;
-    this.cs = cs;
+  public void setSource(final Resource r) throws IOException {
+    this.r = r;
   }
 
   /**
@@ -46,7 +41,7 @@ public final class LazyGTFSDataProvider implements GTFSDataProvider {
    */
   protected Iterator<GTFSRow> readFile(final String name) throws IOException {
     Objects.requireNonNull(name);
-    final ZipInputStream zip = new ZipInputStream(url.openStream());
+    final ZipInputStream zip = new ZipInputStream(r.getURL().openStream());
     boolean found = false;
     ZipEntry cur;
     while((cur = zip.getNextEntry()) != null) {
@@ -61,7 +56,8 @@ public final class LazyGTFSDataProvider implements GTFSDataProvider {
       final List<GTFSRow> empty = Collections.emptyList();
       return empty.iterator();
     }
-    final Iterator<CSVRow> it = CSVReader.readRows(new InputStreamReader(zip, cs), reader);
+    final Iterator<CSVRow> it = CSVReader.readRows(
+        new InputStreamReader(zip, r.getCharset()), reader);
     final Iterator<GTFSRow> res = new Iterator<GTFSRow>() {
 
       @Override

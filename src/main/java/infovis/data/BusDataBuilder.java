@@ -1,17 +1,16 @@
 package infovis.data;
 
-import static infovis.util.IOUtil.*;
+import static infovis.util.Resource.*;
 import static java.lang.Integer.*;
 import infovis.data.csv.CSVBusDataReader;
 import infovis.data.gtfs.GTFSReader;
 import infovis.data.gtfs.LazyGTFSDataProvider;
-import infovis.util.IOUtil;
 import infovis.util.Objects;
+import infovis.util.Resource;
 import infovis.util.VecUtil;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,14 +36,14 @@ public final class BusDataBuilder {
   /** Walking distances. */
   private final List<List<Integer>> walkingDists = new ArrayList<List<Integer>>();
   /** The overview resource URL. */
-  private final URL overview;
+  private final Resource overview;
 
   /**
    * Constructor taking the path of the CSV files.
    * 
-   * @param overview The overview resource URL, possibly <code>null</code>
+   * @param overview The overview resource, possibly <code>null</code>
    */
-  public BusDataBuilder(final URL overview) {
+  public BusDataBuilder(final Resource overview) {
     this.overview = overview;
   }
 
@@ -93,27 +92,19 @@ public final class BusDataBuilder {
   }
 
   /**
-   * The default character set. <code>CP-1252</code> for Excel compatibility and
-   * <code>UTF-8</code> for ZIP files.
-   * 
-   * @param path The path of the resource.
-   * @return The default character set.
-   */
-  public static Charset defaultCharset(final String path) {
-    return path.endsWith(".zip") ? UTF8 : CP1252;
-  }
-
-  /**
    * Loads a bus station manager from the given path.
    * 
    * @param path The path.
    * @param cs The character set or <code>null</code>.
    * @return The bus station manager.
    * @throws IOException I/O Exception.
+   * @deprecated deprecated
    */
+  @Deprecated
   public static BusStationManager loadPath(final String path, final String cs)
       throws IOException {
-    return load(null, path, cs != null ? Charset.forName(cs) : defaultCharset(path));
+    return load(new Resource(null, path, cs != null ? Charset.forName(cs)
+        : defaultCharset(path)));
   }
 
   /**
@@ -122,37 +113,34 @@ public final class BusDataBuilder {
    * @param path The city.
    * @return The bus station manager.
    * @throws IOException I/O Exception.
+   * @deprecated deprecated
    */
+  @Deprecated
   public static BusStationManager loadDefault(final String path) throws IOException {
-    return load(IOUtil.RESOURCES, path, defaultCharset(path));
+    return load(new Resource(RESOURCES, path, defaultCharset(path)));
   }
 
   /**
    * Loads the bus system data from CSV files.
    * 
-   * @param local The local resource path or <code>null</code> if a direct path
-   *          is specified.
-   * @param path data file path
-   * @param cs The character set
+   * @param r The resource.
    * @return The bus manager holding informations.
    * @throws IOException I/O exception
    */
-  public static BusStationManager load(final String local, final String path,
-      final Charset cs) throws IOException {
+  public static BusStationManager load(final Resource r) throws IOException {
     final BusDataReader in;
-    if(path.endsWith(".zip")) {
-      if(!UTF8.equals(cs)) {
-        System.err.println("Warning: character set '" + cs.displayName()
+    if(r.isZip()) {
+      if(!UTF8.equals(r.getCharset())) {
+        System.err.println("Warning: character set '" + r.getCharset().displayName()
             + "' is not 'UTF-8'! Use second command line argument to change");
       }
       in = new GTFSReader(new LazyGTFSDataProvider());
     } else {
       in = new CSVBusDataReader();
     }
-    final BusStationManager mngr = in.read(local, path, cs).finish();
+    final BusStationManager mngr = in.read(r).finish();
     if(mngr.getStations().isEmpty()) throw new IllegalArgumentException(
-        "provided source '" + IOUtil.getURL(local, path)
-        + "' does not contain any stations.");
+        "provided source '" + r.getURL() + "' does not contain any stations.");
     return mngr;
   }
 

@@ -3,11 +3,10 @@
  */
 package jkit.io.csv;
 
-import infovis.util.IOUtil;
+import infovis.util.Resource;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -178,23 +177,19 @@ public class CSVReader {
   /**
    * Creates a lazy representation of the rows of a resource.
    * 
-   * @param local The local path or <code>null</code>.
-   * @param path The path.
-   * @param file The filename.
-   * @param cs The character set.
+   * @param resource The resource.
    * @param reader The CSV reader.
    * @return A lazy collection of rows.
-   * @throws IOException I/O Exception.
    */
-  public static final Iterable<CSVRow> readRows(final String local, final String path,
-      final String file, final Charset cs, final CSVReader reader) throws IOException {
-    if(!IOUtil.hasContent(IOUtil.getURL(local, path, file))) return null;
+  public static final Iterable<CSVRow> readRows(
+      final Resource resource, final CSVReader reader) {
+    if(!resource.hasContent()) return null;
     return new Iterable<CSVRow>() {
 
       @Override
       public Iterator<CSVRow> iterator() {
         try {
-          return readRows(IOUtil.reader(local, path, file, cs), reader);
+          return readRows(resource.reader(), reader);
         } catch(final IOException e) {
           throw new IllegalStateException(e);
         }

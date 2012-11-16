@@ -7,12 +7,10 @@ import infovis.data.BusDataBuilder;
 import infovis.data.BusDataReader;
 import infovis.data.BusLine;
 import infovis.data.BusTime;
-import infovis.util.IOUtil;
+import infovis.util.Resource;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
 
 import jkit.io.csv.CSVReader;
 import jkit.io.csv.CSVRow;
@@ -43,14 +41,13 @@ public class CSVBusDataReader implements BusDataReader {
   public static final String ABSTRACT = "abstract.svg";
 
   @Override
-  public BusDataBuilder read(final String local, final String path, final Charset cs)
-      throws IOException {
+  public BusDataBuilder read(final Resource r) throws IOException {
     final CSVReader reader = new CSVReader();
-    final URL overview = IOUtil.getURL(local, path, ABSTRACT);
+    final Resource overview = r.getFile(ABSTRACT);
     final BusDataBuilder builder = new BusDataBuilder(
-        IOUtil.hasContent(overview) ? overview : null);
+        overview.hasContent() ? overview : null);
 
-    for(final CSVRow stop : CSVReader.readRows(local, path, STOPS, cs, reader)) {
+    for(final CSVRow stop : CSVReader.readRows(r.getFile(STOPS), reader)) {
       double abstractX, abstractY;
       if(UNKNOWN.equals(stop.get(4))) {
         abstractX = abstractY = NaN;
@@ -62,8 +59,7 @@ public class CSVBusDataReader implements BusDataReader {
           parseDouble(stop.get(3)), abstractX, abstractY);
     }
 
-    final Iterable<CSVRow> walk = CSVReader.readRows(local, path, WALKING_DIST, cs,
-        reader);
+    final Iterable<CSVRow> walk = CSVReader.readRows(r.getFile(WALKING_DIST), reader);
     if(walk != null) {
       for(final CSVRow dist : walk) {
         builder.setWalkingDistance(dist.get(0), dist.get(1), parseInt(dist.get(2)));
@@ -72,7 +68,7 @@ public class CSVBusDataReader implements BusDataReader {
       builder.calcWalkingDistances();
     }
 
-    for(final CSVRow line : CSVReader.readRows(local, path, LINES, cs, reader)) {
+    for(final CSVRow line : CSVReader.readRows(r.getFile(LINES), reader)) {
       final Color c = new Color(parseInt(line.get(1)), parseInt(line.get(2)),
           parseInt(line.get(3)));
       final String id = line.get(0);
@@ -86,7 +82,7 @@ public class CSVBusDataReader implements BusDataReader {
       builder.createLine(id, name, longName, c);
     }
 
-    for(final CSVRow edge : CSVReader.readRows(local, path, EDGES, cs, reader)) {
+    for(final CSVRow edge : CSVReader.readRows(r.getFile(EDGES), reader)) {
       final BusLine line = builder.getLine(edge.get(0));
       final int tourNr = parseInt(edge.get(1));
       final String from = edge.get(2);

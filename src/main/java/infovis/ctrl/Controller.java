@@ -8,8 +8,8 @@ import infovis.layout.Layouts;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 import infovis.util.Objects;
+import infovis.util.Resource;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Calendar;
@@ -116,10 +116,19 @@ public final class Controller implements BusStationEnumerator {
   /**
    * Getter.
    * 
-   * @return The resource path or <code>null</code> if no path is specified.
+   * @return The resource or <code>null</code> if no resource is specified.
    */
-  public URL getOverviewURL() {
-    return manager.getOverviewURL();
+  public Resource getOverview() {
+    return manager.getOverview();
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Whether there exists an overview.
+   */
+  public boolean hasOverview() {
+    return getOverview() != null;
   }
 
   /**

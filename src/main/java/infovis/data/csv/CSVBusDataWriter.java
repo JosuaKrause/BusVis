@@ -6,15 +6,14 @@ import infovis.data.BusLine;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.util.Resource;
 
 import java.awt.Color;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,14 +41,13 @@ public class CSVBusDataWriter {
   /**
    * Actually writes the data to the specified path.
    * 
-   * @param folder The path.
-   * @param cs The character encoding.
+   * @param folder The folder resource.
    * @throws IOException I/O Exception.
    */
-  public void write(final File folder, final Charset cs) throws IOException {
-    final CSVWriter edges = getWriter(folder, EDGES, cs);
-    final CSVWriter walks = getWriter(folder, WALKING_DIST, cs);
-    final CSVWriter stations = getWriter(folder, STOPS, cs);
+  public void write(final Resource folder) throws IOException {
+    final CSVWriter edges = getWriter(folder, EDGES);
+    final CSVWriter walks = getWriter(folder, WALKING_DIST);
+    final CSVWriter stations = getWriter(folder, STOPS);
     final Set<BusLine> busLines = new HashSet<BusLine>();
     for(final BusStation s : manager.getStations()) {
       writeStation(stations, s);
@@ -68,7 +66,7 @@ public class CSVBusDataWriter {
     edges.close();
     walks.close();
     stations.close();
-    final CSVWriter lines = getWriter(folder, LINES, cs);
+    final CSVWriter lines = getWriter(folder, LINES);
     for(final BusLine l : busLines) {
       writeLine(lines, l);
     }
@@ -80,14 +78,13 @@ public class CSVBusDataWriter {
    * 
    * @param folder The folder.
    * @param name The name of the file.
-   * @param cs The character set.
    * @return The writer.
    * @throws FileNotFoundException I/O Exception.
    */
-  private static CSVWriter getWriter(final File folder, final String name,
-      final Charset cs) throws FileNotFoundException {
+  private static CSVWriter getWriter(final Resource folder, final String name) throws FileNotFoundException {
     return new CSVWriter(new PrintWriter(new OutputStreamWriter(
-        new FileOutputStream(new File(folder, name)), cs), true));
+        new FileOutputStream(folder.getFile(name).directFile()),
+        folder.getCharset()), true));
   }
 
   /**

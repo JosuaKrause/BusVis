@@ -135,7 +135,7 @@ public final class Overview extends JSVGCanvas implements BusVisualization {
     SVGDocument doc = null;
     URL url = null;
     try {
-      url = ctrl.getOverviewURL();
+      url = ctrl.getOverview().getURL();
       doc = (SVGDocument) f.createDocument(url.toString());
     } catch(final IOException e) {
       e.printStackTrace();
