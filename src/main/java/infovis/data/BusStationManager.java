@@ -1,6 +1,7 @@
 package infovis.data;
 
-import java.net.URL;
+import infovis.util.Resource;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,15 +20,15 @@ public final class BusStationManager implements BusStationEnumerator {
   private final Collection<BusStation> fastIterate;
 
   /** The overview resource URL. */
-  private final URL overview;
+  private final Resource overview;
 
   /**
    * Constructor taking the map of bus stations.
    * 
    * @param stations bus station map
-   * @param overview overview resource URL, possibly <code>null</code>
+   * @param overview overview resource, possibly <code>null</code>
    */
-  BusStationManager(final Collection<BusStation> stations, final URL overview) {
+  BusStationManager(final Collection<BusStation> stations, final Resource overview) {
     fastIterate = Collections.unmodifiableCollection(new ArrayList<BusStation>(stations));
     int maxId = 0;
     for(final BusStation b: fastIterate) {
@@ -46,10 +47,10 @@ public final class BusStationManager implements BusStationEnumerator {
   /**
    * Getter.
    * 
-   * @return The overview resource URL or <code>null</code> if the file does not
+   * @return The overview resource or <code>null</code> if the file does not
    *         exist.
    */
-  public URL getOverviewURL() {
+  public Resource getOverview() {
     return overview;
   }
 

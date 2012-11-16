@@ -52,7 +52,7 @@ public final class MainWindow extends JFrame {
     ctrl = new Controller(m, this);
     wnds = new LinkedList<JFrame>();
     final Overview over;
-    over = ctrl.getOverviewURL() != null ? new Overview(ctrl, 400, 400) : null;
+    over = ctrl.hasOverview() ? new Overview(ctrl, 400, 400) : null;
     final ControlPanel cp = new ControlPanel(ctrl);
     final BusvisCanvas mainCanvas = BusvisCanvas.createBusCanvas(ctrl, 900, 900);
     add(createUI(over, cp, mainCanvas, bigScreen));

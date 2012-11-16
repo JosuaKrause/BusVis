@@ -6,7 +6,7 @@ import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.layout.Layouts;
 import infovis.routing.RoutingAlgorithm;
-import infovis.util.IOUtil;
+import infovis.util.Resource;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -54,8 +54,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   static {
     try {
-      FFW_MODE = new ImageIcon(IOUtil.getURL(IOUtil.RESOURCES, "pics/ffw.gif"));
-      FFW_STOP = new ImageIcon(IOUtil.getURL(IOUtil.RESOURCES, "pics/stop.gif"));
+      FFW_MODE = new ImageIcon(new Resource("pics/ffw.gif").getURL());
+      FFW_STOP = new ImageIcon(new Resource("pics/stop.gif").getURL());
     } catch(final IOException e) {
       throw new IOError(e);
     }

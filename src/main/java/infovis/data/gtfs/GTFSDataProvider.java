@@ -1,8 +1,8 @@
 package infovis.data.gtfs;
 
+import infovis.util.Resource;
+
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
 
 
 /**
@@ -15,11 +15,10 @@ public interface GTFSDataProvider {
   /**
    * Sets the source of the data. Informations are replaced.
    * 
-   * @param url The source of the data.
-   * @param cs The character set.
+   * @param r The resource.
    * @throws IOException I/O Exception.
    */
-  void setSource(URL url, Charset cs) throws IOException;
+  void setSource(Resource r) throws IOException;
 
   /**
    * Getter.
