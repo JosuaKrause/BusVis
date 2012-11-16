@@ -3,6 +3,7 @@ package infovis;
 import infovis.data.BusDataBuilder;
 import infovis.data.BusStationManager;
 import infovis.gui.MainWindow;
+import infovis.util.Resource;
 
 import java.io.IOException;
 
@@ -65,9 +66,9 @@ public final class DesktopApp {
     final BusStationManager m;
     if(args.length > 0) {
       final String cs = args.length > 1 ? args[1] : null;
-      m = BusDataBuilder.loadPath(args[0], cs);
+      m = BusDataBuilder.load(new Resource(null, args[0], cs));
     } else {
-      m = BusDataBuilder.loadDefault("konstanz");
+      m = BusDataBuilder.load(new Resource("konstanz"));
     }
     return m;
   }

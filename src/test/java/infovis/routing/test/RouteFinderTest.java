@@ -11,6 +11,7 @@ import infovis.data.BusTime;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 import infovis.routing.RoutingResult;
+import infovis.util.Resource;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -217,7 +218,7 @@ public class RouteFinderTest {
   @Test
   public void at12Am() throws Exception {
     final long nanoTime = System.nanoTime();
-    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
+    final BusStationManager man = BusDataBuilder.load(new Resource("konstanz"));
     final AtomicBoolean fail = new AtomicBoolean(false);
     final BitSet set = new BitSet();
     int num = 0;
@@ -266,7 +267,7 @@ public class RouteFinderTest {
    */
   @Test
   public void walkingTest() throws Exception {
-    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
+    final BusStationManager man = BusDataBuilder.load(new Resource("konstanz"));
     final int mth = man.getMaxTimeHours() * MINUTES_PER_HOUR;
     final RoutingAlgorithm router = new RouteFinder();
     for(final BusStation s : man.getStations()) {
@@ -291,7 +292,7 @@ public class RouteFinderTest {
    */
   @Test
   public void walking() throws Exception {
-    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
+    final BusStationManager man = BusDataBuilder.load(new Resource("konstanz"));
     final RouteFinder rf = new RouteFinder();
     final BitSet bs = new BitSet();
     bs.set(107);

@@ -11,7 +11,6 @@ import infovis.util.VecUtil;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,35 +88,6 @@ public final class BusDataBuilder {
       sum += e.size();
     }
     return sum;
-  }
-
-  /**
-   * Loads a bus station manager from the given path.
-   * 
-   * @param path The path.
-   * @param cs The character set or <code>null</code>.
-   * @return The bus station manager.
-   * @throws IOException I/O Exception.
-   * @deprecated deprecated
-   */
-  @Deprecated
-  public static BusStationManager loadPath(final String path, final String cs)
-      throws IOException {
-    return load(new Resource(null, path, cs != null ? Charset.forName(cs)
-        : defaultCharset(path)));
-  }
-
-  /**
-   * Loads a bus station manager from the default resource path.
-   * 
-   * @param path The city.
-   * @return The bus station manager.
-   * @throws IOException I/O Exception.
-   * @deprecated deprecated
-   */
-  @Deprecated
-  public static BusStationManager loadDefault(final String path) throws IOException {
-    return load(new Resource(RESOURCES, path, defaultCharset(path)));
   }
 
   /**

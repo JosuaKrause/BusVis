@@ -41,11 +41,32 @@ public final class Resource {
   private final Charset cs;
 
   /**
+   * Creates a system resource (located in the jar).
+   * 
+   * @param name The name of the system resource.
+   */
+  public Resource(final String name) {
+    this(RESOURCES, name, defaultCharset(name));
+  }
+
+  /**
    * Creates a resource.
    * 
-   * @param local local resource path or <code>null</code> if a direct path is
-   *          specified.
-   * @param resource resource to get
+   * @param local The local resource path or <code>null</code> if a direct path
+   *          is specified.
+   * @param resource The resource to get
+   * @param cs The character set or <code>null</code>.
+   */
+  public Resource(final String local, final String resource, final String cs) {
+    this(local, resource, cs != null ? Charset.forName(cs) : defaultCharset(resource));
+  }
+
+  /**
+   * Creates a resource.
+   * 
+   * @param local The local resource path or <code>null</code> if a direct path
+   *          is specified.
+   * @param resource The resource to get.
    * @param cs The character set.
    */
   public Resource(final String local, final String resource, final Charset cs) {
@@ -61,7 +82,7 @@ public final class Resource {
    * @param file The file part.
    * @param cs The character set.
    */
-  public Resource(final String local, final String path, final String file,
+  private Resource(final String local, final String path, final String file,
       final Charset cs) {
     this.local = local;
     this.path = path;
@@ -243,17 +264,6 @@ public final class Resource {
   }
 
   /**
-   * Creates a system (jar) URL for the given name.
-   * 
-   * @param name The name.
-   * @return The URL.
-   * @throws IOException I/O Exception.
-   */
-  public static URL resource(final String name) throws IOException {
-    return new Resource(RESOURCES, name, UTF8).getURL();
-  }
-
-  /**
    * Whether the given path points to a ZIP file.
    * 
    * @param path The path.
@@ -270,7 +280,7 @@ public final class Resource {
    * @param path The path of the resource.
    * @return The default character set.
    */
-  public static Charset defaultCharset(final String path) {
+  private static Charset defaultCharset(final String path) {
     return isZip(path) ? UTF8 : CP1252;
   }
 

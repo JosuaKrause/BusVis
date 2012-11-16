@@ -54,8 +54,8 @@ public final class ControlPanel extends JPanel implements BusVisualization {
 
   static {
     try {
-      FFW_MODE = new ImageIcon(Resource.resource("pics/ffw.gif"));
-      FFW_STOP = new ImageIcon(Resource.resource("pics/stop.gif"));
+      FFW_MODE = new ImageIcon(new Resource("pics/ffw.gif").getURL());
+      FFW_STOP = new ImageIcon(new Resource("pics/stop.gif").getURL());
     } catch(final IOException e) {
       throw new IOError(e);
     }
