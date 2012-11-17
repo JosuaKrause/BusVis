@@ -1,5 +1,6 @@
 package infovis.data;
 
+import infovis.util.Objects;
 import infovis.util.Resource;
 
 import java.util.ArrayList;
@@ -22,14 +23,22 @@ public final class BusStationManager implements BusStationEnumerator {
   /** The overview resource URL. */
   private final Resource overview;
 
+  /** The edge matrix. */
+  private final EdgeMatrix matrix;
+
   /**
    * Constructor taking the map of bus stations.
    * 
    * @param stations bus station map
    * @param overview overview resource, possibly <code>null</code>
+   * @param matrix The edge matrix.
    */
-  BusStationManager(final Collection<BusStation> stations, final Resource overview) {
-    fastIterate = Collections.unmodifiableCollection(new ArrayList<BusStation>(stations));
+  BusStationManager(final Collection<BusStation> stations,
+      final Resource overview, final EdgeMatrix matrix) {
+    this.overview = overview;
+    this.matrix = Objects.requireNonNull(matrix);
+    fastIterate = Collections.unmodifiableCollection(
+        new ArrayList<BusStation>(Objects.requireNonNull(stations)));
     int maxId = 0;
     for(final BusStation b: fastIterate) {
       final int id = b.getId();
@@ -41,7 +50,15 @@ public final class BusStationManager implements BusStationEnumerator {
     for(final BusStation b: fastIterate) {
       fastLookup[b.getId()] = b;
     }
-    this.overview = overview;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The edge matrix of this manager.
+   */
+  public EdgeMatrix getEdgeMatrix() {
+    return matrix;
   }
 
   /**
@@ -69,9 +86,7 @@ public final class BusStationManager implements BusStationEnumerator {
     return fastLookup.length - 1;
   }
 
-  /**
-   * The maximum amount of time a route can take.
-   */
+  /** The maximum amount of time a route can take. */
   private int maxTimeHours = 24;
 
   /**

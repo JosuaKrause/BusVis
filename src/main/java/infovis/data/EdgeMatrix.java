@@ -1,6 +1,7 @@
 package infovis.data;
 
 import infovis.routing.RoutingResult;
+import infovis.util.Objects;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -223,18 +224,34 @@ public final class EdgeMatrix {
    * 
    * @param bse The bus station enumerator.
    */
-  public EdgeMatrix(final BusStationEnumerator bse) {
+  EdgeMatrix(final BusStationEnumerator bse) {
     maxId = bse.maxId();
     maxLines = new int[maxId + 1];
     degree = new int[maxId + 1];
     matrix = new UndirectedEdge[maxId][];
+    fillEdgeMatrix(bse);
+  }
+
+  /**
+   * Fills the edge matrix.
+   * 
+   * @param bse The bus station enumerator.
+   */
+  private void fillEdgeMatrix(final BusStationEnumerator bse) {
+    Objects.requireTrue(bse.maxId() == maxId);
+    Arrays.fill(maxLines, 0);
+    Arrays.fill(degree, 0);
+    final Set<BusLine>[][] lineMatrix = calcLines(bse);
     for(int i = 1; i <= maxId; ++i) {
       final BusStation higher = bse.getForId(i);
+      final int h = higher.getId();
       final UndirectedEdge[] tmp = matrix[i - 1] = new UndirectedEdge[i];
       for(int j = 0; j < i; ++j) {
         final BusStation lower = bse.getForId(j);
-        final BusLine[] lines = calcLines(lower, higher);
-        updateLinesAndDegree(lower.getId(), higher.getId(), lines.length);
+        final int l = lower.getId();
+        final Set<BusLine> bl = lineMatrix[h - 1][l];
+        final BusLine[] lines = bl.toArray(new BusLine[bl.size()]);
+        updateLinesAndDegree(l, h, lines.length);
         tmp[j] = new UndirectedEdge(lower, higher, lines);
       }
     }
@@ -262,26 +279,37 @@ public final class EdgeMatrix {
   }
 
   /**
-   * Calculates the lines for a pair of {@link BusStation}s.
+   * Calculates the lines for {@link BusStation}s.
    * 
-   * @param a One station.
-   * @param b Another station.
+   * @param bse The bus station enumerator.
    * @return The lines connecting the stations.
    */
-  private static BusLine[] calcLines(final BusStation a, final BusStation b) {
-    final Set<BusLine> set = new HashSet<BusLine>();
-    set.add(BusLine.WALK);
-    for(final BusEdge e : a.getEdges()) {
-      if(e.getTo().equals(b)) {
-        set.add(e.getLine());
+  private Set<BusLine>[][] calcLines(final BusStationEnumerator bse) {
+    @SuppressWarnings("unchecked")
+    final Set<BusLine>[][] res = (Set<BusLine>[][]) new Set<?>[maxId][];
+    for(int i = 1; i <= maxId; ++i) {
+      @SuppressWarnings("unchecked")
+      final Set<BusLine>[] tmp = res[i - 1] = (Set<BusLine>[]) new Set<?>[i];
+      for(int j = 0; j < i; ++j) {
+        final Set<BusLine> set = tmp[j] = new HashSet<BusLine>();
+        set.add(BusLine.WALK);
       }
     }
-    for(final BusEdge e : b.getEdges()) {
-      if(e.getTo().equals(a)) {
-        set.add(e.getLine());
+    for(final BusStation s : bse.getStations()) {
+      for(final BusEdge e : s.getEdges()) {
+        final int a = e.getFrom().getId();
+        final int b = e.getTo().getId();
+        if(a == b) {
+          continue;
+        }
+        final int lower = Math.min(a, b);
+        final int higher = Math.max(a, b);
+        final Set<BusLine> set = res[higher - 1][lower];
+        final BusLine line = e.getLine();
+        set.add(line);
       }
     }
-    return set.toArray(new BusLine[set.size()]);
+    return res;
   }
 
   /**

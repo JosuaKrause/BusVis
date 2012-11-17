@@ -176,6 +176,9 @@ public class GTFSReader implements BusDataReader {
     System.out.println("Building edges...");
     buildEdges();
     System.out.println(builder.edgeCount() + " edges (" + t.reset() + ")");
+    System.out.println("Building edge matrix...");
+    builder.computeEdgeMatrix();
+    System.out.println("done (" + t.reset() + ")");
     System.out.println("Loading took " + a.current());
   }
 

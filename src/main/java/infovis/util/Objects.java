@@ -27,6 +27,16 @@ public final class Objects {
   }
 
   /**
+   * Requires a null argument.
+   * 
+   * @param obj The argument.
+   * @throws IllegalArgumentException When the argument is <code>null</code>.
+   */
+  public static void requireNull(final Object obj) {
+    if(obj != null) throw new IllegalArgumentException("non-null argument: " + obj);
+  }
+
+  /**
    * Requires a <code>true</code> statement.
    * 
    * @param value The statement that needs to be <code>true</code>.

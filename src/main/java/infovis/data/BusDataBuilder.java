@@ -12,6 +12,7 @@ import infovis.util.VecUtil;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +23,7 @@ import java.util.Map;
  * 
  * @author Leo Woerteler
  */
-public final class BusDataBuilder {
+public final class BusDataBuilder implements BusStationEnumerator {
 
   /** Maps the external bus station ids to the internal ones. */
   private final Map<String, Integer> idMap = new HashMap<String, Integer>();
@@ -291,9 +292,33 @@ public final class BusDataBuilder {
    * @throws IllegalArgumentException if the ID has no associated station
    */
   public BusStation getStation(final String id) {
-    final BusStation station = stations.get(Objects.requireNonNull(idMap.get(id)));
+    final BusStation station = getForId(Objects.requireNonNull(idMap.get(id)));
     if(station == null) throw new IllegalArgumentException("Unknown station: " + id);
     return station;
+  }
+
+  @Override
+  public BusStation getForId(final int id) {
+    return stations.get(id);
+  }
+
+  @Override
+  public Collection<BusStation> getStations() {
+    return stations;
+  }
+
+  @Override
+  public int maxId() {
+    return stations.size() - 1;
+  }
+
+  /** The cached finished edge matrix. */
+  private EdgeMatrix matrix;
+
+  /** Builds the edge matrix. */
+  public void computeEdgeMatrix() {
+    Objects.requireNull(matrix);
+    matrix = new EdgeMatrix(this);
   }
 
   /** The cached finished bus manager. */
@@ -309,7 +334,10 @@ public final class BusDataBuilder {
       for(final List<BusEdge> e : edges) {
         Collections.sort(e);
       }
-      result = new BusStationManager(stations, overview);
+      if(matrix == null) { // fail-safe
+        computeEdgeMatrix();
+      }
+      result = new BusStationManager(stations, overview, matrix);
     }
     return result;
   }

@@ -75,7 +75,7 @@ public final class BusvisWeighter implements Weighter {
    */
   public BusvisWeighter(final Controller ctrl) {
     this.ctrl = ctrl;
-    matrix = new EdgeMatrix(ctrl.getBusStationManager());
+    matrix = ctrl.getBusStationManager().getEdgeMatrix();
     dummyRoutes = new RoutingResult[ctrl.maxId() + 1];
     for(int id = 0; id < dummyRoutes.length; ++id) {
       dummyRoutes[id] = new RoutingResult(ctrl.getForId(id)); // dummy results

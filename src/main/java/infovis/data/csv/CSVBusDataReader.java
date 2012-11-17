@@ -92,6 +92,8 @@ public class CSVBusDataReader implements BusDataReader {
       builder.addEdge(from, line, tourNr, to, start, end);
     }
 
+    builder.computeEdgeMatrix();
+
     return builder;
   }
 
