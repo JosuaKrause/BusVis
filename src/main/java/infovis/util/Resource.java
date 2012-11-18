@@ -2,10 +2,13 @@ package infovis.util;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.Writer;
 import java.net.URL;
 import java.nio.charset.Charset;
 
@@ -84,10 +87,10 @@ public final class Resource {
    */
   private Resource(final String local, final String path, final String file,
       final Charset cs) {
+    this.path = Objects.requireNonNull(path);
+    this.cs = Objects.requireNonNull(cs);
     this.local = local;
-    this.path = path;
     this.file = file;
-    this.cs = cs;
   }
 
   /**
@@ -162,6 +165,33 @@ public final class Resource {
   }
 
   /**
+   * Changes the extension of a file.
+   * 
+   * @param file The file as string.
+   * @param ext The extension.
+   * @return The file with substituted extension.
+   */
+  private static String changeExtensionTo(final String file, final String ext) {
+    final String dext = ext.charAt(0) == '.' ? ext : "." + ext;
+    final int dot = file.lastIndexOf('.');
+    return dot < 0 ? file + dext : file.substring(0, dot) + dext;
+  }
+
+  /**
+   * Returns a resource with exchanged extension. If the resource denotes a
+   * folder a file with the name of the folder and the given extension in the
+   * parent directory is returned.
+   * 
+   * @param ext The new extension.
+   * @return The resource with substituted extension.
+   */
+  public Resource changeExtensionTo(final String ext) {
+    if(file != null) return new Resource(local, path, changeExtensionTo(file, ext), cs);
+    final String p = endsWithDelim(path) ? parent(path) : path;
+    return new Resource(local, changeExtensionTo(p, ext), cs);
+  }
+
+  /**
    * Adds a file part to the resource.
    * 
    * @param name The name of the file.
@@ -232,6 +262,17 @@ public final class Resource {
     if(!hasContent()) return null;
     final URL url = getURL();
     return charsetReader(url.openStream());
+  }
+
+  /**
+   * Creates a {@link Writer} if possible.
+   * 
+   * @return writer or <code>null</code> if not possible.
+   * @throws IOException I/O exception
+   */
+  public Writer writer() throws IOException {
+    if(!hasDirectFile()) return null;
+    return new OutputStreamWriter(new FileOutputStream(directFile()), cs);
   }
 
   /**

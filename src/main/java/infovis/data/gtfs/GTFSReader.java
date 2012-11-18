@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -119,9 +120,17 @@ public class GTFSReader implements BusDataReader {
   public BusDataBuilder read(final Resource r) throws IOException {
     if(used.getAndSet(true)) throw new IllegalStateException(
         "this reader was used before");
-    final boolean caching = r.hasDirectFile();
+    final Resource root = r.getParent();
+    final Resource ini = r.changeExtensionTo("ini");
+    final Properties prop = new Properties();
+    if(ini.hasContent()) {
+      prop.load(ini.reader());
+    }
+    final Object doCache = prop.get("cache");
+    final boolean caching = r.hasDirectFile()
+        && (doCache == null || "true".equals(doCache));
+    prop.setProperty("cache", "" + caching);
     if(caching) {
-      final Resource root = r.getParent();
       final Resource stops = root.getFile(CSVBusDataReader.STOPS);
       final File zip = r.directFile();
       if(stops.hasContent() && zip.lastModified() < stops.directFile().lastModified()) {
@@ -130,19 +139,34 @@ public class GTFSReader implements BusDataReader {
         final BusDataReader in = new CSVBusDataReader();
         builder = in.read(root);
         System.out.println("Loading took " + t.current());
+        writeProperties(prop, ini);
         return builder;
       }
     }
     doRead(r);
     if(caching) {
-      final Resource root = r.getParent();
       System.out.println("Writing cache to " + root);
       final Stopwatch t = new Stopwatch();
       final CSVBusDataWriter out = new CSVBusDataWriter(builder.finish());
       out.write(root);
       System.out.println("Took " + t.current());
     }
+    writeProperties(prop, ini);
     return builder;
+  }
+
+  /**
+   * Writes properties to the INI file if possible.
+   * 
+   * @param prop The properties.
+   * @param ini The INI file.
+   * @throws IOException I/O Exception.
+   */
+  private static void writeProperties(final Properties prop,
+      final Resource ini) throws IOException {
+    if(ini.hasDirectFile()) {
+      prop.store(ini.writer(), "created automatically");
+    }
   }
 
   /**
@@ -178,7 +202,7 @@ public class GTFSReader implements BusDataReader {
     System.out.println(builder.edgeCount() + " edges (" + t.reset() + ")");
     System.out.println("Building edge matrix...");
     builder.computeEdgeMatrix();
-    System.out.println("done (" + t.reset() + ")");
+    System.out.println("Done (" + t.reset() + ")");
     System.out.println("Loading took " + a.current());
   }
 

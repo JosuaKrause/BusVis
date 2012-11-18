@@ -250,7 +250,8 @@ public class CSVReader {
 
       };
 
-      protected final BlockingQueue<CSVRow> rows = new LinkedBlockingQueue<CSVRow>(10);
+      // TODO maybe use something different than a blocking queue
+      protected final BlockingQueue<CSVRow> rows = new LinkedBlockingQueue<CSVRow>(2000);
 
       protected volatile boolean finish = false;
 
