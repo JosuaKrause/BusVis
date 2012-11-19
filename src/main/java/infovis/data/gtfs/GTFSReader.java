@@ -9,6 +9,7 @@ import infovis.data.BusStation;
 import infovis.data.BusTime;
 import infovis.data.csv.CSVBusDataReader;
 import infovis.data.csv.CSVBusDataWriter;
+import infovis.util.ChangeAwareProperties;
 import infovis.util.Objects;
 import infovis.util.Resource;
 import infovis.util.Stopwatch;
@@ -16,6 +17,9 @@ import infovis.util.Stopwatch;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -122,7 +126,7 @@ public class GTFSReader implements BusDataReader {
         "this reader was used before");
     final Resource root = r.getParent();
     final Resource ini = r.changeExtensionTo("ini");
-    final Properties prop = new Properties();
+    final ChangeAwareProperties prop = new ChangeAwareProperties();
     if(ini.hasContent()) {
       prop.load(ini.reader());
     }
@@ -143,7 +147,7 @@ public class GTFSReader implements BusDataReader {
         return builder;
       }
     }
-    doRead(r);
+    doRead(r, prop);
     if(caching) {
       System.out.println("Writing cache to " + root);
       final Stopwatch t = new Stopwatch();
@@ -162,10 +166,12 @@ public class GTFSReader implements BusDataReader {
    * @param ini The INI file.
    * @throws IOException I/O Exception.
    */
-  private static void writeProperties(final Properties prop,
+  private static void writeProperties(final ChangeAwareProperties prop,
       final Resource ini) throws IOException {
     if(ini.hasDirectFile()) {
-      prop.store(ini.writer(), "created automatically");
+      if(prop.storeIfChanged(ini, "created automatically")) {
+        System.out.println("Written INI file");
+      }
     }
   }
 
@@ -173,9 +179,11 @@ public class GTFSReader implements BusDataReader {
    * Reads the zipped GTFS data.
    * 
    * @param r The resource.
+   * @param prop The properties.
    * @throws IOException I/O Exception
    */
-  private void doRead(final Resource r) throws IOException {
+  private void doRead(final Resource r, final Properties prop) throws IOException {
+    // TODO more properties of the GTFS format could be implemented
     final Stopwatch a = new Stopwatch();
     final Stopwatch t = new Stopwatch();
     System.out.println("Loading " + r);
@@ -192,7 +200,7 @@ public class GTFSReader implements BusDataReader {
     readLines();
     System.out.println(builder.lineCount() + " lines (" + t.reset() + ")");
     System.out.println("Reading trips...");
-    readTrips();
+    readTrips(prop);
     System.out.println(tripMap.size() + " trips (" + t.reset() + ")");
     System.out.println("Reading stop times...");
     readStopTimes();
@@ -257,12 +265,119 @@ public class GTFSReader implements BusDataReader {
     }
   }
 
-  /** Reads the trips. */
-  private void readTrips() {
-    // TODO use trips and calendar to find valid trips
+  /**
+   * Reads the trips.
+   * 
+   * @param prop The properties.
+   */
+  private void readTrips(final Properties prop) {
+    final Object d = prop.get("date");
+    Calendar date = Calendar.getInstance();
+    if(d == null) {
+      prop.setProperty("date", "today");
+    } else {
+      final String ds = d.toString();
+      if(!"today".equals(ds)) {
+        try {
+          date = Calendar.getInstance();
+          date.setTime(DATE_PARSER.parse(ds));
+          prop.setProperty("date", DATE_PARSER.format(date.getTime()));
+        } catch(final ParseException e) {
+          prop.setProperty("date", "today");
+        }
+      }
+    }
+    final Set<String> serviceIds = new HashSet<String>();
+    final Set<String> invalidServiceIds = new HashSet<String>();
+    readCalendarDates(date, serviceIds, invalidServiceIds);
+    readCalendar(date, serviceIds);
     for(final GTFSRow row : data.trips()) {
+      final String sid = row.getField("service_id");
+      if(invalidServiceIds.contains(sid) || !serviceIds.contains(sid)) {
+        continue;
+      }
       tripMap.put(Objects.requireNonNull(row.getField("trip_id")),
           builder.getLine(Objects.requireNonNull(row.getField("route_id"))));
+    }
+  }
+
+  /** The GTFS date format. */
+  private static final SimpleDateFormat DATE_PARSER = new SimpleDateFormat("yyyyMMdd");
+
+  /** A table to look up GTFS names for weekdays. */
+  private static final String[] DOW_TABLE = {
+    "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"
+  };
+
+  /**
+   * Whether both calendar objects point to the same date.
+   * 
+   * @param a The first calendar object.
+   * @param b The second calendar object.
+   * @return Whether they point to the same date in regard to day of month,
+   *         month, and year.
+   */
+  private static boolean equalDate(final Calendar a, final Calendar b) {
+    if(a.get(Calendar.YEAR) != b.get(Calendar.YEAR)) return false;
+    if(a.get(Calendar.MONTH) != b.get(Calendar.MONTH)) return false;
+    if(a.get(Calendar.DAY_OF_MONTH) != b.get(Calendar.DAY_OF_MONTH)) return false;
+    return true;
+  }
+
+  /**
+   * Reads the calendar file and sets the valid service ids.
+   * 
+   * @param date The current date.
+   * @param serviceIds The set of valid service ids.
+   */
+  private void readCalendar(final Calendar date, final Set<String> serviceIds) {
+    final String dow = DOW_TABLE[date.get(Calendar.DAY_OF_WEEK) - 1];
+    final Calendar begin = Calendar.getInstance();
+    final Calendar end = Calendar.getInstance();
+    for(final GTFSRow row : data.calendar()) {
+      try {
+        begin.setTime(DATE_PARSER.parse(row.getField("start_date")));
+        end.setTime(DATE_PARSER.parse(row.getField("end_date")));
+      } catch(final ParseException e) {
+        e.printStackTrace();
+        continue;
+      }
+      if(!((date.after(begin) || equalDate(date, begin)) && (date.before(end) || equalDate(
+          date, end)))) {
+        continue;
+      }
+      if(!row.getField(dow).equals("1")) {
+        continue;
+      }
+      serviceIds.add(row.getField("service_id"));
+    }
+  }
+
+  /**
+   * Reads the calendar dates file. The file can activate or deactivate service
+   * ids for special dates.
+   * 
+   * @param date The current date.
+   * @param serviceIds Valid service ids.
+   * @param invalidServiceIds Invalid service ids.
+   */
+  private void readCalendarDates(final Calendar date,
+      final Set<String> serviceIds, final Set<String> invalidServiceIds) {
+    final Calendar cur = Calendar.getInstance();
+    for(final GTFSRow row : data.calendarDates()) {
+      try {
+        cur.setTime(DATE_PARSER.parse(row.getField("date")));
+      } catch(final ParseException e) {
+        e.printStackTrace();
+        continue;
+      }
+      if(!equalDate(date, cur)) {
+        continue;
+      }
+      final String sid = row.getField("service_id");
+      final String exc = row.getField("exception_type");
+      final Set<String> toAddTo = exc.equals("1") ? serviceIds : invalidServiceIds;
+      toAddTo.add(sid);
     }
   }
 

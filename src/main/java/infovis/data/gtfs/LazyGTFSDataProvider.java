@@ -134,4 +134,14 @@ public final class LazyGTFSDataProvider implements GTFSDataProvider {
     return iterable("stop_times.txt");
   }
 
+  @Override
+  public Iterable<GTFSRow> calendar() {
+    return iterable("calendar.txt");
+  }
+
+  @Override
+  public Iterable<GTFSRow> calendarDates() {
+    return iterable("calendar_dates.txt");
+  }
+
 }

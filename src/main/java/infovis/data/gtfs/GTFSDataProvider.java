@@ -23,15 +23,15 @@ public interface GTFSDataProvider {
   /**
    * Getter.
    * 
-   * @return Provides a reader of the content of the file <code>stops.txt</code>
-   *         .
+   * @return Provides a reader for the content of the file
+   *         <code>stops.txt</code> .
    */
   Iterable<GTFSRow> stops();
 
   /**
    * Getter.
    * 
-   * @return Provides a reader of the content of the file
+   * @return Provides a reader for the content of the file
    *         <code>routes.txt</code>.
    */
   Iterable<GTFSRow> routes();
@@ -39,17 +39,33 @@ public interface GTFSDataProvider {
   /**
    * Getter.
    * 
-   * @return Provides a reader of the content of the file <code>trips.txt</code>
-   *         .
+   * @return Provides a reader for the content of the file
+   *         <code>trips.txt</code> .
    */
   Iterable<GTFSRow> trips();
 
   /**
    * Getter.
    * 
-   * @return Provides a reader of the content of the file
+   * @return Provides a reader for the content of the file
    *         <code>stop_times.txt</code>.
    */
   Iterable<GTFSRow> stopTimes();
+
+  /**
+   * Getter.
+   * 
+   * @return Provides a reader for the content of the file
+   *         <code>calendar.txt</code>.
+   */
+  Iterable<GTFSRow> calendar();
+
+  /**
+   * Getter.
+   * 
+   * @return Provides a reader for the content of the file
+   *         <code>calendar_dates.txt</code>.
+   */
+  Iterable<GTFSRow> calendarDates();
 
 }
