@@ -5,6 +5,7 @@ import infovis.data.BusEdge;
 import infovis.data.BusStation;
 import infovis.data.BusStationManager;
 import infovis.data.BusTime;
+import infovis.util.Resource;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -39,7 +40,7 @@ public final class RoutingPerformanceTest {
    * @throws Exception No-exceptions
    */
   public static void main(final String[] args) throws Exception {
-    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
+    final BusStationManager man = BusDataBuilder.load(new Resource("konstanz"));
     final BitSet set = new BitSet();
     for(final BusStation a : man.getStations()) {
       set.set(a.getId());

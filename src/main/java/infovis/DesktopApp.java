@@ -3,6 +3,8 @@ package infovis;
 import infovis.data.BusDataBuilder;
 import infovis.data.BusStationManager;
 import infovis.gui.MainWindow;
+import infovis.util.Resource;
+import infovis.util.Stopwatch;
 
 import java.io.IOException;
 
@@ -15,8 +17,6 @@ import javax.swing.WindowConstants;
  * @author Joschi <josua.krause@googlemail.com>
  */
 public final class DesktopApp {
-  /** Resource path. */
-  public static final String RESOURCES = "src/main/resources";
 
   /** No constructor. */
   private DesktopApp() {
@@ -37,6 +37,8 @@ public final class DesktopApp {
       e.printStackTrace();
       return;
     }
+    final Stopwatch startup = new Stopwatch();
+    System.out.println("Starting up...");
     setLookAndFeel();
     // initialize window
     final MainWindow frame = new MainWindow(m, false, false);
@@ -45,6 +47,7 @@ public final class DesktopApp {
     frame.setLocationRelativeTo(null);
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setVisible(true);
+    System.out.println("Took " + startup.current());
   }
 
   /** Sets the look and feel of the application. */
@@ -67,9 +70,9 @@ public final class DesktopApp {
     final BusStationManager m;
     if(args.length > 0) {
       final String cs = args.length > 1 ? args[1] : null;
-      m = BusDataBuilder.loadPath(args[0], cs);
+      m = BusDataBuilder.load(new Resource(null, args[0], cs));
     } else {
-      m = BusDataBuilder.loadDefault("konstanz");
+      m = BusDataBuilder.load(new Resource("konstanz"));
     }
     return m;
   }

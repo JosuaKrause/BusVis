@@ -102,7 +102,7 @@ public final class BusTime implements Comparable<BusTime> {
   /**
    * Getter.
    * 
-   * @return The minute.
+   * @return The second.
    */
   public int getSecond() {
     return seconds % SECONDS_PER_MINUTE;
@@ -118,6 +118,15 @@ public final class BusTime implements Comparable<BusTime> {
    */
   public int secondsTo(final BusTime end) {
     return (end.seconds - seconds + SECONDS_PER_DAY) % SECONDS_PER_DAY;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The seconds from midnight.
+   */
+  public int secondsFromMidnight() {
+    return seconds;
   }
 
   /**
@@ -142,16 +151,6 @@ public final class BusTime implements Comparable<BusTime> {
   public BusTime later(final int min, final int seconds) {
     final int newSecs = this.seconds + min * SECONDS_PER_MINUTE + seconds;
     return new BusTime(((newSecs % SECONDS_PER_DAY) + SECONDS_PER_DAY) % SECONDS_PER_DAY);
-  }
-
-  /**
-   * Getter.
-   * 
-   * @param min minutes
-   * @return The time that is the given amount of time later.
-   */
-  public BusTime later(final int min) {
-    return later(min, 0);
   }
 
   /**

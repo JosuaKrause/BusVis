@@ -75,7 +75,7 @@ public final class BusvisWeighter implements Weighter {
    */
   public BusvisWeighter(final Controller ctrl) {
     this.ctrl = ctrl;
-    matrix = new EdgeMatrix(ctrl.getBusStationManager());
+    matrix = ctrl.getBusStationManager().getEdgeMatrix();
     dummyRoutes = new RoutingResult[ctrl.maxId() + 1];
     for(int id = 0; id < dummyRoutes.length; ++id) {
       dummyRoutes[id] = new RoutingResult(ctrl.getForId(id)); // dummy results
@@ -332,8 +332,13 @@ public final class BusvisWeighter implements Weighter {
     final BusStation fr = getStation(f);
     if(fr.equals(from)) return 0;
     final BusStation to = getStation(t);
-    if(to.equals(from) && getRoute(fr).isReachable()) return factor
-        * getRoute(fr).seconds() / BusTime.SECONDS_PER_MINUTE;
+    if(to.equals(from)) {
+      if(getRoute(fr).isReachable()) {
+        final double secs = factor * getRoute(fr).seconds();
+        return secs / BusTime.SECONDS_PER_MINUTE;
+      }
+      return Double.NaN;
+    }
     return -minDist;
   }
 

@@ -1,5 +1,7 @@
 package infovis.data;
 
+import infovis.util.VecUtil;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -42,24 +44,24 @@ public final class BusStation implements Comparable<BusStation> {
    * 
    * @param name The name.
    * @param id The id, has to be non-negative.
-   * @param x The x position.
-   * @param y The y position.
+   * @param latitude The latitude.
+   * @param longitude The longitude.
    * @param abstractX The x position on the abstract map.
    * @param abstractY The y position on the abstract map.
    * @param edges sorted list of edges
    * @param walkingDists walking distances
    */
-  BusStation(final String name, final int id,
-      final double x, final double y, final double abstractX, final double abstractY,
+  BusStation(final String name, final int id, final double latitude,
+      final double longitude, final double abstractX, final double abstractY,
       final List<BusEdge> edges, final List<Integer> walkingDists) {
     this.name = name;
     this.id = id;
-    this.x = x;
-    this.y = y;
     this.abstractX = abstractX;
     this.abstractY = abstractY;
     this.edges = edges;
     this.walkingDists = walkingDists;
+    x = VecUtil.scaleAngle(longitude, false);
+    y = VecUtil.scaleAngle(latitude, true);
   }
 
   /**
@@ -178,10 +180,28 @@ public final class BusStation implements Comparable<BusStation> {
   /**
    * Getter.
    * 
+   * @return The longitude of this bus station.
+   */
+  public double getLongitude() {
+    return VecUtil.unscaleAngle(x, false);
+  }
+
+  /**
+   * Getter.
+   * 
    * @return The default y coordinate for this bus station.
    */
   public double getDefaultY() {
     return y;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The latitude of this bus station.
+   */
+  public double getLatitude() {
+    return VecUtil.unscaleAngle(y, true);
   }
 
   /**
