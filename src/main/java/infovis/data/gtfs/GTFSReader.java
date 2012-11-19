@@ -147,7 +147,7 @@ public class GTFSReader implements BusDataReader {
         return builder;
       }
     }
-    doRead(r, prop);
+    doRead(r, prop, caching);
     if(caching) {
       System.out.println("Writing cache to " + root);
       final Stopwatch t = new Stopwatch();
@@ -180,9 +180,11 @@ public class GTFSReader implements BusDataReader {
    * 
    * @param r The resource.
    * @param prop The properties.
+   * @param caching Whether caching is enabled.
    * @throws IOException I/O Exception
    */
-  private void doRead(final Resource r, final Properties prop) throws IOException {
+  private void doRead(final Resource r,
+      final Properties prop, final boolean caching) throws IOException {
     // TODO more properties of the GTFS format could be implemented
     final Stopwatch a = new Stopwatch();
     final Stopwatch t = new Stopwatch();
@@ -200,7 +202,7 @@ public class GTFSReader implements BusDataReader {
     readLines();
     System.out.println(builder.lineCount() + " lines (" + t.reset() + ")");
     System.out.println("Reading trips...");
-    readTrips(prop);
+    readTrips(prop, caching);
     System.out.println(tripMap.size() + " trips (" + t.reset() + ")");
     System.out.println("Reading stop times...");
     readStopTimes();
@@ -269,8 +271,9 @@ public class GTFSReader implements BusDataReader {
    * Reads the trips.
    * 
    * @param prop The properties.
+   * @param caching Whether caching is enabled.
    */
-  private void readTrips(final Properties prop) {
+  private void readTrips(final Properties prop, final boolean caching) {
     final Object d = prop.get("date");
     Calendar date = Calendar.getInstance();
     if(d == null) {
@@ -281,11 +284,13 @@ public class GTFSReader implements BusDataReader {
         try {
           date = Calendar.getInstance();
           date.setTime(DATE_PARSER.parse(ds));
-          prop.setProperty("date", DATE_PARSER.format(date.getTime()));
         } catch(final ParseException e) {
           prop.setProperty("date", "today");
         }
       }
+    }
+    if(caching) {
+      prop.setProperty("date", DATE_PARSER.format(date.getTime()));
     }
     final Set<String> serviceIds = new HashSet<String>();
     final Set<String> invalidServiceIds = new HashSet<String>();
@@ -342,8 +347,8 @@ public class GTFSReader implements BusDataReader {
         e.printStackTrace();
         continue;
       }
-      if(!((date.after(begin) || equalDate(date, begin)) && (date.before(end) || equalDate(
-          date, end)))) {
+      if(!((date.after(begin) || equalDate(date, begin))
+          && (date.before(end) || equalDate(date, end)))) {
         continue;
       }
       if(!row.getField(dow).equals("1")) {
