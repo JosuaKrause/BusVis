@@ -51,17 +51,37 @@ public final class CircularLayouter extends DirectLayouter {
   }
 
   @Override
-  protected void changedWeights(final Collection<LayoutNode> nodes, final LayoutNode ref,
+  protected void changedWeights(final Collection<LayoutNode> nodes,
+      final Collection<LayoutNode> relevant, final LayoutNode ref,
       final Point2D refP, final Point2D diff) {
     // initial position
     for(final LayoutNode n : nodes) {
       final Point2D pos = weighter.getDefaultPosition(n);
       final double w = weighter.weight(n, ref);
-      final Point2D p = addVec(setLength(subVec(addVec(pos, diff), refP), w), refP);
+      final Point2D p;
+      if(Double.isNaN(w)) {
+        p = new Point2D.Double(Double.NaN, Double.NaN);
+      } else {
+        p = addVec(setLength(subVec(addVec(pos, diff), refP), w), refP);
+        relevant.add(n);
+      }
       setPos(n, p);
     }
     // conflict resolution
-    int i = 1000;
+    resolve(relevant, refP, 100);
+  }
+
+  /**
+   * Resolves overlaps.
+   * 
+   * @param nodes The nodes that may overlap.
+   * @param refP The reference node.
+   * @param maxIter Maximum number of allowed iterations.
+   * @return Whether more iterations are needed.
+   */
+  private boolean resolve(final Collection<LayoutNode> nodes,
+      final Point2D refP, final int maxIter) {
+    int i = maxIter;
     boolean hasChanged = true;
     while(hasChanged) {
       hasChanged = false;
@@ -75,6 +95,13 @@ public final class CircularLayouter extends DirectLayouter {
         break;
       }
     }
+    return hasChanged;
+  }
+
+  @Override
+  protected boolean refinePositions(
+      final Collection<LayoutNode> relevant, final Point2D refP) {
+    return resolve(relevant, refP, 100);
   }
 
   /**
@@ -85,8 +112,8 @@ public final class CircularLayouter extends DirectLayouter {
    * @param center The center point.
    * @return Whether the position has changed.
    */
-  private boolean resolveIfNeeded(final LayoutNode a, final LayoutNode b,
-      final Point2D center) {
+  private boolean resolveIfNeeded(final LayoutNode a,
+      final LayoutNode b, final Point2D center) {
     if(a.equals(b)) return false;
     final double ra = drawer.nodeRadius(a);
     final double rb = drawer.nodeRadius(b);
@@ -115,8 +142,7 @@ public final class CircularLayouter extends DirectLayouter {
   }
 
   @Override
-  protected Point2D getDestination(final LayoutNode n, final Point2D pos,
-      final LayoutNode ref, final Point2D refP, final Point2D diff) {
+  protected Point2D getDestination(final LayoutNode n) {
     return getPos(n);
   }
 

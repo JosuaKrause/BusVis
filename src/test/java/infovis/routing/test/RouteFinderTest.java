@@ -11,6 +11,7 @@ import infovis.data.BusTime;
 import infovis.routing.RouteFinder;
 import infovis.routing.RoutingAlgorithm;
 import infovis.routing.RoutingResult;
+import infovis.util.Resource;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -37,10 +38,11 @@ public class RouteFinderTest {
   @Test
   public void shouldChange() throws InterruptedException {
     final BusDataBuilder builder = new BusDataBuilder(null);
-    final BusLine s1 = BusDataBuilder.createLine("B1", Color.RED), s2 = BusDataBuilder.createLine(
-        "B2", Color.BLUE);
-    final BusStation a = builder.createStation("A", 0, 0, 0, 0, 0), b =
-        builder.createStation("B", 1, 0, 0, 0, 0), c = builder.createStation("C", 2, 0, 0, 0, 0);
+    final BusLine s1 = builder.createLine("B1", "B1", null, Color.RED);
+    final BusLine s2 = builder.createLine("B2", "B2", null, Color.BLUE);
+    final BusStation a = builder.createStation("A", "0", 0, 0, 0, 0);
+    final BusStation b = builder.createStation("B", "1", 0, 0, 0, 0);
+    final BusStation c = builder.createStation("C", "2", 0, 0, 0, 0);
 
     final BusEdge ab = builder.addEdge(a, s1, 1, b, new BusTime(0, 0), new BusTime(0, 1));
     builder.addEdge(b, s1, 1, c, new BusTime(0, 1), new BusTime(0, 5));
@@ -70,10 +72,12 @@ public class RouteFinderTest {
   @Test
   public void continuous() throws InterruptedException {
     final BusDataBuilder builder = new BusDataBuilder(null);
-    final BusLine s1 = BusDataBuilder.createLine("B1", Color.RED), s2 = BusDataBuilder.createLine(
-        "B2", Color.BLUE), s3 = BusDataBuilder.createLine("B3", Color.YELLOW);
-    final BusStation a = builder.createStation("A", 0, 0, 0, 0, 0), b =
-        builder.createStation("B", 1, 0, 0, 0, 0), c = builder.createStation("C", 2, 0, 0, 0, 0);
+    final BusLine s1 = builder.createLine("B1", "B1", null, Color.RED);
+    final BusLine s2 = builder.createLine("B2", "B2", null, Color.BLUE);
+    final BusLine s3 = builder.createLine("B3", "B3", null, Color.YELLOW);
+    final BusStation a = builder.createStation("A", "0", 0, 0, 0, 0);
+    final BusStation b = builder.createStation("B", "1", 0, 0, 0, 0);
+    final BusStation c = builder.createStation("C", "2", 0, 0, 0, 0);
 
     builder.addEdge(a, s1, 1, b, new BusTime(0, 0), new BusTime(0, 1));
 
@@ -112,12 +116,12 @@ public class RouteFinderTest {
   @Test
   public void generalTest() throws InterruptedException {
     final BusDataBuilder builder = new BusDataBuilder(null);
-    final BusLine line = BusDataBuilder.createLine("1", Color.RED);
-    final BusStation a = builder.createStation("a", 0, 0, 0, 0, 0);
-    final BusStation b = builder.createStation("b", 1, 0, 0, 0, 0);
-    final BusStation c = builder.createStation("c", 2, 0, 0, 0, 0);
-    final BusStation d = builder.createStation("d", 3, 0, 0, 0, 0);
-    final BusStation e = builder.createStation("e", 4, 0, 0, 0, 0);
+    final BusLine line = builder.createLine("1", "1", null, Color.RED);
+    final BusStation a = builder.createStation("a", "0", 0, 0, 0, 0);
+    final BusStation b = builder.createStation("b", "1", 0, 0, 0, 0);
+    final BusStation c = builder.createStation("c", "2", 0, 0, 0, 0);
+    final BusStation d = builder.createStation("d", "3", 0, 0, 0, 0);
+    final BusStation e = builder.createStation("e", "4", 0, 0, 0, 0);
     builder.addEdge(a, line, 0, c, new BusTime(3, 10), new BusTime(3, 13));
     builder.addEdge(a, line, 1, b, new BusTime(3, 10), new BusTime(3, 12));
     builder.addEdge(a, line, 2, d, new BusTime(3, 10), new BusTime(3, 11));
@@ -151,12 +155,12 @@ public class RouteFinderTest {
   @Test
   public void lineChanging() throws InterruptedException {
     final BusDataBuilder builder = new BusDataBuilder(null);
-    final BusLine line = BusDataBuilder.createLine("1", Color.RED);
-    final BusLine other = BusDataBuilder.createLine("2", Color.BLUE);
-    final BusStation e = builder.createStation("e", 4, 0, 0, 0, 0);
-    final BusStation f = builder.createStation("f", 5, 0, 0, 0, 0);
-    final BusStation g = builder.createStation("g", 6, 0, 0, 0, 0);
-    final BusStation h = builder.createStation("h", 7, 0, 0, 0, 0);
+    final BusLine line = builder.createLine("1", "1", null, Color.RED);
+    final BusLine other = builder.createLine("2", "2", null, Color.BLUE);
+    final BusStation e = builder.createStation("e", "4", 0, 0, 0, 0);
+    final BusStation f = builder.createStation("f", "5", 0, 0, 0, 0);
+    final BusStation g = builder.createStation("g", "6", 0, 0, 0, 0);
+    final BusStation h = builder.createStation("h", "7", 0, 0, 0, 0);
     builder.addEdge(e, line, 0, h, new BusTime(23, 59), new BusTime(0, 1));
     builder.addEdge(e, line, 1, h, new BusTime(0, 7), new BusTime(0, 0));
     builder.addEdge(e, line, 2, h, new BusTime(0, 0), new BusTime(0, 6));
@@ -214,7 +218,7 @@ public class RouteFinderTest {
   @Test
   public void at12Am() throws Exception {
     final long nanoTime = System.nanoTime();
-    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
+    final BusStationManager man = BusDataBuilder.load(new Resource("konstanz"));
     final AtomicBoolean fail = new AtomicBoolean(false);
     final BitSet set = new BitSet();
     int num = 0;
@@ -263,7 +267,7 @@ public class RouteFinderTest {
    */
   @Test
   public void walkingTest() throws Exception {
-    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
+    final BusStationManager man = BusDataBuilder.load(new Resource("konstanz"));
     final int mth = man.getMaxTimeHours() * MINUTES_PER_HOUR;
     final RoutingAlgorithm router = new RouteFinder();
     for(final BusStation s : man.getStations()) {
@@ -288,7 +292,7 @@ public class RouteFinderTest {
    */
   @Test
   public void walking() throws Exception {
-    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
+    final BusStationManager man = BusDataBuilder.load(new Resource("konstanz"));
     final RouteFinder rf = new RouteFinder();
     final BitSet bs = new BitSet();
     bs.set(107);

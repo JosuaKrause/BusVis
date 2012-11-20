@@ -2,6 +2,7 @@ package infovis;
 
 import infovis.data.BusStationManager;
 import infovis.gui.MainWindow;
+import infovis.util.Stopwatch;
 
 import java.io.IOException;
 
@@ -33,6 +34,8 @@ public final class BigScreenApp {
       e.printStackTrace();
       return;
     }
+    final Stopwatch startup = new Stopwatch();
+    System.out.println("Starting up...");
     DesktopApp.setLookAndFeel();
     // initialize window
     final MainWindow frame = new MainWindow(m, false, true);
@@ -41,6 +44,7 @@ public final class BigScreenApp {
     frame.setLocationRelativeTo(null);
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setVisible(true);
+    System.out.println("Took " + startup.current());
   }
 
 }

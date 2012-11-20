@@ -2,6 +2,7 @@ package infovis;
 
 import infovis.data.BusStationManager;
 import infovis.gui.MainWindow;
+import infovis.util.Stopwatch;
 
 import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
@@ -37,6 +38,8 @@ public final class PresentationApp {
       e.printStackTrace();
       return;
     }
+    final Stopwatch startup = new Stopwatch();
+    System.out.println("Starting up...");
     DesktopApp.setLookAndFeel();
     // initialize window
     final MainWindow frame = new MainWindow(m, true, false);
@@ -52,6 +55,7 @@ public final class PresentationApp {
     gd.setFullScreenWindow(frame);
     frame.setResizable(false);
     frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+    System.out.println("Took " + startup.current());
   }
 
 }

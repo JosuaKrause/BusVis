@@ -132,10 +132,10 @@ public final class LayoutNode {
    * 
    * @param pos The end point.
    * @param pol The interpolation method.
-   * @param duration The duration.
+   * @param duration The duration in milliseconds.
    */
-  public void startAnimationTo(final Point2D pos, final Interpolator pol,
-      final int duration) {
+  public void startAnimationTo(final Point2D pos,
+      final Interpolator pol, final int duration) {
     clearAnimation();
     if(duration <= 0) {
       setPosition(pos);
@@ -147,6 +147,32 @@ public final class LayoutNode {
     this.pol = pol;
     start = getPos();
     end = pos;
+  }
+
+  /**
+   * Sets the current animation to a new destination. If no current animation is
+   * active a new one is created with the given default values.
+   * 
+   * @param pos The new destination position.
+   * @param defaultPol The default interpolation that is used when no animation
+   *          is active.
+   * @param defaultDuration The default duration that is used when no animation
+   *          is active in milliseconds.
+   */
+  public void changeAnimationTo(final Point2D pos,
+      final Interpolator defaultPol, final int defaultDuration) {
+    final Interpolator p = pol;
+    final long et = endTime;
+    animate();
+    if(!inAnimation()) {
+      startAnimationTo(pos, defaultPol, defaultDuration);
+      return;
+    }
+    start = getPos();
+    end = pos;
+    pol = p;
+    startTime = System.currentTimeMillis();
+    endTime = et;
   }
 
   /** Animates the position. */

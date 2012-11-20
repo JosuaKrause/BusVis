@@ -142,4 +142,70 @@ public final class VecUtil {
         || Double.isNaN(line.getY1()) || Double.isNaN(line.getY2());
   }
 
+  /** The mean radius of the earth in meters. */
+  public static final double RADIUS_EARTH_MEAN = 6371009;
+
+  /**
+   * Computes an approximation of the distance of two points on the earth in
+   * meters using the mean radius of the earth.
+   * 
+   * @param latA The latitude of point A in degrees.
+   * @param lonA The longitude of point A in degrees.
+   * @param latB The latitude of point B in degrees.
+   * @param lonB The longitude of point B in degrees.
+   * @return The distance of the two points in meters.
+   */
+  public static double earthDistance(final double latA, final double lonA,
+      final double latB, final double lonB) {
+    // mean radius of the earth
+    return sphereDistance(latA, lonA, latB, lonB, RADIUS_EARTH_MEAN);
+  }
+
+  /**
+   * Computes the distance of two points on a sphere.
+   * 
+   * @param latA The latitude of point A in degrees.
+   * @param lonA The longitude of point A in degrees.
+   * @param latB The latitude of point B in degrees.
+   * @param lonB The longitude of point B in degrees.
+   * @param radius The radius of the sphere.
+   * @return The distance.
+   */
+  public static double sphereDistance(final double latA, final double lonA,
+      final double latB, final double lonB, final double radius) {
+    final double dLat = Math.toRadians(latB - latA) * .5;
+    final double dLon = Math.toRadians(lonB - lonA) * .5;
+    final double rLatA = Math.toRadians(latA);
+    final double rLatB = Math.toRadians(latB);
+    final double a = Math.sin(dLat) * Math.sin(dLat) +
+        Math.sin(dLon) * Math.sin(dLon) * Math.cos(rLatA) * Math.cos(rLatB);
+    final double c = Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return 2 * radius * c;
+  }
+
+  /** The value to scale angles. */
+  private static final double SCALE = 4000;
+
+  /**
+   * Scales the given angle to a bigger representable size.
+   * 
+   * @param angle The angle in degrees.
+   * @param lat Whether the angle is latitude or longitude.
+   * @return A coordinate.
+   */
+  public static double scaleAngle(final double angle, final boolean lat) {
+    return (angle + 180) * SCALE * (lat ? -1 : 1);
+  }
+
+  /**
+   * Unscales the given coordinate back to the original angle.
+   * 
+   * @param coord The coordinate.
+   * @param lat Whether the angle is latitude or longitude.
+   * @return The corresponding angle.
+   */
+  public static double unscaleAngle(final double coord, final boolean lat) {
+    return coord / SCALE * (lat ? -1 : 1) - 180;
+  }
+
 }

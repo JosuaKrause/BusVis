@@ -1,31 +1,34 @@
 package infovis.data;
 
-import static java.lang.Double.*;
+import static infovis.util.Resource.*;
 import static java.lang.Integer.*;
-import infovis.DesktopApp;
-import infovis.util.IOUtil;
+import infovis.data.csv.CSVBusDataReader;
+import infovis.data.gtfs.GTFSReader;
+import infovis.data.gtfs.LazyGTFSDataProvider;
+import infovis.util.Objects;
+import infovis.util.Resource;
+import infovis.util.VecUtil;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import au.com.bytecode.opencsv.CSVReader;
 
 /**
  * Loader for bus data in {@code CSV} format.
  * 
  * @author Leo Woerteler
  */
-public final class BusDataBuilder {
+public final class BusDataBuilder implements BusStationEnumerator {
 
   /** Maps the external bus station ids to the internal ones. */
-  private final Map<Integer, Integer> idMap = new HashMap<Integer, Integer>();
+  private final Map<String, Integer> idMap = new HashMap<String, Integer>();
+  /** Maps a line id to a bus line. */
+  private final Map<String, BusLine> lineMap = new HashMap<String, BusLine>();
   /** Bus stations. */
   private final List<BusStation> stations = new ArrayList<BusStation>();
   /** Map from station IDs to the bus edges originating at this station. */
@@ -33,119 +36,93 @@ public final class BusDataBuilder {
   /** Walking distances. */
   private final List<List<Integer>> walkingDists = new ArrayList<List<Integer>>();
   /** The overview resource URL. */
-  private final URL overview;
+  private final Resource overview;
 
   /**
    * Constructor taking the path of the CSV files.
    * 
-   * @param overview The overview resource URL, possibly <code>null</code>
+   * @param overview The overview resource, possibly <code>null</code>
    */
-  public BusDataBuilder(final URL overview) {
+  public BusDataBuilder(final Resource overview) {
     this.overview = overview;
   }
 
-  /** The default charset - CP-1252 for Excel compatibility. */
-  private static final Charset DEFAULT_CS = Charset.forName("CP1252");
-
   /**
-   * Loads a bus station manager from the given path.
+   * Getter.
    * 
-   * @param path The path.
-   * @param cs The charset or <code>null</code>.
-   * @return The bus station manager.
-   * @throws IOException I/O Exception.
+   * @return The number of registered stations.
    */
-  public static BusStationManager loadPath(final String path, final String cs)
-      throws IOException {
-    return load(null, path, cs != null ? Charset.forName(cs) : DEFAULT_CS);
+  public int stationCount() {
+    return stations.size();
   }
 
   /**
-   * Loads a bus station manager from the default resource path.
+   * Getter.
    * 
-   * @param path The city.
-   * @return The bus station manager.
-   * @throws IOException I/O Exception.
+   * @return The number of registered lines.
    */
-  public static BusStationManager loadDefault(final String path) throws IOException {
-    return load(DesktopApp.RESOURCES, path, DEFAULT_CS);
+  public int lineCount() {
+    return lineMap.size();
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The number of registered edges.
+   */
+  public long edgeCount() {
+    long sum = 0;
+    for(final List<BusEdge> e : edges) {
+      sum += e.size();
+    }
+    return sum;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The number of registered walking edges.
+   */
+  public long walkingCount() {
+    long sum = 0;
+    for(final List<Integer> e : walkingDists) {
+      sum += e.size();
+    }
+    return sum;
   }
 
   /**
    * Loads the bus system data from CSV files.
    * 
-   * @param local The local resource path or <code>null</code> if a direct path
-   *          is specified.
-   * @param path data file path
-   * @param cs The charset
-   * @return The bus manager holding the informations.
+   * @param r The resource.
+   * @return The bus manager holding informations.
    * @throws IOException I/O exception
    */
-  public static BusStationManager load(final String local, final String path,
-      final Charset cs) throws IOException {
-    final URL overview = IOUtil.getURL(local, path + "/abstract.svg");
-    final BusDataBuilder builder = new BusDataBuilder(overview);
-
-    final CSVReader stops = readerFor(local, path, "stops.csv", cs);
-    for(String[] stop; (stop = stops.readNext()) != null;) {
-      double abstractX, abstractY;
-      if("UNKNOWN".equals(stop[4])) {
-        abstractX = abstractY = Double.NaN;
-      } else {
-        abstractX = parseDouble(stop[4]);
-        abstractY = parseDouble(stop[5]);
+  public static BusStationManager load(final Resource r) throws IOException {
+    final BusDataReader in;
+    if(r.isZip()) {
+      if(!UTF8.equals(r.getCharset())) {
+        System.err.println("Warning: character set '" + r.getCharset().displayName()
+            + "' is not 'UTF-8'! Use second command line argument to change");
       }
-      builder.createStation(stop[0], parseInt(stop[1]), parseDouble(stop[3]) * 10000,
-          -parseDouble(stop[2]) * 10000, abstractX, abstractY);
+      in = new GTFSReader(new LazyGTFSDataProvider());
+    } else {
+      in = new CSVBusDataReader();
     }
-
-    final CSVReader walk = readerFor(local, path, "walking-dists.csv", cs);
-    for(String[] dist; (dist = walk.readNext()) != null;) {
-      builder.setWalkingDistance(parseInt(dist[0]), parseInt(dist[1]), parseInt(dist[2]));
-    }
-
-    final Map<String, BusLine> lines = new HashMap<String, BusLine>();
-    final CSVReader lineReader = readerFor(local, path, "lines.csv", cs);
-    for(String[] line; (line = lineReader.readNext()) != null;) {
-      final Color c = new Color(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]));
-      lines.put(line[0], createLine(line[0].replace('_', '/'), c));
-    }
-
-    final CSVReader edgeReader = readerFor(local, path, "edges.csv", cs);
-    for(String[] edge; (edge = edgeReader.readNext()) != null;) {
-      final BusLine line = lines.get(edge[0]);
-      final int tourNr = parseInt(edge[1]), from = parseInt(edge[2]), to = parseInt(edge[5]);
-      final BusTime start = parseTime(edge[3]), end = parseTime(edge[4]);
-      builder.addEdge(from, line, tourNr, to, start, end);
-    }
-    return builder.finish();
+    final BusStationManager mngr = in.read(r).finish();
+    if(mngr.getStations().isEmpty()) throw new IllegalArgumentException(
+        "provided source '" + r.getURL() + "' does not contain any stations.");
+    return mngr;
   }
 
   /**
    * Parses a {@link BusTime}.
    * 
-   * @param time time string
+   * @param time time string in seconds after midnight
    * @return resulting {@link BusTime}
    */
-  private static BusTime parseTime(final String time) {
+  public static BusTime parseTime(final String time) {
     return BusTime.MIDNIGHT.later(0, parseInt(time));
-  }
-
-  /**
-   * Creates a {@link CSVReader} suitable for Microsoft Excel CSV files.
-   * 
-   * @param local The local resource path or <code>null</code> if a direct path
-   *          is specified.
-   * @param path sub-directory inside the resource directory
-   * @param file CSV file
-   * @param cs The charset.
-   * @return reader
-   * @throws IOException I/O exception
-   */
-  private static CSVReader readerFor(final String local, final String path,
-      final String file, final Charset cs) throws IOException {
-    return new CSVReader(IOUtil.charsetReader(
-        IOUtil.getResource(local, path + '/' + file), cs), ';');
   }
 
   /**
@@ -154,16 +131,16 @@ public final class BusDataBuilder {
    * @param name The name.
    * @param id The id. If the id is already used an
    *          {@link IllegalArgumentException} is thrown.
-   * @param x The x position.
-   * @param y The y position.
+   * @param lat The latitude.
+   * @param lon The longitude.
    * @param abstractX The abstract x position.
    * @param abstractY The abstract y position.
    * @return The newly created bus station.
    */
-  public BusStation createStation(final String name, final int id, final double x,
-      final double y, final double abstractX, final double abstractY) {
+  public BusStation createStation(final String name, final String id, final double lat,
+      final double lon, final double abstractX, final double abstractY) {
     if(idMap.containsKey(id)) throw new IllegalArgumentException(
-        "id: " + id + " already in use");
+        "bus id: " + id + " already in use");
     // keep bus station ids dense
     final int realId = stations.size();
     idMap.put(id, realId);
@@ -171,7 +148,7 @@ public final class BusDataBuilder {
     edges.add(edgeList);
     final List<Integer> walking = new ArrayList<Integer>();
     walkingDists.add(walking);
-    final BusStation bus = new BusStation(name, realId, x, y,
+    final BusStation bus = new BusStation(name, realId, lat, lon,
         abstractX, abstractY, edgeList, walking);
     stations.add(bus);
     return bus;
@@ -180,12 +157,32 @@ public final class BusDataBuilder {
   /**
    * Creates a new bus line.
    * 
+   * @param id The id of the line.
    * @param line The name.
+   * @param longName The long name. May be <code>null</code>.
    * @param color The color.
    * @return The bus line.
    */
-  public static BusLine createLine(final String line, final Color color) {
-    return new BusLine(line, color);
+  public BusLine createLine(final String id, final String line,
+      final String longName, final Color color) {
+    if(lineMap.containsKey(id)) throw new IllegalArgumentException(
+        "line id: " + id + " already in use");
+    final BusLine res = new BusLine(line, longName, color);
+    lineMap.put(id, res);
+    return res;
+  }
+
+  /**
+   * Gets the line from the line map.
+   * 
+   * @param id line ID
+   * @return associated line
+   * @throws IllegalArgumentException if the ID has no associated line
+   */
+  public BusLine getLine(final String id) {
+    final BusLine line = lineMap.get(Objects.requireNonNull(id));
+    if(line == null) throw new IllegalArgumentException("Unknown line: " + id);
+    return line;
   }
 
   /**
@@ -217,8 +214,8 @@ public final class BusDataBuilder {
    * @param end The end time.
    * @return added edge
    */
-  public BusEdge addEdge(final int stationID, final BusLine line, final int tourNr,
-      final int destID, final BusTime start, final BusTime end) {
+  public BusEdge addEdge(final String stationID, final BusLine line, final int tourNr,
+      final String destID, final BusTime start, final BusTime end) {
     return addEdge(getStation(stationID), line, tourNr, getStation(destID), start, end);
   }
 
@@ -242,8 +239,28 @@ public final class BusDataBuilder {
    * @param id2 second station's ID
    * @param secs walking time in seconds
    */
-  public void setWalkingDistance(final int id1, final int id2, final int secs) {
+  public void setWalkingDistance(final String id1, final String id2, final int secs) {
     setWalkingDistance(getStation(id1), getStation(id2), secs);
+  }
+
+  /** Computes walking distances for the current set of stations. */
+  public void calcWalkingDistances() {
+    int pa = 0;
+    for(final BusStation a : stations) {
+      int pb = 0;
+      for(final BusStation b : stations) {
+        if(pb >= pa) {
+          break;
+        }
+        final double walkDist = VecUtil.earthDistance(a.getLatitude(),
+            a.getLongitude(), b.getLatitude(), b.getLongitude());
+        // assuming 5 km/h ie. 5000m / 3600s
+        final int walkSecs = (int) Math.ceil(walkDist * 60.0 * 60.0 / 5000.0);
+        setWalkingDistance(a, b, walkSecs);
+        ++pb;
+      }
+      ++pa;
+    }
   }
 
   /**
@@ -274,12 +291,38 @@ public final class BusDataBuilder {
    * @return associated station
    * @throws IllegalArgumentException if the ID has no associated station
    */
-  private BusStation getStation(final int id) {
-    final BusStation station = stations.get(idMap.get(id));
+  public BusStation getStation(final String id) {
+    final BusStation station = getForId(Objects.requireNonNull(idMap.get(id)));
     if(station == null) throw new IllegalArgumentException("Unknown station: " + id);
     return station;
   }
 
+  @Override
+  public BusStation getForId(final int id) {
+    return stations.get(id);
+  }
+
+  @Override
+  public Collection<BusStation> getStations() {
+    return stations;
+  }
+
+  @Override
+  public int maxId() {
+    return stations.size() - 1;
+  }
+
+  /** The cached finished edge matrix. */
+  private EdgeMatrix matrix;
+
+  /** Builds the edge matrix. */
+  public void computeEdgeMatrix() {
+    Objects.requireNull(matrix);
+    matrix = new EdgeMatrix(this);
+  }
+
+  /** The cached finished bus manager. */
+  private BusStationManager result;
 
   /**
    * Finishes the building process and returns the bus station manager.
@@ -287,10 +330,16 @@ public final class BusDataBuilder {
    * @return bus station manager
    */
   public BusStationManager finish() {
-    for(final List<BusEdge> e : edges) {
-      Collections.sort(e);
+    if(result == null) {
+      for(final List<BusEdge> e : edges) {
+        Collections.sort(e);
+      }
+      if(matrix == null) { // fail-safe
+        computeEdgeMatrix();
+      }
+      result = new BusStationManager(stations, overview, matrix);
     }
-    return new BusStationManager(stations, overview);
+    return result;
   }
 
 }

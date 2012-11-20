@@ -8,6 +8,7 @@ import infovis.routing.RouteFinder;
 import infovis.routing.RoutingManager;
 import infovis.routing.RoutingManager.CallBack;
 import infovis.routing.RoutingResult;
+import infovis.util.Resource;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -81,7 +82,7 @@ public class RoutingManagerTest {
    */
   @Test
   public void findRoutes() throws Exception {
-    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
+    final BusStationManager man = BusDataBuilder.load(new Resource("konstanz"));
     final RoutingManager rm = RoutingManager.newInstance();
     final Semaphore sem = new Semaphore(0);
     final AtomicReference<RoutingResult[]> ref = new AtomicReference<RoutingResult[]>();
@@ -106,7 +107,7 @@ public class RoutingManagerTest {
    */
   @Test
   public void terminateRouting() throws Exception {
-    final BusStationManager man = BusDataBuilder.loadDefault("konstanz");
+    final BusStationManager man = BusDataBuilder.load(new Resource("konstanz"));
     final CountDownLatch cd = new CountDownLatch(2);
     final AtomicBoolean ref = new AtomicBoolean(false);
     final RoutingManager rm = RoutingManager.newInstance();

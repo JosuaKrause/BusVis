@@ -1,6 +1,8 @@
 package infovis.data;
 
-import java.net.URL;
+import infovis.util.Objects;
+import infovis.util.Resource;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,16 +21,24 @@ public final class BusStationManager implements BusStationEnumerator {
   private final Collection<BusStation> fastIterate;
 
   /** The overview resource URL. */
-  private final URL overview;
+  private final Resource overview;
+
+  /** The edge matrix. */
+  private final EdgeMatrix matrix;
 
   /**
    * Constructor taking the map of bus stations.
    * 
    * @param stations bus station map
-   * @param overview overview resource URL, possibly <code>null</code>
+   * @param overview overview resource, possibly <code>null</code>
+   * @param matrix The edge matrix.
    */
-  BusStationManager(final Collection<BusStation> stations, final URL overview) {
-    fastIterate = Collections.unmodifiableCollection(new ArrayList<BusStation>(stations));
+  BusStationManager(final Collection<BusStation> stations,
+      final Resource overview, final EdgeMatrix matrix) {
+    this.overview = overview;
+    this.matrix = Objects.requireNonNull(matrix);
+    fastIterate = Collections.unmodifiableCollection(
+        new ArrayList<BusStation>(Objects.requireNonNull(stations)));
     int maxId = 0;
     for(final BusStation b: fastIterate) {
       final int id = b.getId();
@@ -40,15 +50,24 @@ public final class BusStationManager implements BusStationEnumerator {
     for(final BusStation b: fastIterate) {
       fastLookup[b.getId()] = b;
     }
-    this.overview = overview;
   }
 
   /**
    * Getter.
    * 
-   * @return The overview resource URL.
+   * @return The edge matrix of this manager.
    */
-  public URL getOverviewURL() {
+  public EdgeMatrix getEdgeMatrix() {
+    return matrix;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The overview resource or <code>null</code> if the file does not
+   *         exist.
+   */
+  public Resource getOverview() {
     return overview;
   }
 
@@ -67,9 +86,7 @@ public final class BusStationManager implements BusStationEnumerator {
     return fastLookup.length - 1;
   }
 
-  /**
-   * The maximum amount of time a route can take.
-   */
+  /** The maximum amount of time a route can take. */
   private int maxTimeHours = 24;
 
   /**

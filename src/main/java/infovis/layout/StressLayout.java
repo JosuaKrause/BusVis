@@ -7,6 +7,7 @@ import infovis.busvis.Weighter;
 import infovis.busvis.Weighter.WeightedEdge;
 import infovis.draw.BackgroundRealizer;
 import infovis.util.ArrayUtil;
+import infovis.util.VecUtil;
 
 import java.awt.geom.Point2D;
 import java.util.Arrays;
@@ -24,18 +25,47 @@ import mdsj.StressMinimization;
  */
 public class StressLayout extends DirectLayouter {
 
+  /** The smallest distance a node must move to keep iterating. */
+  private static final double EPS = 0.1;
+
+  /** The smallest distance a node must move to keep iterating squared. */
+  private static final double EPS_SQ = EPS * EPS;
+
   /** Weight of the whole route's length. */
   private static final double ROUTE_WEIGHT = 0.01;
+
   /** Weight of each edges length. */
   private static final double EDGE_WEIGHT = 1;
-  /** Number of iterations of the majorization algorithm. */
-  private static final int ITERATIONS = 75;
+
+  /** Number of iterations of the majorization algorithm at start. */
+  private static final int ITERATIONS_START = 75;
+
+  /** Number of iterations of the majorization algorithm at iteration. */
+  private static final int ITERATIONS_ITER = 10;
 
   /** Default positions. */
   private final Points defaults;
 
-  /** The positions of the nodes. */
-  private final Point2D[] positions;
+  /** The distance matrix. */
+  private final double[][] dists;
+
+  /** The weight matrix. */
+  private final double[][] weights;
+
+  /** The positions of the nodes on time A. */
+  private final Point2D[] positionsA;
+
+  /** The positions of the nodes on time B. */
+  private final Point2D[] positionsB;
+
+  /** Which positions to take. */
+  private boolean takeA;
+
+  /** The points. */
+  private Points pos;
+
+  /** The reference node id. */
+  private int refID;
 
   /**
    * Creates a stress based positioner.
@@ -48,23 +78,31 @@ public class StressLayout extends DirectLayouter {
 
     final List<LayoutNode> nodes = weighter.nodes();
     final int n = nodes.size();
-    positions = new Point2D[n];
+    positionsA = new Point2D[n];
+    positionsB = new Point2D[n];
     defaults = new Points(n);
     for(final LayoutNode node : nodes) {
       defaults.setPoint(node.getId(), weighter.getDefaultPosition(node));
     }
+    dists = ArrayUtil.fill(new double[n][n], -1d);
+    weights = new double[n][n];
   }
 
   @Override
-  protected void changedWeights(final Collection<LayoutNode> nodes, final LayoutNode ref,
+  protected void changedWeights(final Collection<LayoutNode> nodes,
+      final Collection<LayoutNode> relevant, final LayoutNode ref,
       final Point2D refP, final Point2D diff) {
-    Arrays.fill(positions, null);
+    Arrays.fill(getDestinationForWrite(), null);
+    ArrayUtil.fill(dists, -1);
+    ArrayUtil.fill(weights, 0);
+    refID = ref.getId();
 
     final Map<NodeDyad, NodeDyad> dyads = new HashMap<NodeDyad, NodeDyad>();
     for(final LayoutNode n : nodes) {
       for(final WeightedEdge e : weighter.edgesTo(n)) {
         final NodeDyad dyad = new NodeDyad(e.from, e.to);
-        final NodeDyad old = dyads.get(dyad), nw = old == null ? dyad : old;
+        final NodeDyad old = dyads.get(dyad);
+        final NodeDyad nw = old == null ? dyad : old;
         if(nw != old) {
           dyads.put(nw, nw);
         }
@@ -72,16 +110,13 @@ public class StressLayout extends DirectLayouter {
       }
     }
 
-    final int n = nodes.size();
-    final double[][] dists = ArrayUtil.fill(new double[n][n], -1), weights = new double[n][n];
-
     for(final NodeDyad d : dyads.values()) {
-      final int a = d.a.getId(), b = d.b.getId();
+      final int a = d.a.getId();
+      final int b = d.b.getId();
       dists[a][b] = dists[b][a] = d.getAccumWeight();
       weights[a][b] = weights[b][a] = EDGE_WEIGHT;
     }
 
-    final int refID = ref.getId();
     for(final LayoutNode a : nodes) {
       if(weighter.hasWeight(a, ref)) {
         final double weight = weighter.weight(a, ref);
@@ -93,29 +128,84 @@ public class StressLayout extends DirectLayouter {
       }
     }
 
-    final Points pos = new Points(defaults);
-    for(final LayoutNode nd : nodes) {
+    relevant.addAll(nodes);
+    refine(relevant, refP, true);
+  }
+
+  /**
+   * Refines the set of nodes.
+   * 
+   * @param relevant The relevant nodes.
+   * @param refP The reference point.
+   * @param first Whether this is the first iteration.
+   * @return Whether to on keep iterating.
+   */
+  private boolean refine(final Collection<LayoutNode> relevant,
+      final Point2D refP, final boolean first) {
+    // TODO maybe reactivate later
+    if(!first) return false;
+    final Point2D[] read = getDestinationForRead();
+    pos = new Points(defaults);
+    for(final LayoutNode nd : relevant) {
       // initialize the majorization with the original positions
       final int id = nd.getId();
-      final Point2D init = weighter.getDefaultPosition(nd);
+      final Point2D init = first ? weighter.getDefaultPosition(nd) : read[id];
       if(!(Double.isNaN(init.getX()) || Double.isNaN(init.getY()))) {
         pos.setPoint(id, init);
       }
     }
 
-    pos.majorize(refID, dists, weights, ITERATIONS);
+    pos.majorize(refID, dists, weights, first ? ITERATIONS_START : ITERATIONS_ITER);
 
+    final Point2D[] write = getDestinationForWrite();
     final Point2D offset = subVec(refP, pos.getPoint(refID));
-    for(final LayoutNode node : nodes) {
+    for(final LayoutNode node : relevant) {
       final int id = node.getId();
-      positions[id] = addVec(pos.getPoint(id), offset);
+      write[id] = addVec(pos.getPoint(id), offset);
     }
+    swap();
+    if(first) return true;
+    for(int i = 0; i < read.length; ++i) {
+      final Point2D a = read[i];
+      final Point2D b = write[i];
+      if(VecUtil.getLengthSq(VecUtil.subVec(a, b)) > EPS_SQ) return true;
+    }
+    return false;
   }
 
   @Override
-  protected Point2D getDestination(final LayoutNode n, final Point2D pos,
-      final LayoutNode ref, final Point2D refP, final Point2D diff) {
-    return positions[n.getId()];
+  protected boolean refinePositions(
+      final Collection<LayoutNode> relevant, final Point2D refP) {
+    return refine(relevant, refP, false);
+  }
+
+  /** Swaps the active with the inactive positions. */
+  private void swap() {
+    takeA = !takeA;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The active positions.
+   */
+  private Point2D[] getDestinationForRead() {
+    return takeA ? positionsA : positionsB;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return The inactive positions.
+   */
+  private Point2D[] getDestinationForWrite() {
+    // write in other
+    return takeA ? positionsB : positionsA;
+  }
+
+  @Override
+  protected Point2D getDestination(final LayoutNode n) {
+    return getDestinationForRead()[n.getId()];
   }
 
   @Override
