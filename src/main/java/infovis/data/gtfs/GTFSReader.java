@@ -124,20 +124,27 @@ public class GTFSReader implements BusDataReader {
   public BusDataBuilder read(final Resource r) throws IOException {
     if(used.getAndSet(true)) throw new IllegalStateException(
         "this reader was used before");
-    final Resource root = r.getParent();
-    final Resource ini = r.changeExtensionTo("ini");
+    final Resource dump = r.toDump();
+    final Resource root = dump.getParent();
+    final Resource ini = dump.changeExtensionTo("ini");
     final ChangeAwareProperties prop = new ChangeAwareProperties();
     if(ini.hasContent()) {
       prop.load(ini.reader());
     }
     final Object doCache = prop.get("cache");
-    final boolean caching = r.hasDirectFile()
+    final boolean caching = dump.hasDirectFile()
         && (doCache == null || "true".equals(doCache));
     prop.setProperty("cache", "" + caching);
     if(caching) {
       final Resource stops = root.getFile(CSVBusDataReader.STOPS);
-      final File zip = r.directFile();
-      if(stops.hasContent() && zip.lastModified() < stops.directFile().lastModified()) {
+      boolean modified;
+      if(r.hasDirectFile()) {
+        final File zip = r.directFile();
+        modified = zip.lastModified() >= stops.directFile().lastModified();
+      } else {
+        modified = false;
+      }
+      if(stops.hasContent() && !modified) {
         final Stopwatch t = new Stopwatch();
         System.out.println("Loading cached from " + root);
         final BusDataReader in = new CSVBusDataReader();

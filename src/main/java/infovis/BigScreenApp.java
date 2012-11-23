@@ -4,8 +4,6 @@ import infovis.data.BusStationManager;
 import infovis.gui.MainWindow;
 import infovis.util.Stopwatch;
 
-import java.io.IOException;
-
 import javax.swing.WindowConstants;
 
 /**
@@ -27,13 +25,7 @@ public final class BigScreenApp {
    *          Otherwise the default resources are used.
    */
   public static void main(final String[] args) {
-    final BusStationManager m;
-    try {
-      m = DesktopApp.loadData(args);
-    } catch(final IOException e) {
-      e.printStackTrace();
-      return;
-    }
+    final BusStationManager m = DesktopApp.loadData(args);
     final Stopwatch startup = new Stopwatch();
     System.out.println("Starting up...");
     DesktopApp.setLookAndFeel();

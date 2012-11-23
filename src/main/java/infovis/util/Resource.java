@@ -27,7 +27,61 @@ public final class Resource {
   public static final Charset UTF8 = Charset.forName("UTF-8");
 
   /** Resource path. */
-  public static final String RESOURCES = "src/main/resources";
+  public static final String RESOURCES = "src/main/resources/";
+
+  /**
+   * Calculates the relative path from <code>base</code> to <code>dest</code>.
+   * If both paths have different roots e.g. in windows on different drives. The
+   * absolute path of <code>dest</code> is returned.
+   * 
+   * @param base The starting point of the relative path.
+   * @param dest The destination point of the relative path.
+   * @return A relative path from <code>base</code> to <code>dest</code> as
+   *         string.
+   */
+  public static String relativePath(final File base, final File dest) {
+    final String[] absoluteDirectories = base.getAbsolutePath().split("[/\\\\]");
+    final String[] relativeDirectories = dest.getAbsolutePath().split("[/\\\\]");
+    final int length = absoluteDirectories.length < relativeDirectories.length ?
+        absoluteDirectories.length : relativeDirectories.length;
+
+    int lastCommonRoot = -1;
+    int index;
+    for(index = 0; index < length; ++index) {
+      if(!absoluteDirectories[index].equals(relativeDirectories[index])) {
+        break;
+      }
+      lastCommonRoot = index;
+    }
+    if(lastCommonRoot == -1) return dest.getAbsolutePath();
+
+    final StringBuilder relativePath = new StringBuilder();
+    for(index = lastCommonRoot + 1; index < absoluteDirectories.length; ++index) {
+      if(!absoluteDirectories[index].isEmpty()) {
+        relativePath.append("../");
+      }
+    }
+    for(index = lastCommonRoot + 1; index < relativeDirectories.length - 1; ++index) {
+      relativePath.append(relativeDirectories[index]);
+      relativePath.append("/");
+    }
+    relativePath.append(relativeDirectories[relativeDirectories.length - 1]);
+    return relativePath.toString();
+  }
+
+  /**
+   * Ensures that the given directory exists.
+   * 
+   * @param dir The directory.
+   * @return The directory.
+   */
+  public static File ensureDir(final File dir) {
+    if(dir == null) return null;
+    if(dir.exists()) return dir;
+    ensureDir(dir.getParentFile());
+    dir.mkdir();
+    return dir;
+  }
 
   /**
    * The local resource path or <code>null</code> if a direct path is specified.
@@ -40,6 +94,9 @@ public final class Resource {
   /** The file part or <code>null</code> if no file is specified. */
   private final String file;
 
+  /** Dump for caching system resources. */
+  private final String dump;
+
   /** The character set. */
   private final Charset cs;
 
@@ -49,7 +106,7 @@ public final class Resource {
    * @param name The name of the system resource.
    */
   public Resource(final String name) {
-    this(RESOURCES, name, defaultCharset(name));
+    this(RESOURCES, name, defaultCharset(name), null);
   }
 
   /**
@@ -59,9 +116,11 @@ public final class Resource {
    *          is specified.
    * @param resource The resource to get
    * @param cs The character set or <code>null</code>.
+   * @param dump The dump.
    */
-  public Resource(final String local, final String resource, final String cs) {
-    this(local, resource, cs != null ? Charset.forName(cs) : defaultCharset(resource));
+  public Resource(final String local, final String resource,
+      final String cs, final String dump) {
+    this(local, resource, chooseCharset(cs, resource), dump);
   }
 
   /**
@@ -71,9 +130,11 @@ public final class Resource {
    *          is specified.
    * @param resource The resource to get.
    * @param cs The character set.
+   * @param dump The dump.
    */
-  public Resource(final String local, final String resource, final Charset cs) {
-    this(local, resource, null, cs);
+  public Resource(final String local, final String resource,
+      final Charset cs, final String dump) {
+    this(local, resource, null, cs, dump);
   }
 
   /**
@@ -84,13 +145,27 @@ public final class Resource {
    * @param path The path part.
    * @param file The file part.
    * @param cs The character set.
+   * @param dump The dump.
    */
-  private Resource(final String local, final String path, final String file,
-      final Charset cs) {
+  private Resource(final String local, final String path,
+      final String file, final Charset cs, final String dump) {
     this.path = Objects.requireNonNull(path);
     this.cs = Objects.requireNonNull(cs);
-    this.local = local;
     this.file = file;
+    String l;
+    if(local != null) {
+      l = endsWithDelim(local) ? local : local + "/";
+    } else {
+      l = null;
+    }
+    this.local = l;
+    String d;
+    if(dump != null) {
+      d = endsWithDelim(dump) ? dump : dump + "/";
+    } else {
+      d = null;
+    }
+    this.dump = d;
   }
 
   /**
@@ -161,7 +236,7 @@ public final class Resource {
    * @return The parent of the resource.
    */
   public Resource getParent() {
-    return new Resource(local, getParent(getResource()), cs);
+    return new Resource(local, getParent(getResource()), cs, dump);
   }
 
   /**
@@ -186,9 +261,10 @@ public final class Resource {
    * @return The resource with substituted extension.
    */
   public Resource changeExtensionTo(final String ext) {
-    if(file != null) return new Resource(local, path, changeExtensionTo(file, ext), cs);
+    if(file != null) return new Resource(local, path, changeExtensionTo(file, ext), cs,
+        dump);
     final String p = endsWithDelim(path) ? parent(path) : path;
-    return new Resource(local, changeExtensionTo(p, ext), cs);
+    return new Resource(local, changeExtensionTo(p, ext), cs, dump);
   }
 
   /**
@@ -198,7 +274,7 @@ public final class Resource {
    * @return The resource pointing to the file.
    */
   public Resource getFile(final String name) {
-    return new Resource(local, getResource(), name, cs);
+    return new Resource(local, getResource(), name, cs, dump);
   }
 
   /**
@@ -211,13 +287,25 @@ public final class Resource {
   }
 
   /**
-   * Creates a direct file.
+   * Creates a direct file and ensures that the folder for the file exists.
    * 
    * @return The file object.
    */
   public File directFile() {
     if(!hasDirectFile()) throw new IllegalStateException("has local part: " + local);
-    return new File(getResource());
+    final File res = new File(getResource());
+    ensureDir(res.getParentFile());
+    return res;
+  }
+
+  /**
+   * Getter.
+   * 
+   * @return Converts this resource to a dump resource if possible or needed.
+   */
+  public Resource toDump() {
+    if(dump == null) return this;
+    return new Resource(null, dump + getResource(), cs, null);
   }
 
   /**
@@ -312,6 +400,18 @@ public final class Resource {
    */
   private static boolean isZip(final String path) {
     return path.endsWith(".zip");
+  }
+
+  /**
+   * Uses the given character set or the default character set if it is not
+   * given.
+   * 
+   * @param cs The wanted character set or <code>null</code>.
+   * @param resource The resource.
+   * @return The character set.
+   */
+  private static Charset chooseCharset(final String cs, final String resource) {
+    return cs != null ? Charset.forName(cs) : defaultCharset(resource);
   }
 
   /**
