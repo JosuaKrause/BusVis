@@ -395,7 +395,14 @@ public class CSVTest {
     final String test = "abc;\";\";\"\"\"\"" + NL + "def;ghu;\"" + NL
         + "\";" + NL;
     final StringWriter out = new StringWriter();
-    final CSVWriter cw = new CSVWriter(new PrintWriter(out));
+    final CSVWriter cw = new CSVWriter(new PrintWriter(out) {
+
+      @Override
+      public void println() {
+        print(NL);
+      }
+
+    });
     csv.setHandler(new CSVAdapter() {
 
       @Override
