@@ -3,6 +3,7 @@ package infovis.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.Writer;
 import java.util.InvalidPropertiesFormatException;
 import java.util.Map;
 import java.util.Properties;
@@ -77,7 +78,9 @@ public class ChangeAwareProperties extends Properties {
   public boolean storeIfChanged(final Resource r,
       final String comments) throws IOException {
     if(!hasChanged) return false;
-    store(r.writer(), comments);
+    final Writer out = r.writer();
+    if(out == null) return false;
+    store(out, comments);
     return true;
   }
 

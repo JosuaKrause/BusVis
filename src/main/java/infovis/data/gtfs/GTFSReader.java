@@ -130,8 +130,14 @@ public class GTFSReader implements BusDataReader {
     final ChangeAwareProperties prop = new ChangeAwareProperties();
     if(ini.hasContent()) {
       prop.load(ini.reader());
+    } else {
+      // use system ini
+      final Resource sysIni = r.changeExtensionTo("ini");
+      if(sysIni.hasContent()) {
+        prop.load(sysIni.reader());
+      }
     }
-    final Object doCache = prop.get("cache");
+    final String doCache = prop.getProperty("cache");
     final boolean caching = dump.hasDirectFile()
         && (doCache == null || "true".equals(doCache));
     prop.setProperty("cache", "" + caching);
@@ -147,7 +153,7 @@ public class GTFSReader implements BusDataReader {
       if(stops.hasContent() && !modified) {
         final Stopwatch t = new Stopwatch();
         System.out.println("Loading cached from " + root);
-        final BusDataReader in = new CSVBusDataReader();
+        final BusDataReader in = new CSVBusDataReader(prop);
         builder = in.read(root);
         System.out.println("Loading took " + t.current());
         writeProperties(prop, ini);
@@ -197,7 +203,7 @@ public class GTFSReader implements BusDataReader {
     final Stopwatch t = new Stopwatch();
     System.out.println("Loading " + r);
     data.setSource(r);
-    builder = new BusDataBuilder(null);
+    builder = new BusDataBuilder(null, prop);
     System.out.println("Took " + t.reset());
     System.out.println("Reading stations...");
     readStations();
@@ -281,16 +287,15 @@ public class GTFSReader implements BusDataReader {
    * @param caching Whether caching is enabled.
    */
   private void readTrips(final Properties prop, final boolean caching) {
-    final Object d = prop.get("date");
+    final String d = prop.getProperty("date");
     Calendar date = Calendar.getInstance();
     if(d == null) {
       prop.setProperty("date", "today");
     } else {
-      final String ds = d.toString();
-      if(!"today".equals(ds)) {
+      if(!"today".equals(d)) {
         try {
           date = Calendar.getInstance();
-          date.setTime(DATE_PARSER.parse(ds));
+          date.setTime(DATE_PARSER.parse(d));
         } catch(final ParseException e) {
           prop.setProperty("date", "today");
         }
