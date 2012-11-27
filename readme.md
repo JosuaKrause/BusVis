@@ -2,10 +2,11 @@
 
 Visualization of transit systems.
 As argument to one of the main applications (located in the package infovis or it can be built with maven)
-an alternative resource path can be used. Additionally the encoding can be
-passed as second argument.
+an alternative resource path can be used.
 The alternative path can either be in the internal csv format or a zip file
 in the [GTFS][1] (General Transit Feed Specification).
+A more detailed explanation of
+command line arguments can be obtained by passing `-h` or `--help` on the command line.
 
 ### Internal CSV-Format
 
@@ -47,8 +48,13 @@ is a directory. This directory must contain the following files:
     distance from a station to itself is not needed. The first two columns define
     the pair of stations and the third is the walking time in seconds.
 
+-   *settings.ini* (optional)
+
+    A settings file similar to the one used for the GTFS format below.
+    Currently only the *scale* value is implemented.
+
 The default character set for the csv files is CP1252 to be excel compliant -- use
-the second command line argument to change the character set.
+the corresponding command line argument to change the character set.
 
 ### GTFS-Format
 
@@ -71,6 +77,10 @@ Valid fields are:
     Sets the date the data should be loaded for.
     To always use the current date the value `today` can be used.
     Otherwise the GTFS style date format (`YYYYMMDD`) must be used.
+
+-   *scale*
+
+    The scaling factor for geographic coordinates.
 
 A sample GTFS data set can be found at `src/main/resources/nyc/mta_20120701.zip`.
 
