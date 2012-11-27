@@ -129,7 +129,7 @@ public final class BusDataBuilder implements BusStationEnumerator {
     if(r.isZip()) {
       if(!UTF8.equals(r.getCharset())) {
         System.err.println("Warning: character set '" + r.getCharset().displayName()
-            + "' is not 'UTF-8'! Use second command line argument to change");
+            + "' is not 'UTF-8'! Use command line argument to change");
       }
       in = new GTFSReader(new LazyGTFSDataProvider());
     } else {
