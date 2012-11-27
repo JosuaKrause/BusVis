@@ -427,7 +427,8 @@ public final class Resource {
 
   @Override
   public String toString() {
-    return (local != null ? local : "") + getResource();
+    return (local != null ? local : "") + getResource() + " [local: " + local + " path: "
+        + path + " file: " + file + " dump: " + dump + " cs: " + cs.name() + "]";
   }
 
 }

@@ -1,7 +1,5 @@
 package infovis.data;
 
-import infovis.util.VecUtil;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -50,18 +48,45 @@ public final class BusStation implements Comparable<BusStation> {
    * @param abstractY The y position on the abstract map.
    * @param edges sorted list of edges
    * @param walkingDists walking distances
+   * @param scale The scaling of geographic positions.
    */
   BusStation(final String name, final int id, final double latitude,
       final double longitude, final double abstractX, final double abstractY,
-      final List<BusEdge> edges, final List<Integer> walkingDists) {
+      final List<BusEdge> edges, final List<Integer> walkingDists, final double scale) {
     this.name = name;
     this.id = id;
     this.abstractX = abstractX;
     this.abstractY = abstractY;
     this.edges = edges;
     this.walkingDists = walkingDists;
-    x = VecUtil.scaleAngle(longitude, false);
-    y = VecUtil.scaleAngle(latitude, true);
+    this.scale = scale;
+    x = scaleAngle(longitude, false);
+    y = scaleAngle(latitude, true);
+  }
+
+  /** The value to scale angles. */
+  private final double scale;
+
+  /**
+   * Scales the given angle to a bigger representable size.
+   * 
+   * @param angle The angle in degrees.
+   * @param lat Whether the angle is latitude or longitude.
+   * @return A coordinate.
+   */
+  private double scaleAngle(final double angle, final boolean lat) {
+    return (angle + 180) * scale * (lat ? -1 : 1);
+  }
+
+  /**
+   * Unscales the given coordinate back to the original angle.
+   * 
+   * @param coord The coordinate.
+   * @param lat Whether the angle is latitude or longitude.
+   * @return The corresponding angle.
+   */
+  private double unscaleAngle(final double coord, final boolean lat) {
+    return coord / scale * (lat ? -1 : 1) - 180;
   }
 
   /**
@@ -183,7 +208,7 @@ public final class BusStation implements Comparable<BusStation> {
    * @return The longitude of this bus station.
    */
   public double getLongitude() {
-    return VecUtil.unscaleAngle(x, false);
+    return unscaleAngle(x, false);
   }
 
   /**
@@ -201,7 +226,7 @@ public final class BusStation implements Comparable<BusStation> {
    * @return The latitude of this bus station.
    */
   public double getLatitude() {
-    return VecUtil.unscaleAngle(y, true);
+    return unscaleAngle(y, true);
   }
 
   /**

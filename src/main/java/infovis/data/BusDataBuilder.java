@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Loader for bus data in {@code CSV} format.
@@ -37,14 +38,39 @@ public final class BusDataBuilder implements BusStationEnumerator {
   private final List<List<Integer>> walkingDists = new ArrayList<List<Integer>>();
   /** The overview resource URL. */
   private final Resource overview;
+  /** The scaling of geographic coordinates. */
+  private final double scale;
+
+  /**
+   * Constructor taking the path of the CSV files. The default scaling is used.
+   * 
+   * @param overview The overview resource, possibly <code>null</code>
+   */
+  public BusDataBuilder(final Resource overview) {
+    this(overview, null);
+  }
 
   /**
    * Constructor taking the path of the CSV files.
    * 
    * @param overview The overview resource, possibly <code>null</code>
+   * @param prop The properties used to determine the geographic scale.
    */
-  public BusDataBuilder(final Resource overview) {
+  public BusDataBuilder(final Resource overview, final Properties prop) {
     this.overview = overview;
+    double s = 4000;
+    if(prop != null) {
+      final String scaleTxt = prop.getProperty("scale");
+      if(scaleTxt != null) {
+        try {
+          s = Double.parseDouble(scaleTxt);
+        } catch(final NumberFormatException e) {
+          // stick to default value
+        }
+      }
+      prop.setProperty("scale", "" + s);
+    }
+    scale = s;
   }
 
   /**
@@ -103,7 +129,7 @@ public final class BusDataBuilder implements BusStationEnumerator {
     if(r.isZip()) {
       if(!UTF8.equals(r.getCharset())) {
         System.err.println("Warning: character set '" + r.getCharset().displayName()
-            + "' is not 'UTF-8'! Use second command line argument to change");
+            + "' is not 'UTF-8'! Use command line argument to change");
       }
       in = new GTFSReader(new LazyGTFSDataProvider());
     } else {
@@ -149,7 +175,7 @@ public final class BusDataBuilder implements BusStationEnumerator {
     final List<Integer> walking = new ArrayList<Integer>();
     walkingDists.add(walking);
     final BusStation bus = new BusStation(name, realId, lat, lon,
-        abstractX, abstractY, edgeList, walking);
+        abstractX, abstractY, edgeList, walking, scale);
     stations.add(bus);
     return bus;
   }
