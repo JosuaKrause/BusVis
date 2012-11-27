@@ -183,29 +183,4 @@ public final class VecUtil {
     return 2 * radius * c;
   }
 
-  /** The value to scale angles. */
-  private static final double SCALE = 4000;
-
-  /**
-   * Scales the given angle to a bigger representable size.
-   * 
-   * @param angle The angle in degrees.
-   * @param lat Whether the angle is latitude or longitude.
-   * @return A coordinate.
-   */
-  public static double scaleAngle(final double angle, final boolean lat) {
-    return (angle + 180) * SCALE * (lat ? -1 : 1);
-  }
-
-  /**
-   * Unscales the given coordinate back to the original angle.
-   * 
-   * @param coord The coordinate.
-   * @param lat Whether the angle is latitude or longitude.
-   * @return The corresponding angle.
-   */
-  public static double unscaleAngle(final double coord, final boolean lat) {
-    return coord / SCALE * (lat ? -1 : 1) - 180;
-  }
-
 }

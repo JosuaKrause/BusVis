@@ -7,10 +7,12 @@ import infovis.data.BusDataBuilder;
 import infovis.data.BusDataReader;
 import infovis.data.BusLine;
 import infovis.data.BusTime;
+import infovis.util.ChangeAwareProperties;
 import infovis.util.Resource;
 
 import java.awt.Color;
 import java.io.IOException;
+import java.util.Properties;
 
 import jkit.io.csv.CSVReader;
 import jkit.io.csv.CSVRow;
@@ -28,6 +30,9 @@ public class CSVBusDataReader implements BusDataReader {
   /** The walking distances table. */
   public static final String WALKING_DIST = "walking-dists.csv";
 
+  /** The properties file. */
+  public static final String PROPS = "settings.ini";
+
   /** The bus line table. */
   public static final String LINES = "lines.csv";
 
@@ -40,12 +45,32 @@ public class CSVBusDataReader implements BusDataReader {
   /** The schematic overview. */
   public static final String ABSTRACT = "abstract.svg";
 
+  /** The properties. */
+  private Properties prop;
+
+  /** Creates a bus data reader with automatic property detection. */
+  public CSVBusDataReader() {
+    this(null);
+  }
+
+  /**
+   * Uses the given properties for the reader.
+   * 
+   * @param prop The properties.
+   */
+  public CSVBusDataReader(final Properties prop) {
+    this.prop = prop;
+  }
+
   @Override
   public BusDataBuilder read(final Resource r) throws IOException {
     final CSVReader reader = new CSVReader();
     final Resource overview = r.getFile(ABSTRACT);
+
+    final ChangeAwareProperties ownProps = loadProperties(r);
+
     final BusDataBuilder builder = new BusDataBuilder(
-        overview.hasContent() ? overview : null);
+        overview.hasContent() ? overview : null, prop);
 
     for(final CSVRow stop : CSVReader.readRows(r.getFile(STOPS), reader)) {
       double abstractX, abstractY;
@@ -94,7 +119,42 @@ public class CSVBusDataReader implements BusDataReader {
 
     builder.computeEdgeMatrix();
 
+    if(ownProps != null) {
+      if(ownProps.storeIfChanged(r.toDump().getFile(PROPS), "created automatically")) {
+        System.out.println("Written INI file");
+      }
+      prop = null;
+    }
+
     return builder;
+  }
+
+  /**
+   * Loads properties if automatic property detection is enabled.
+   * 
+   * @param r The folder.
+   * @return The created change aware properties.
+   */
+  private ChangeAwareProperties loadProperties(final Resource r) {
+    if(prop != null) return null;
+
+    final ChangeAwareProperties res = new ChangeAwareProperties();
+    prop = res;
+    final Resource p = r.toDump().getFile(PROPS);
+    try {
+      if(p.hasContent()) {
+        prop.load(p.reader());
+      } else {
+        // use system INI
+        final Resource sysProp = r.getFile(PROPS);
+        if(sysProp.hasContent()) {
+          prop.load(sysProp.reader());
+        }
+      }
+    } catch(final IOException e) {
+      // ignore
+    }
+    return res;
   }
 
 }
