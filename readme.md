@@ -60,8 +60,8 @@ the corresponding command line argument to change the character set.
 
 The [GTFS][1] format is used when the path points to a zip file.
 The default character set of the GTFS format (UTF-8) is used except
-when overwritten by the second command line argument.
-In an optional ini file, that is located in the same folder with the
+when overwritten by the corresponding command line argument.
+In an optional ini file, that is located in the same folder and with the
 same name as the zip, properties regarding the way of interpreting
 the GTFS file can be set.
 Valid fields are:
