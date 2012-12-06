@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>joschi-mvn</groupId>
 	<artifactId>BusVis</artifactId>
-	<version>0.4.2</version>
+	<version>0.5</version>
 	<name>BusVis</name>
 	<description>Visualization of the Constance Bus System</description>
 	<properties>
