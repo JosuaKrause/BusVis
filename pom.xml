@@ -5,7 +5,7 @@
 	<artifactId>BusVis</artifactId>
 	<version>0.5</version>
 	<name>BusVis</name>
-	<description>Visualization of the Constance Bus System</description>
+	<description>Visualization of Transit Networks</description>
 	<properties>
 		<compileSource>1.6</compileSource>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -20,6 +20,14 @@
 		<license>
 			<name>License</name>
 			<url>LICENSE</url>
+		</license>
+		<license>
+			<name>MTA New York</name>
+			<url>src/main/resources/nyc/LICENSE</url>
+		</license>
+		<license>
+			<name>Stadtwerke Konstanz</name>
+			<url>src/main/resources/konstanz/LICENSE</url>
 		</license>
 	</licenses>
 	<build>
@@ -139,23 +147,9 @@
 	</dependencies>
 	<repositories>
 		<repository>
-			<id>joschi-snapshots</id>
-			<url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/snapshots</url>
-		</repository>
-		<repository>
 			<id>mdsj</id>
 			<name>MDSJ Maven Repository</name>
 			<url>http://woerteler.de/maven</url>
 		</repository>
 	</repositories>
-	<distributionManagement>
-		<repository>
-			<id>repo</id>
-			<url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/releases</url>
-		</repository>
-		<snapshotRepository>
-			<id>snapshot-repo</id>
-			<url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
 </project>
