@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>joschi-mvn</groupId>
 	<artifactId>BusVisPublic</artifactId>
-	<version>0.5</version>
+	<version>0.5.1</version>
 	<name>BusVisPublic</name>
 	<description>Visualization of Transit Networks</description>
 	<properties>

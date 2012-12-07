@@ -34,8 +34,8 @@ public final class BusLine implements Comparable<BusLine> {
    * @param color Bus line color.
    */
   BusLine(final String name, final String longName, final Color color) {
-    this.name = Objects.requireNonNull(name);
-    this.longName = Objects.nonNull(longName, name);
+    this.name = Objects.requireNonNull(name).intern();
+    this.longName = Objects.nonNull(longName, this.name);
     this.color = Objects.requireNonNull(color);
     final String tmp = "0000000000" + name;
     final int l = tmp.length();

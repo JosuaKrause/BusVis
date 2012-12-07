@@ -206,6 +206,7 @@ public class CSVReader {
    * @return A lazy iterator.
    */
   public static final Iterator<CSVRow> readRows(final Reader r, final CSVReader reader) {
+    final Object lock = new Object();
     return new Iterator<CSVRow>() {
 
       private final CSVHandler handler = new CSVAdapter() {
@@ -235,6 +236,9 @@ public class CSVReader {
           if(current != null) {
             try {
               rows.put(current);
+              synchronized(lock) {
+                lock.notifyAll();
+              }
             } catch(final InterruptedException e) {
               Thread.currentThread().interrupt();
             }
@@ -246,6 +250,9 @@ public class CSVReader {
         public void end(final CSVContext ctx) {
           row(ctx);
           finish = true;
+          synchronized(lock) {
+            lock.notifyAll();
+          }
         }
 
       };
@@ -268,6 +275,9 @@ public class CSVReader {
               e.printStackTrace();
             } finally {
               finish = true;
+              synchronized(lock) {
+                lock.notifyAll();
+              }
             }
           }
 
@@ -282,6 +292,13 @@ public class CSVReader {
       private void fetchNext() {
         while((cur = rows.poll()) == null) {
           if(finish) return;
+          try {
+            synchronized(lock) {
+              lock.wait(100);
+            }
+          } catch(final InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
         }
       }
 
