@@ -1,5 +1,7 @@
 package infovis.data;
 
+import infovis.util.Objects;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -53,7 +55,7 @@ public final class BusStation implements Comparable<BusStation> {
   BusStation(final String name, final int id, final double latitude,
       final double longitude, final double abstractX, final double abstractY,
       final List<BusEdge> edges, final List<Integer> walkingDists, final double scale) {
-    this.name = name;
+    this.name = Objects.requireNonNull(name).intern();
     this.id = id;
     this.abstractX = abstractX;
     this.abstractY = abstractY;

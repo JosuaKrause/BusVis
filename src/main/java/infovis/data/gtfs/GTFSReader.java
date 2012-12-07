@@ -399,13 +399,15 @@ public class GTFSReader implements BusDataReader {
   }
 
   /** The minimal sequence number. */
-  private int minSeq = Integer.MAX_VALUE;
+  private int minSeq;
 
   /** The maximal sequence number. */
-  private int maxSeq = Integer.MIN_VALUE;
+  private int maxSeq;
 
   /** Reads the stop times. */
   private void readStopTimes() {
+    minSeq = Integer.MAX_VALUE;
+    maxSeq = Integer.MIN_VALUE;
     for(final GTFSRow row : data.stopTimes()) {
       final String tripId = Objects.requireNonNull(row.getField("trip_id"));
       final BusTime arrival = getTime(row.getField("arrival_time"));
@@ -501,7 +503,8 @@ public class GTFSReader implements BusDataReader {
      * @param pos The sequence number.
      */
     public TripSegment(final String tripId, final int pos) {
-      this.tripId = Objects.requireNonNull(tripId);
+      // intern string to avoid OOME -- may be slower
+      this.tripId = Objects.requireNonNull(tripId).intern();
       this.pos = pos;
     }
 
