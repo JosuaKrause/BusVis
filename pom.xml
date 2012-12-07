@@ -2,24 +2,28 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>joschi-mvn</groupId>
-	<artifactId>BusVis</artifactId>
+	<artifactId>BusVisPublic</artifactId>
 	<version>0.5</version>
-	<name>BusVis</name>
-	<description>Visualization of the Constance Bus System</description>
+	<name>BusVisPublic</name>
+	<description>Visualization of Transit Networks</description>
 	<properties>
 		<compileSource>1.6</compileSource>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
-	<url>https://github.com/JosuaKrause/BusVis</url>
+	<url>https://github.com/JosuaKrause/BusVisPublic</url>
 	<issueManagement>
 		<system>GitHub Tracker</system>
-		<url>https://github.com/JosuaKrause/BusVis/issues</url>
+		<url>https://github.com/JosuaKrause/BusVisPublic/issues</url>
 	</issueManagement>
 	<licenses>
 		<license>
 			<name>License</name>
 			<url>LICENSE</url>
+		</license>
+		<license>
+			<name>MTA New York</name>
+			<url>src/main/resources/nyc/LICENSE</url>
 		</license>
 	</licenses>
 	<build>
@@ -139,23 +143,9 @@
 	</dependencies>
 	<repositories>
 		<repository>
-			<id>joschi-snapshots</id>
-			<url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/snapshots</url>
-		</repository>
-		<repository>
 			<id>mdsj</id>
 			<name>MDSJ Maven Repository</name>
 			<url>http://woerteler.de/maven</url>
 		</repository>
 	</repositories>
-	<distributionManagement>
-		<repository>
-			<id>repo</id>
-			<url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/releases</url>
-		</repository>
-		<snapshotRepository>
-			<id>snapshot-repo</id>
-			<url>https://raw.github.com/JosuaKrause/joschi-mvn-repo/master/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
 </project>

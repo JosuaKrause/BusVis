@@ -85,7 +85,8 @@ public final class DesktopApp {
       String cur = readNext(args, pos++);
       if("-h".equals(cur) || "--help".equals(cur)) return usageAndExit(null);
       if(cur == null) {
-        r = new Resource("konstanz");
+        r = new Resource(Resource.RESOURCES, "nyc/mta_20120701.zip", Resource.UTF8,
+            "cache");
       } else {
         final String file;
         final String local;
